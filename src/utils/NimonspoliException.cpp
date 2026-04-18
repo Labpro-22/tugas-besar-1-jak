@@ -1,4 +1,4 @@
-#include "NimonspoliException.hpp"
+#include "../../include/utils/NimonspoliException.hpp"
 
 NimonspoliException::NimonspoliException(std::string message) 
     : message(message) {}
