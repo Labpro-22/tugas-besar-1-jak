@@ -1,8 +1,5 @@
 #pragma once
 #include <string>
-#include <vector>
-
-using namespace std;
 
 // Forward declaration biar ga compile 
 class IGameAction;
@@ -13,5 +10,5 @@ class Command {
 public:
     virtual ~Command() {}
     virtual void execute(IGameAction& game) = 0;
-    virtual string getName() const = 0;
+    virtual std::string getName() const = 0;
 };
