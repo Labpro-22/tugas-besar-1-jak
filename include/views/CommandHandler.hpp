@@ -6,8 +6,6 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
-
 // Forward declaration
 class CLIRenderer;
 
@@ -15,18 +13,18 @@ class CLIRenderer;
 // Input --> CommandHandler --> CommandParser --> Game
 class CommandHandler {
     private:
-    IGameAction& game_;
-    CLIRenderer& renderer_;
+    IGameAction& game;
+    CLIRenderer& renderer;
 
     public:
-    CommandHandler(IGameAction& game, CLIRenderer& renderer) : game_(game), renderer_(renderer) {}
+    CommandHandler(IGameAction& game, CLIRenderer& renderer) : game(game), renderer(renderer) {}
 
     // Mintain input dan dia dipake sama Game tiap turn dimulai
     void listen() {
-        string rawInput;
-        while (game_.isGameActive()) {
+        std::string rawInput;
+        while (game.isGameActive()) {
             cout << "> ";
-            if (!getline(cin, rawInput)) {
+            if (!std::getline(std::cin, rawInput)) {
                 break;
             }
             handleInput(rawInput);
@@ -34,23 +32,23 @@ class CommandHandler {
     }
 
     // Handle satu baris input
-    void handleInput(const string& rawInput) {
+    void handleInput(const std::string& rawInput) {
         try {
             // Lempar ke CommandParser buat dapet objek Command
             auto command = CommandParser::parse(rawInput);
 
             // Pass ke Game buat game panggil fungsi ini
-            command->execute(game_);
+            command->execute(game);
         } catch (const NimonspoliException& e) { // Error handling
-            cerr << "[Error] " << e.what() << "\n";
+            std::cerr << "[Error] " << e.what() << "\n";
         }
     }
 
     // Minta input konfirmasi (buat Game minta jawaban y/n atau pilihan dari menu)
-    string promptInput(const string& prompt) {
-        cout << prompt;
-        string input;
-        getline(cin, input);
+    std::string promptInput(const std::string& prompt) {
+        std::cout << prompt;
+        std::string input;
+        std::getline(cin, input);
         return input;
     }
 };

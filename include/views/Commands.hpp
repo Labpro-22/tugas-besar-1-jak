@@ -11,7 +11,7 @@ class RollDiceCommand : public Command {
     void execute(IGameAction& game) override {
         game.rollDice();
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "LEMPAR_DADU"; 
     }
 };
@@ -19,15 +19,15 @@ class RollDiceCommand : public Command {
 // ===== SetDiceCommand — ATUR_DADU X Y =====
 class SetDiceCommand : public Command {
     private:
-    int x_, y_;
+    int x, y;
 
     public:
-    SetDiceCommand(int x, int y) : x_(x), y_(y) {}
+    SetDiceCommand(int x, int y) : x(x), y(y) {}
 
     void execute(IGameAction& game) override {
-        game.setDice(x_, y_);
+        game.setDice(x, y);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "ATUR_DADU"; 
     }
 };
@@ -38,7 +38,7 @@ class BuyCommand : public Command {
     void execute(IGameAction& game) override {
         game.buyCurrentProperty();
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "BELI"; 
     }
 };
@@ -46,16 +46,17 @@ class BuyCommand : public Command {
 // ===== MortgageCommand — GADAI <kode_petak> [<kode_petak> ...] =====
 class MortgageCommand : public Command {
     private:
-    vector<string> tileCodes_;
+    std::vector<string> tileCodes;
+
     public:
-    explicit MortgageCommand(vector<string> tileCodes) : tileCodes_(move(tileCodes)) {}
+    explicit MortgageCommand(std::vector<string> tileCodes) : tileCodes(std::move(tileCodes)) {}
 
     void execute(IGameAction& game) override {
-        for (const auto& code : tileCodes_) {
+        for (const auto& code : tileCodes) {
             game.mortgageProperty(code);
         }
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "GADAI"; 
     }
 };
@@ -63,15 +64,15 @@ class MortgageCommand : public Command {
 // ===== RedeemCommand — TEBUS <kode_petak> =====
 class RedeemCommand : public Command {
     private:
-    string tileCode_;
+    std::string tileCode;
     
     public:
-    explicit RedeemCommand(string tileCode) : tileCode_(move(tileCode)) {}
+    explicit RedeemCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
 
     void execute(IGameAction& game) override {
-        game.redeemProperty(tileCode_);
+        game.redeemProperty(tileCode);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "TEBUS"; 
     }
 };
@@ -79,15 +80,15 @@ class RedeemCommand : public Command {
 // ===== BuildCommand — BANGUN <kode_petak> =====
 class BuildCommand : public Command {
     private:
-    string tileCode_;
+    std::string tileCode;
     
     public:
-    explicit BuildCommand(string tileCode) : tileCode_(move(tileCode)) {}
+    explicit BuildCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
 
     void execute(IGameAction& game) override {
-        game.buildOnProperty(tileCode_);
+        game.buildOnProperty(tileCode);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "BANGUN"; 
     }
 };
@@ -95,15 +96,15 @@ class BuildCommand : public Command {
 // ===== SellBuildingCommand — JUAL_BANGUNAN <kode_petak> =====
 class SellBuildingCommand : public Command {
     private:
-    string tileCode_;
+    std::string tileCode;
     
     public:
-    explicit SellBuildingCommand(string tileCode) : tileCode_(move(tileCode)) {}
+    explicit SellBuildingCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
 
     void execute(IGameAction& game) override {
-        game.sellBuildingOnProperty(tileCode_);
+        game.sellBuildingOnProperty(tileCode);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "JUAL_BANGUNAN"; 
     }
 };
@@ -111,15 +112,15 @@ class SellBuildingCommand : public Command {
 // ===== BidCommand — TAWAR <jumlah> =====
 class BidCommand : public Command {
     private:
-    int amount_;
+    int amount;
     
     public:
-    explicit BidCommand(int amount) : amount_(amount) {}
+    explicit BidCommand(int amount) : amount(amount) {}
 
     void execute(IGameAction& game) override {
-        game.placeBid(amount_);
+        game.placeBid(amount);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "TAWAR"; 
     }
 };
@@ -130,7 +131,7 @@ class PassAuctionCommand : public Command {
     void execute(IGameAction& game) override {
         game.passAuction();
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "LEPAS"; 
     }
 };
@@ -138,15 +139,15 @@ class PassAuctionCommand : public Command {
 // ===== UseSkillCommand — GUNAKAN_KEMAMPUAN <indeks_kartu> =====
 class UseSkillCommand : public Command {
     private:
-    int cardIndex_;
+    int cardIndex;
     
     public:
-    explicit UseSkillCommand(int cardIndex) : cardIndex_(cardIndex) {}
+    explicit UseSkillCommand(int cardIndex) : cardIndex(cardIndex) {}
 
     void execute(IGameAction& game) override {
-        game.useSkillCard(cardIndex_);
+        game.useSkillCard(cardIndex);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "GUNAKAN_KEMAMPUAN"; 
     }
 };
@@ -157,7 +158,7 @@ class PayJailFineCommand : public Command {
     void execute(IGameAction& game) override {
         game.payJailFine();
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "BAYAR_DENDA"; 
     }
 };
@@ -168,7 +169,7 @@ class UseJailFreeCardCommand : public Command {
     void execute(IGameAction& game) override {
         game.useJailFreeCard();
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "GUNAKAN_KARTU_BEBAS"; 
     }
 };
@@ -176,15 +177,15 @@ class UseJailFreeCardCommand : public Command {
 // ===== SaveCommand — SIMPAN <filename> =====
 class SaveCommand : public Command {
     private:
-    string filename_;
+    std::string filename;
     
     public:
-    explicit SaveCommand(string filename) : filename_(move(filename)) {}
+    explicit SaveCommand(std::string filename) : filename(std::move(filename)) {}
 
     void execute(IGameAction& game) override {
-        game.saveGame(filename_);
+        game.saveGame(filename);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "SIMPAN"; 
     }
 };
@@ -192,15 +193,15 @@ class SaveCommand : public Command {
 // ===== LoadCommand — MUAT <filename> =====
 class LoadCommand : public Command {
     private:
-    string filename_;
+    std::string filename;
     
     public:
-    explicit LoadCommand(string filename) : filename_(move(filename)) {}
+    explicit LoadCommand(std::string filename) : filename(std::move(filename)) {}
 
     void execute(IGameAction& game) override {
-        game.loadGame(filename_);
+        game.loadGame(filename);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "MUAT"; 
     }
 };
@@ -211,7 +212,7 @@ class PrintBoardCommand : public Command {
     void execute(IGameAction& game) override {
         game.printBoard();
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "CETAK_PAPAN"; 
     }
 };
@@ -219,15 +220,15 @@ class PrintBoardCommand : public Command {
 // ===== PrintDeedCommand — CETAK_AKTA [<kode_petak>] =====
 class PrintDeedCommand : public Command {
     private:
-    string tileCode_;
+    std::string tileCode;
 
     public:
-    explicit PrintDeedCommand(string tileCode = "") : tileCode_(move(tileCode)) {}
+    explicit PrintDeedCommand(std::string tileCode = "") : tileCode(std::move(tileCode)) {}
 
     void execute(IGameAction& game) override {
-        game.printDeed(tileCode_);
+        game.printDeed(tileCode);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "CETAK_AKTA"; 
     }
 };
@@ -238,7 +239,7 @@ class PrintPropertyCommand : public Command {
     void execute(IGameAction& game) override {
         game.printPropertyInventory();
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "CETAK_PROPERTI"; 
     }
 };
@@ -246,15 +247,15 @@ class PrintPropertyCommand : public Command {
 // ===== PrintLogCommand — CETAK_LOG [<limit>] =====
 class PrintLogCommand : public Command {
     private:
-    int limit_;
+    int limit;
     
     public:
-    explicit PrintLogCommand(int limit = -1) : limit_(limit) {}
+    explicit PrintLogCommand(int limit = -1) : limit(limit) {}
 
     void execute(IGameAction& game) override {
-        game.printLog(limit_);
+        game.printLog(limit);
     }
-    string getName() const override { 
+    std::string getName() const override { 
         return "CETAK_LOG"; 
     }
 };
