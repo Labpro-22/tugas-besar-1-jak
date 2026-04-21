@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include "Board.hpp"
+#include "Player.hpp"
 
 enum class GamePhase
 {
@@ -15,9 +17,8 @@ class IGameAction
 public:
     virtual ~IGameAction() = default;
 
-    // Phase
-    virtual bool isGameActive() const = 0;
-    virtual GamePhase getCurrentState() const = 0;
+    virtual Board &getBoard() const = 0;
+    virtual Player *getCurrentPlayer() const = 0;
 
     // Dadu
     virtual void rollDice() = 0;
@@ -35,7 +36,7 @@ public:
     virtual void passAuction() = 0;
 
     // SkillCard
-    virtual void useSkillCard(const std::string &cardIndex) = 0;
+    virtual void useSkillCard(int &cardIndex) = 0;
 
     // Jail
     virtual void payJailFine() = 0;
