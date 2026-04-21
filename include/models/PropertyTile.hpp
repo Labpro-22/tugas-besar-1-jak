@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Tile.hpp"
 
 // Merepresentasikan petak properti yang bisa dimiliki pemain dan mempunyai nilai sewa
@@ -30,7 +31,7 @@ class PropertyTile : public Tile {
         bool isMortgaged() { return status == PropertyStatus::MORTGAGED; }
 };
 
-// Merepresentasikan petak lahan yang dapat ditingkatkan dan dikelompokkan berdasarkan color group
+// Merepresentasikan petak properti yang dapat ditingkatkan dan dikelompokkan berdasarkan color group
 class StreetTile : public PropertyTile {
     private:
         std::string colorGroup; // kelompok warna
@@ -109,7 +110,7 @@ class StreetTile : public PropertyTile {
         void printDeed();
 };
 
-// Merepresentasikan petak stasiun
+// Merepresentasikan petak properti berupa stasiun
 class RailroadTile : public PropertyTile {
     private:
         std::map<int, int> rentTable; // pemetaan jumlah railload yang dimiliki ke biaya sewa
@@ -129,7 +130,7 @@ class RailroadTile : public PropertyTile {
         void onLanded(Player& player, Game& game) override {}
 };
 
-// Merepresentasikan petak utilitas (PLN dan PAM)
+// Merepresentasikan petak properti berupa utilitas (PLN dan PAM)
 class UtilityTile : public PropertyTile {
     private:
         std::map<int, int> multiplierTable; // pemetaan jumlah utility yang dimiliki ke faktor pengali sewa

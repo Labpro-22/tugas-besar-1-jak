@@ -13,6 +13,16 @@ enum class PropertyStatus {
     BANK, OWNED, MORTGAGED
 };
 
+// Tipe dek kartu pada game
+enum class DeckType {
+    CHANCE, GENERAL_FUNDS
+};
+
+// Tipe pajak pada petak pajak
+enum class TaxType {
+    PPH, PBM
+};
+
 // Merepresentasikan petak-petak pada papan permainan Nimonspoli
 class Tile {
     protected:
