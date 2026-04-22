@@ -7,8 +7,7 @@
 class ActionTile: public Tile {
     public:
         // ctor
-        ActionTile(int idx, std::string cd, std::string nm)
-            : Tile(idx, cd, nm) {}
+        ActionTile(int idx, std::string cd, std::string nm);
 };
 
 // Merepresentasikan petak aksi untuk mengambil kartu sesuai tipe dek
@@ -18,20 +17,18 @@ class CardTile: public ActionTile {
         DeckType deckType;
     public:
         // ctor
-        CardTile(int idx, std::string cd, std::string nm, DeckType dt) 
-            : ActionTile(idx, cd, nm), deckType(dt) {}
+        CardTile(int idx, std::string cd, std::string nm, DeckType dt);
         // dipanggil saat mendarat, player mengambil kartu teratas sesuai tipe dek
-        void onLanded(Player& player, Game& game) override {}
+        void onLanded(Player& player, Game& game) override;
 };
 
 // Merepresentasikan petak aksi untuk menerapkan festival pada properti yang dipilih
 class FestivalTile: public ActionTile {
     public:
         // ctor
-        FestivalTile(int idx, std::string cd, std::string nm) 
-            : ActionTile(idx, cd, nm) {}
+        FestivalTile(int idx, std::string cd, std::string nm);
         // dipanggil saat mendarat, memilih streetTile untuk menerapkan efek festival
-        void onLanded(Player& player, Game& game) override {}
+        void onLanded(Player& player, Game& game) override;
 };
 
 // Merepresentaasikan petak aksi untuk membayar pajak sesuai tipe
@@ -45,14 +42,8 @@ class TaxTile: public ActionTile {
         double percentage;
     public:
         // ctor
-        TaxTile(int idx, std::string cd, std::string nm, TaxType txt, int fm, double pct = 0.0) 
-            : ActionTile(idx, cd, nm), taxType(txt), flatAmount(fm), percentage(pct) {}
+        TaxTile(int idx, std::string cd, std::string nm, TaxType txt, int fm, double pct = 0.0);
         // dipanggil saat mendarat, player membayar pajak sesuai tipe (untuk PPH ada dua opsi:
         // persen kekayaan atau flat)
-        void onLanded(Player& player, Game& game) override {
-            int pajak = flatAmount;
-            if (taxType == TaxType::PPH) {
-            } else {
-            }
-        }
+        void onLanded(Player& player, Game& game) override;
 };

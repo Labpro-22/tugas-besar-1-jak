@@ -11,24 +11,17 @@ class PropertyTile : public Tile {
         PropertyStatus status; // status properti (bank, owned, mortgaged)
     public:
         // constructor
-        PropertyTile(int idx, std::string cd, std::string nm, int bp, int mv)
-            : Tile(idx, cd, nm), buyPrice(bp), mortgageValue(mv), owner(nullptr), status(PropertyStatus::BANK) {}
+        PropertyTile(int idx, std::string cd, std::string nm, int bp, int mv);
         // menghitung biaya sewa sesuai jenis properti (pure virtual)
         virtual int calculateRent(int diceTotal) = 0;
         // menggadai properti ke bank
-        void mortgage() {
-            status = PropertyStatus::MORTGAGED;
-        }
+        void mortgage();
         // menebus properti dari bank
-        void redeem() {
-            status = PropertyStatus::OWNED;
-        }
+        void redeem();
         // getter pemilik properti
-        Player* getOwner() {
-            return owner;
-        }
+        Player* getOwner();
         // cek apakah properti sedang digadai
-        bool isMortgaged() { return status == PropertyStatus::MORTGAGED; }
+        bool isMortgaged();
 };
 
 // Merepresentasikan petak properti yang dapat ditingkatkan dan dikelompokkan berdasarkan color group
@@ -44,68 +37,23 @@ class StreetTile : public PropertyTile {
     public:
         // ctor
         StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, std::string cg, 
-            std::vector<int> rnt, int hc, int htc) : PropertyTile(idx, cd, nm, bp, mv), colorGroup(cg), rents(rnt),buildingLevel(0),
-            festivalMultiplier(1), festivalDuration(0) {}
+            std::vector<int> rnt, int hc, int htc);
         // hitung biaya sewa berdasarkan level bangunan, ismonopolize(), dan efek festival
-        int calculateRent(int diceTotal) override {
-            if (status != PropertyStatus::OWNED) {
-                return 0;
-            }
-            int baseRent = rents[buildingLevel];
-            if (buildingLevel == 0 && isMonopolized()) {
-                baseRent *= 2;
-            }
-            if (festivalDuration > 0) {
-                baseRent *= festivalMultiplier;
-            }
-            return baseRent;
-        }
+        int calculateRent(int diceTotal) override;
         // dipanggil ketika pemain mendarat di petak
-        void onLanded(Player& player, Game& game) override {}
+        void onLanded(Player& player, Game& game) override;
         // menaikkan level bangunan dan memotong saldo pemain
-        void build() {
-            if (canBuild()) {
-                if (buildingLevel < 5) {
-                    buildingLevel++;
-                }
-            }
-        }
+        void build();
         // menjual bangunan ke Bank seharga 1/2 harga beli
-        void sell() {
-            if (status != PropertyStatus::OWNED) {
-                return;
-            }
-            int nilaiGadai = 0;
-            if (buildingLevel > 0) {
-                if (buildingLevel >= 5) {
-                    nilaiGadai += (houseCost / 2) * 4 + (hotelCost / 2);
-                } else {
-                    nilaiGadai += (houseCost / 2) * buildingLevel;
-                }
-            }
-            nilaiGadai += mortgageValue;
-            mortgage();
-        }
+        void sell();
         // cek apakah pemilik menguasai color group
         bool isMonopolized();
         // cek syarat pemerataan bangunan antar petak color group
         bool canBuild();
         // mengaktifkan efek festival yang menggandakan nilai sewa
-        void applyFestival() {
-            if (festivalMultiplier < 8) {
-                festivalMultiplier *= 2;
-            }
-            festivalDuration = 3;
-        }
+        void applyFestival();
         // mengurangi durasi festival tiap giliran
-        void tickFestival() {
-            if (festivalDuration > 0) {
-                festivalDuration--;
-            }
-            if (festivalDuration == 0) {
-                festivalMultiplier = 1;
-            }
-        }
+        void tickFestival();
         // cetak akta kepemilikan, menggunakan CLI renderer
         void printDeed();
 };
@@ -117,17 +65,11 @@ class RailroadTile : public PropertyTile {
     public:
         // ctor
         RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, 
-            std::map<int, int> rt) : PropertyTile(idx, cd, nm, bp, mv), rentTable(rt) {}
-        // menghitung sewa berdasarkan jumlah railload pemilik
-        int calculateRent(int diceTotal) override {
-            if (status == PropertyStatus::OWNED) {
-                int railloadCount = 0; // = jumlah railload player
-                return rentTable[railloadCount];
-            }
-            return 0;
-        }
+            std::map<int, int> rt);
+        // menghitung sewa berdasarkan jumlah railroad pemilik
+        int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
-        void onLanded(Player& player, Game& game) override {}
+        void onLanded(Player& player, Game& game) override;
 };
 
 // Merepresentasikan petak properti berupa utilitas (PLN dan PAM)
@@ -137,15 +79,9 @@ class UtilityTile : public PropertyTile {
     public:
         // constructor
         UtilityTile(int idx, std::string cd, std::string nm, int bp, int mv, 
-            std::map<int, int> mt) : PropertyTile(idx, cd, nm, bp, mv), multiplierTable(mt) {}
+            std::map<int, int> mt);
         // menghitung biaya sewa berdasarkan diceTotal x faktor pengali
-        int calculateRent(int diceTotal) override {
-            if (status == PropertyStatus::OWNED) {
-                int utilityCount = 0; // = jumlah utility player
-                return multiplierTable[utilityCount] * diceTotal;
-            }
-            return 0;
-        }
+        int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
-        void onLanded(Player& player, Game& game) override {}
+        void onLanded(Player& player, Game& game) override;
 };

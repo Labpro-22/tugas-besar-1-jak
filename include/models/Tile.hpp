@@ -31,16 +31,14 @@ class Tile {
         std::string name; // nama
     public:
         // constructor
-        Tile(int idx, std::string cd, std::string nm)
-            : index(idx), code(cd), name(nm) {}
+        Tile(int idx, std::string cd, std::string nm);
         // dipanggil saat player mendarat
         virtual void onLanded(Player& player, Game& game) = 0;
         // mendapatkan kode warna untuk tampilan board
-        virtual std::string getDisplayColor() {return "WHITE";}
+        virtual std::string getDisplayColor();
         // getter atribut code
-        std::string getCode() const { return code; }
+        std::string getCode() const;
         // getter atribut index
-        int getIndex() const { return index; }
+        int getIndex() const;
         virtual ~Tile() = default;
 };
-
