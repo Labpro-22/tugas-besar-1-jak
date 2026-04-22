@@ -20,14 +20,28 @@
 #include <string>
 #include <vector>
 
+enum class GamePhase
+{
+    NORMAL,
+    AUCTION,
+    JAIL_CHOICE
+};
+
 class Game : public IGameAction
 {
 private:
     // Game State
-    bool GameActive;
+    bool gameActive;
     GamePhase currentPhase;
     int currentPlayerIndex;
     int turnsPlayed;
+
+    // Auction State
+    bool isAuctionActive;
+    class PropertyTile *currentAuctionProperty;
+    int currentHighestBid;
+    class Player *currentHighestBidder;
+    std::vector<bool> auctionPassed;
 
     // core attr
     std::unique_ptr<Board> board;
@@ -60,8 +74,8 @@ private:
     void drawSkillCard(Player &player);
     void movePlayer(Player &player, int steps);
     void teleportPlayer(Player &player, int targetTileIndex);
-    void canBuildOnPropery(Player &player, PropertyTile &tile);
-    void calculatePropertyValue(PropertyTile &tile);
+    bool canBuildOnPropery(Player &player, PropertyTile &tile);
+    int calculatePropertyValue(PropertyTile &tile);
 
 public:
     Game();
