@@ -1,29 +1,53 @@
-#pragma once
+#ifndef NIMONSPOLI_EXCEPTION_HPP
+#define NIMONSPOLI_EXCEPTION_HPP
 
-class NimonspoliException{
-    public:
-    NimonspoliException(const std::string &message)
-    : message(message) {}
+#include <exception>
+#include <string>
 
-const char *NimonspoliException::what() const noexcept
+class NimonspoliException : public std::exception
 {
-    return message.c_str();
-}
+protected:
+    std::string message;
 
-InsufficientFundsException::InsufficientFundsException(const std::string &message)
-    : NimonspoliException(message) {}
+public:
+    NimonspoliException(const std::string &message);
+    virtual const char *what() const noexcept override;
+};
 
-InvalidActionException::InvalidActionException(const std::string &message)
-    : NimonspoliException(message) {}
+class InsufficientFundsException : public NimonspoliException
+{
+public:
+    InsufficientFundsException(const std::string &message);
+};
 
-CardSlotFullException::CardSlotFullException(const std::string &message)
-    : NimonspoliException(message) {}
+class InvalidActionException : public NimonspoliException
+{
+public:
+    InvalidActionException(const std::string &message);
+};
 
-PropertyNotOwnedException::PropertyNotOwnedException(const std::string &message)
-    : NimonspoliException(message) {}
+class CardSlotFullException : public NimonspoliException
+{
+public:
+    CardSlotFullException(const std::string &message);
+};
 
-FileNotFoundException::FileNotFoundException(const std::string &message)
-    : NimonspoliException(message) {}
+class PropertyNotOwnedException : public NimonspoliException
+{
+public:
+    PropertyNotOwnedException(const std::string &message);
+};
 
-InvalidInputException::InvalidInputException(const std::string &message)
-    : NimonspoliException(message) {}}
+class FileNotFoundException : public NimonspoliException
+{
+public:
+    FileNotFoundException(const std::string &message);
+};
+
+class InvalidInputException : public NimonspoliException
+{
+public:
+    InvalidInputException(const std::string &message);
+};
+
+#endif
