@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-// Forward declaration biar ga compile 
+// Forward declaration
 class IGameAction;
 
 // Setiap aksi pengguna direpresentasikan sebagai objek Command
@@ -9,6 +9,10 @@ class IGameAction;
 class Command {
 public:
     virtual ~Command() {}
-    virtual void execute(IGameAction& game) = 0;
+
+    // True kalau giliran habis (ganti pemain)
+    virtual bool execute(IGameAction& game) = 0;
+
+    // Bisa dipake TransactionLogger buat nyatet nama perintah
     virtual std::string getName() const = 0;
 };

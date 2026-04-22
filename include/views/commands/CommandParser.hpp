@@ -1,16 +1,36 @@
 #pragma once
 #include "Command.hpp"
-#include "Commands.hpp"
-#include "../../include/utils/NimonspoliException.hpp"
+#include "NimonspoliException.hpp"
+#include "AturDadu.hpp"
+#include "Bangun.hpp"
+#include "BayarDenda.hpp"
+#include "Beli.hpp"
+#include "CetakAkta.hpp"
+#include "CetakLog.hpp"
+#include "CetakPapan.hpp"
+#include "CetakProperti.hpp"
+#include "Gadai.hpp"
+#include "GunakanKartuBebas.hpp"
+#include "GunakanKemampuan.hpp"
+#include "JualBangunan.hpp"
+#include "LemparDadu.hpp"
+#include "Lepas.hpp"
+#include "Muat.hpp"
+#include "Simpan.hpp"
+#include "Tawar.hpp"
+#include "Tebus.hpp"
+#include "QuitCommand.hpp"
+#include "EndTurnCommand.hpp"
+#include "BankruptCommand.hpp"
 
 #include <string>
 #include <vector>
 #include <sstream>
-#include <memory>
 #include <algorithm>
 #include <cctype>
+#include <stdexcept>
 
-// Terima string mentah dari user, lalu kembalikan unique_ptr<Command> yang siap di-execute()
+// Terima string mentah dari user, lalu kembalikan objek Command yang siap di-execute()
 class CommandParser {
     private:
     // Bikin input jadi token berdasarkan whitespace
@@ -26,7 +46,7 @@ class CommandParser {
         return tokens;
     }
 
-    // Validasi jumlah argumen (gak termasuk nama command itu sendiri)
+    // Validasi jumlah argumen
     static void requireArgCount(const std::vector<std::string>& tokens, int expected, const std::string& cmd) {
         int got = static_cast<int>(tokens.size()) - 1;
         if (got != expected) {
@@ -34,7 +54,7 @@ class CommandParser {
         }
     }
 
-    // Pastikan minimal N argumen
+    // Pastikan minimal N argumen terpenuhi
     static void requireMinArgCount(const std::vector<std::string>& tokens, int minCount, const std::string& cmd) {
         int got = static_cast<int>(tokens.size()) - 1;
         if (got < minCount) {
@@ -57,8 +77,8 @@ class CommandParser {
     }
 
     public:
-    // Parse satu baris input menjadi unique_ptr<Command>
-    static std::unique_ptr<Command> parse(const std::string& rawInput) {
+    // Parse satu baris input menjadi objek Command
+    static Command* parse(const std::string& rawInput) {
         auto tokens = tokenize(rawInput);
         if (tokens.empty()) {
             throw InvalidInputException("Input kosong.");
@@ -69,7 +89,7 @@ class CommandParser {
         // ===== LEMPAR_DADU =====
         if (cmd == "LEMPAR_DADU") {
             requireArgCount(tokens, 0, cmd);
-            return std::make_unique<RollDiceCommand>();
+            return new LemparDaduCommand();
         }
 
         // ===== ATUR_DADU X Y =====
@@ -80,38 +100,38 @@ class CommandParser {
             if (x < 1 || x > 6 || y < 1 || y > 6) {
                 throw InvalidInputException("ATUR_DADU: nilai dadu harus antara 1-6.");
             }
-            return std::make_unique<SetDiceCommand>(x, y);
+            return new AturDaduCommand(x, y);
         }
 
         // ===== BELI =====
         if (cmd == "BELI") {
             requireArgCount(tokens, 0, cmd);
-            return std::make_unique<BuyCommand>();
+            return new BeliCommand();
         }
 
         // ===== GADAI <kode> [<kode> ...] =====
         if (cmd == "GADAI") {
             requireMinArgCount(tokens, 1, cmd);
             std::vector<std::string> codes(tokens.begin() + 1, tokens.end());
-            return std::make_unique<MortgageCommand>(std::move(codes));
+            return new GadaiCommand(std::move(codes));
         }
 
         // ===== TEBUS <kode> =====
         if (cmd == "TEBUS") {
             requireArgCount(tokens, 1, cmd);
-            return std::make_unique<RedeemCommand>(tokens[1]);
+            return new TebusCommand(tokens[1]);
         }
 
         // ===== BANGUN <kode> =====
         if (cmd == "BANGUN") {
             requireArgCount(tokens, 1, cmd);
-            return std::make_unique<BuildCommand>(tokens[1]);
+            return new BangunCommand(tokens[1]);
         }
 
         // ===== JUAL_BANGUNAN <kode> =====
         if (cmd == "JUAL_BANGUNAN") {
             requireArgCount(tokens, 1, cmd);
-            return std::make_unique<SellBuildingCommand>(tokens[1]);
+            return new JualBangunanCommand(tokens[1]);
         }
 
         // ===== TAWAR <jumlah> =====
@@ -121,13 +141,13 @@ class CommandParser {
             if (amount <= 0) {
                 throw InvalidInputException("TAWAR: jumlah tawaran harus lebih dari 0.");
             }
-            return std::make_unique<BidCommand>(amount);
+            return new TawarCommand(amount);
         }
 
         // ===== LEPAS =====
         if (cmd == "LEPAS") {
             requireArgCount(tokens, 0, cmd);
-            return std::make_unique<PassAuctionCommand>();
+            return new LepasCommand();
         }
 
         // ===== GUNAKAN_KEMAMPUAN <indeks> =====
@@ -137,49 +157,52 @@ class CommandParser {
             if (idx < 0) {
                 throw InvalidInputException("GUNAKAN_KEMAMPUAN: indeks kartu tidak valid.");
             }
-            return std::make_unique<UseSkillCommand>(idx);
+            return new GunakanKemampuanCommand(idx);
         }
 
         // ===== BAYAR_DENDA =====
         if (cmd == "BAYAR_DENDA") {
             requireArgCount(tokens, 0, cmd);
-            return std::make_unique<PayJailFineCommand>();
+            return new BayarDendaCommand();
         }
 
         // ===== GUNAKAN_KARTU_BEBAS =====
         if (cmd == "GUNAKAN_KARTU_BEBAS") {
             requireArgCount(tokens, 0, cmd);
-            return std::make_unique<UseJailFreeCardCommand>();
+            return new GunakanKartuBebasCommand();
         }
 
         // ===== SIMPAN <filename> =====
         if (cmd == "SIMPAN") {
             requireArgCount(tokens, 1, cmd);
-            return std::make_unique<SaveCommand>(tokens[1]);
+            return new SimpanCommand(tokens[1]);
         }
 
         // ===== MUAT <filename> =====
         if (cmd == "MUAT") {
             requireArgCount(tokens, 1, cmd);
-            return std::make_unique<LoadCommand>(tokens[1]);
+            return new MuatCommand(tokens[1]);
         }
 
         // ===== CETAK_PAPAN =====
         if (cmd == "CETAK_PAPAN") {
             requireArgCount(tokens, 0, cmd);
-            return std::make_unique<PrintBoardCommand>();
+            return new CetakPapanCommand();
         }
 
         // ===== CETAK_AKTA [<kode>] =====
         if (cmd == "CETAK_AKTA") {
-            std::string code = (tokens.size() > 1) ? tokens[1] : "";
-            return std::make_unique<PrintDeedCommand>(code);
+            std::string code = "";
+            if (tokens.size() > 1) {
+                code = tokens[1];
+            }
+            return new CetakAktaCommand(code);
         }
 
         // ===== CETAK_PROPERTI =====
         if (cmd == "CETAK_PROPERTI") {
             requireArgCount(tokens, 0, cmd);
-            return std::make_unique<PrintPropertyCommand>();
+            return new CetakPropertiCommand();
         }
 
         // ===== CETAK_LOG [<limit>] =====
@@ -191,7 +214,25 @@ class CommandParser {
                     throw InvalidInputException("CETAK_LOG: limit harus bilangan positif.");
                 }
             }
-            return std::make_unique<PrintLogCommand>(limit);
+            return new CetakLogCommand(limit);
+        }
+
+        // ===== QUIT =====
+        if (cmd == "QUIT") {
+            requireArgCount(tokens, 0, cmd);
+            return new QuitCommand();
+        }
+
+        // ===== AKHIRI_GILIRAN =====
+        if (cmd == "AKHIRI_GILIRAN") {
+            requireArgCount(tokens, 0, cmd);
+            return new EndTurnCommand();
+        }
+
+        // ===== BANGKRUT =====
+        if (cmd == "BANGKRUT") {
+            requireArgCount(tokens, 0, cmd);
+            return new BankruptCommand();
         }
 
         // Tidak dikenali
