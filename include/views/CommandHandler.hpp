@@ -1,8 +1,7 @@
 #pragma once
 #include "CommandParser.hpp"
-#include "../../include/core/IGameAction.hpp"
-#include "../../include/utils/NimonspoliException.hpp"
-
+#include "IGameAction.hpp"
+#include "NimonspoliException.hpp"
 #include <string>
 #include <iostream>
 
@@ -23,32 +22,42 @@ class CommandHandler {
     void listen() {
         std::string rawInput;
         while (game.isGameActive()) {
-            cout << "> ";
+            std::cout << "> ";
             if (!std::getline(std::cin, rawInput)) {
                 break;
             }
-            handleInput(rawInput);
+            // Info giliran dah habis belum
+            bool turnEnded = handleInput(rawInput);
         }
     }
 
     // Handle satu baris input
-    void handleInput(const std::string& rawInput) {
+    bool handleInput(const std::string& rawInput) {
+        bool isTurnEnded = false;
         try {
             // Lempar ke CommandParser buat dapet objek Command
-            auto command = CommandParser::parse(rawInput);
+            Command* command = CommandParser::parse(rawInput);
 
-            // Pass ke Game buat game panggil fungsi ini
-            command->execute(game);
+            if (command != nullptr) {
+                // Kasih ke Game dan simpan status boolean-nya
+                isTurnEnded = command->execute(game);
+
+                // Hapus memory
+                delete command;
+            }
         } catch (const NimonspoliException& e) { // Error handling
             std::cerr << "[Error] " << e.what() << "\n";
+        } catch (const std::exception& e) {
+            std::cerr << "[Error Sistem] " << e.what() << "\n";
         }
+        return isTurnEnded;
     }
 
     // Minta input konfirmasi (buat Game minta jawaban y/n atau pilihan dari menu)
     std::string promptInput(const std::string& prompt) {
         std::cout << prompt;
         std::string input;
-        std::getline(cin, input);
+        std::getline(std::cin, input);
         return input;
     }
 };
