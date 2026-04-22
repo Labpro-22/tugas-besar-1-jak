@@ -217,6 +217,24 @@ class CommandParser {
             return new CetakLogCommand(limit);
         }
 
+        // ===== QUIT =====
+        if (cmd == "QUIT") {
+            requireArgCount(tokens, 0, cmd);
+            return new QuitCommand();
+        }
+
+        // ===== AKHIRI_GILIRAN =====
+        if (cmd == "AKHIRI_GILIRAN") {
+            requireArgCount(tokens, 0, cmd);
+            return new EndTurnCommand();
+        }
+
+        // ===== BANGKRUT =====
+        if (cmd == "BANGKRUT") {
+            requireArgCount(tokens, 0, cmd);
+            return new BankruptCommand();
+        }
+
         // Tidak dikenali
         throw InvalidInputException("Perintah tidak dikenal: \"" + cmd + "\".");
     }
