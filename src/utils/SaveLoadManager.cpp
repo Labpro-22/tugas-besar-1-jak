@@ -230,7 +230,7 @@ Player* SaveLoadManager::loadPlayerState(std::ifstream& in) const {
     Player* player = new Player(username);
     player->setCash(cash);
     player->setPosition(position);
-    // TODO: player->setStatus(status) — tambahkan ke Player setelah setStatus() ada
+    player->setStatus(status);
 
     // Baca kartu tangan
     int jumlahKartu;

@@ -112,6 +112,16 @@ void StreetTile::tickFestival() {
 
 void StreetTile::printDeed() {}
 
+void StreetTile::setFestivalMultiplier(int mult) { 
+    festivalMultiplier = mult; 
+}
+void StreetTile::setFestivalDuration(int dur) { 
+    festivalDuration = dur; 
+}
+void StreetTile::setBuildingLevel(int level) { 
+    buildingLevel = level; 
+}
+
 std::string StreetTile::getColorGroup() const {
     return colorGroup;
 }

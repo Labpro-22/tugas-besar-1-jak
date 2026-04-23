@@ -61,7 +61,7 @@ public:
     int getPosition() const;
     void setPosition(int pos);
     std::string getStatus() const;
-    void setStatus(std::string& status);
+    void setStatus(const std::string& status);
     bool isJailed() const;
     int getCash() const;
     void setCash(int amount);

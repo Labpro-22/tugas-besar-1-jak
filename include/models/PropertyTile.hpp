@@ -62,6 +62,11 @@ class StreetTile : public PropertyTile {
         void tickFestival();
         // cetak akta kepemilikan, menggunakan CLI renderer
         void printDeed();
+        // buat saveload
+        void setFestivalMultiplier(int mult);
+        void setFestivalDuration(int dur);
+        void setBuildingLevel(int level);
+
         // getter atribut
 
         std::string getColorGroup() const;
