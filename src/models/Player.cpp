@@ -139,7 +139,7 @@ void Player::addProperty(PropertyTile *prop)
 }
 
 // Helper
-void Player::useSkillCard(int index)
+void Player::useSkillCard(int index, Game& game)
 {
     if (hasUsedSkillThisTurnVal)
     {
@@ -157,7 +157,7 @@ void Player::useSkillCard(int index)
     }
 
     // Use
-    ownedSkillCards[index]->use(*this);
+    ownedSkillCards[index]->use(*this, game);
 
     // Remove
     removeCard(index);
