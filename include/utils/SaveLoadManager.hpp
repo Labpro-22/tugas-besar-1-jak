@@ -44,7 +44,7 @@ class SaveLoadManager {
     ~SaveLoadManager() {}
 
     bool saveGame(const std::string& filename, int turn, int maxTurn, const std::vector<Player*>& players, const std::vector<int>& turnOrder, int currentPlayerIndex, const Board& board, const CardDeck<ActionCard>& skillDeck, const TransactionLogger& logger) const;
-    bool loadGame(const std::string& filename, int& turn, int& maxTurn, std::vector<Player*>& players, std::vector<int>& turnOrder, int& currentPlayerIndex, Board& board) const;
+    bool loadGame(const std::string& filename, int& turn, int& maxTurn, std::vector<Player*>& players, std::vector<int>& turnOrder, int& currentPlayerIndex, Board& board, TransactionLogger& logger) const;
 
     // Cek apakah file sudah ada
     static bool fileExists(const std::string& filename);

@@ -127,8 +127,11 @@ void SaveLoadManager::savePropertyState(std::ofstream& out, const Board& board) 
 
 // ===== saveDeckState =====
 void SaveLoadManager::saveDeckState(std::ofstream& out, const CardDeck<ActionCard>& skillDeck) const {
-    // Pakai getStateInfo() dari CardDeck
-    out << skillDeck.getStateInfo();
+    auto names = skillDeck.getCardNames();
+    out << names.size() << "\n";
+    for (const auto& name : names) {
+        out << name << "\n";
+    }
 }
 
 // ===== saveLogState =====
@@ -137,7 +140,7 @@ void SaveLoadManager::saveLogState(std::ofstream& out, const TransactionLogger& 
 }
 
 // ===== loadGame =====
-bool SaveLoadManager::loadGame(const std::string& filename, int& turn, int& maxTurn, std::vector<Player*>& players, std::vector<int>& turnOrder, int& currentPlayerIndex, Board& board) const {
+bool SaveLoadManager::loadGame(const std::string& filename, int& turn, int& maxTurn, std::vector<Player*>& players, std::vector<int>& turnOrder, int& currentPlayerIndex, Board& board, TransactionLogger& logger) const {
     if (!fileExists(filename)) {
         throw FileNotFoundException("File tidak ditemukan: " + filename);
     }
@@ -206,6 +209,9 @@ bool SaveLoadManager::loadGame(const std::string& filename, int& turn, int& maxT
 
         // Load state deck
         loadDeckState(in);
+
+        // Load state log
+        loadLogState(in, logger);
 
     } catch (const NimonspoliException&) {
         in.close();
@@ -301,27 +307,20 @@ void SaveLoadManager::loadPropertyState(std::ifstream& in, Board& board, const s
         // Restore festival dan bangunan untuk StreetTile
         StreetTile* st = dynamic_cast<StreetTile*>(prop);
         if (st) {
-            // Restore festival — panggil applyFestival() sesuai fmult
+            // Restore festival
             // fmult: 1=tidak aktif, 2=1x, 4=2x, 8=3x
-            int applyCount = 0;
-            if (fmult == 2)       applyCount = 1;
-            else if (fmult == 4)  applyCount = 2;
-            else if (fmult == 8)  applyCount = 3;
-            for (int k = 0; k < applyCount; k++) st->applyFestival();
+            st->setFestivalMultiplier(fmult);
 
             // Restore durasi festival
             // applyFestival() set durasi = 3, kurangi sesuai fdur
             // fdur di file = durasi tersisa
-            int diff = 3 - fdur;
-            for (int k = 0; k < diff; k++) st->tickFestival();
+            st->setFestivalDuration(fdur);
 
             // Restore bangunan
             if (nBangunan == "H") {
-                // Hotel = level 5, bangun sampai level 5
-                for (int k = 0; k < 5; k++) st->build();
+                st->setBuildingLevel(5);
             } else {
-                int level = std::stoi(nBangunan);
-                for (int k = 0; k < level; k++) st->build();
+                st->setBuildingLevel(std::stoi(nBangunan));
             }
         }
     }
