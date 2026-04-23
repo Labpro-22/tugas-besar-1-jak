@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-// Forward declaration agar Tile mengenali kelas Player dan Game
+// Forward declarations
 class Player;
 class Game;
 
@@ -40,5 +40,7 @@ class Tile {
         std::string getCode() const;
         // getter atribut index
         int getIndex() const;
+        // getter atribut nama
+        std::string getName() const;
         virtual ~Tile() = default;
 };

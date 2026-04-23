@@ -329,6 +329,10 @@ int Player::getCash() const
 {
     return cash;
 }
+bool Player::isJailed() const
+{
+    return status == "JAILED";
+}
 void Player::setCash(int amount)
 {
     cash = amount;
@@ -372,4 +376,20 @@ const std::vector<PropertyTile *> &Player::getOwnedProperties() const
 const std::vector<SkillCard *> &Player::getOwnedSkillCards() const
 {
     return ownedSkillCards;
+}
+
+std::vector<std::string> Player::getSkillCardNames() const {
+    std::vector<std::string> names;
+    for (SkillCard* card : ownedSkillCards) {
+        if (card) names.push_back(card->getName());
+    }
+    return names;
+}
+
+std::vector<std::string> Player::getSkillCardDescriptions() const {
+    std::vector<std::string> descs;
+    for (SkillCard* card : ownedSkillCards) {
+        if (card) descs.push_back(card->getDescription());
+    }
+    return descs;
 }

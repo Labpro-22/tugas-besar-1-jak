@@ -19,11 +19,15 @@ class PropertyTile : public Tile {
         // menebus properti dari bank
         void redeem();
         // getter pemilik properti
-        Player* getOwner();
+        Player* getOwner() const;
         // cek apakah properti sedang digadai
-        bool isMortgaged();
-        int getPrice();
+        bool isMortgaged() const;
+        int getPrice() const;
         void changeOwner(Player *newOwner);
+        // getter atribut
+
+        int getMortgageValue() const;
+        PropertyStatus getStatus() const;
 };
 
 // Merepresentasikan petak properti yang dapat ditingkatkan dan dikelompokkan berdasarkan color group
@@ -58,6 +62,15 @@ class StreetTile : public PropertyTile {
         void tickFestival();
         // cetak akta kepemilikan, menggunakan CLI renderer
         void printDeed();
+        // getter atribut
+
+        std::string getColorGroup() const;
+        const std::vector<int> getRents() const;
+        int getHouseCost() const;
+        int getHotelCost() const;
+        int getBuildingLevel() const;
+        int getFestivalMultiplier() const;
+        int getFestivalDuration() const;
 };
 
 // Merepresentasikan petak properti berupa stasiun

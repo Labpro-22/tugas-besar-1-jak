@@ -61,6 +61,7 @@ public:
     int getPosition() const;
     void setPosition(int pos);
     std::string getStatus() const;
+    bool isJailed() const;
     int getCash() const;
     void setCash(int amount);
     bool isShieldActive() const;
@@ -73,4 +74,6 @@ public:
     bool hasUsedSkillThisTurn() const;
     const std::vector<PropertyTile *> &getOwnedProperties() const;
     const std::vector<SkillCard *> &getOwnedSkillCards() const;
+    std::vector<std::string> getSkillCardNames() const;
+    std::vector<std::string> getSkillCardDescriptions() const;
 };
