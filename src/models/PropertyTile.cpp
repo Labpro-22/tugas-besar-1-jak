@@ -31,6 +31,13 @@ void PropertyTile::changeOwner(Player *newOwner)
     this->owner = newOwner;
 }
 
+int PropertyTile::getMortgageValue() const {
+    return mortgageValue;
+}
+PropertyStatus PropertyTile::getStatus() const {
+    return status;
+}
+
 // StreetTile
 
 StreetTile::StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, std::string cg, 
@@ -104,6 +111,28 @@ void StreetTile::tickFestival() {
 
 void StreetTile::printDeed() {}
 
+std::string StreetTile::getColorGroup() const {
+    return colorGroup;
+}
+const std::vector<int> StreetTile::getRents() const {
+    return rents;
+}
+int StreetTile::getHouseCost() const {
+    return houseCost;
+}
+int StreetTile::geteHotelCost() const {
+    return hotelCost;
+}
+int StreetTile::getBuildinglevel() const {
+    return buildingLevel;
+}
+int StreetTile::getFestivalMultiplier() const {
+    return festivalMultiplier;
+}
+int StreetTile::getFestivalDuration() const {
+    return festivalDuration;
+}
+
 // RailroadTile
 
 RailroadTile::RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, std::map<int, int> rt) 
@@ -117,7 +146,16 @@ int RailroadTile::calculateRent(int diceTotal) {
     return 0;
 }
 
-void RailroadTile::onLanded(Player& player, Game& game) {}
+void RailroadTile::onLanded(Player& player, Game& game) {
+    if (status == PropertyStatus::BANK) {
+        changeOwner(&player);
+        status = PropertyStatus::OWNED;
+    } else if (status == PropertyStatus::OWNED) {
+        if (owner != &player) {
+            player.payRent(calculateRent(0), *owner);
+        }
+    }
+}
 
 // UtilityTile
 
@@ -132,4 +170,13 @@ int UtilityTile::calculateRent(int diceTotal) {
     return 0;
 }
 
-void UtilityTile::onLanded(Player& player, Game& game) {}
+void UtilityTile::onLanded(Player& player, Game& game) {
+    if (status == PropertyStatus::BANK) {
+        changeOwner(&player);
+        status = PropertyStatus::OWNED;
+    } else {
+        if (owner != &player) {
+            player.payRent(calculateRent(0), *owner);
+        }
+    }
+}

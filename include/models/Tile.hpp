@@ -3,10 +3,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "core\Game.hpp"
+#include "Player.hpp"
 
-// Forward declaration agar Tile mengenali kelas Player dan Game
-class Player;
-class Game;
 
 // Status petak properti
 enum class PropertyStatus {
@@ -40,5 +39,7 @@ class Tile {
         std::string getCode() const;
         // getter atribut index
         int getIndex() const;
+        // getter atribut nama
+        std::string getName() const;
         virtual ~Tile() = default;
 };
