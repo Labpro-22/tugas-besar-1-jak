@@ -5,6 +5,7 @@
 
 class Tile;
 class Player;
+class PropertyTile;
 
 class Board
 {
@@ -33,6 +34,7 @@ public:
     int getStartTileIndex() const;
     int getJailTileIndex() const;
     bool isValidPosition(int index) const;
+    std::vector<PropertyTile*> getPropertiesByColor(const std::string& color) const;
 
 private:
     // helper inisialisasi

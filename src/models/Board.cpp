@@ -2,6 +2,7 @@
 #include "models/Tile.hpp"
 #include "utils/NimonspoliException.hpp"
 #include "utils/ConfigLoader.hpp"
+#include "models/PropertyTile.hpp"
 #include <iostream>
 
 // Constructor
@@ -139,4 +140,16 @@ void Board::validateBoard()
     {
         throw NimonspoliException("Board must have exactly 1 JAIL tile. Found: " + std::to_string(jailCount));
     }
+}
+
+std::vector<PropertyTile*> Board::getPropertiesByColor(const std::string& color) const {
+    std::vector<PropertyTile*> result;
+
+    for (auto tile : tiles) {
+        auto street = dynamic_cast<StreetTile*>(tile);
+        if (street && street->getColorGroup() == color) {
+            result.push_back(street);
+        }
+    }
+    return result;
 }
