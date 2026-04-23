@@ -3,6 +3,7 @@
 #include "models/Player.hpp"
 #include "models/PropertyTile.hpp"
 #include "models/Board.hpp"
+#include "utils/TransactionLogger.hpp"
 #include <algorithm>
 
 
@@ -88,14 +89,14 @@ void BankruptcyManager::executeLiquidation(Player& debtor, const LiquidationOpti
         debtor += option.amount;
 
         if (game.getLogger())
-            game.getLogger()->addLog(debtor.getUsername(), "JUAL", prop->getName());
+            game.getLogger()->addLog(debtor.getUsername() + " menjual " + prop->getName());
     }
     else {
         prop->mortgage();
         debtor += option.amount;
 
         if (game.getLogger())
-            game.getLogger()->addLog(debtor.getUsername(), "GADAI", prop->getName());
+            game.getLogger()->addLog(debtor.getUsername() + " menggadaikan " + prop->getName());
     }
 }
 
@@ -165,5 +166,5 @@ void BankruptcyManager::handle(Player& debtor, Player* creditor, int obligation,
     if (creditor) *creditor += obligation;
 
     if (game.getLogger())
-        game.getLogger()->addLog(debtor.getUsername(), "LUNAS", std::to_string(obligation));
+        game.getLogger()->addLog(debtor.getUsername() + " melunasi " + std::to_string(obligation));
 }

@@ -5,8 +5,8 @@
 
 class Player;
 class IGameAction;
+class TransactionLogger;
 class PropertyTile;
-class StreetTile;
 
 struct LiquidationOption {
     enum class Type { SELL_PROPERTY, MORTGAGE_PROPERTY };
