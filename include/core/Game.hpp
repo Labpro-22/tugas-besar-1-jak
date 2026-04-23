@@ -1,5 +1,5 @@
 #pragma once
-#include "IGameAction.hpp"
+#include "core/IGameAction.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -69,7 +69,7 @@ private:
 
 public:
     Game();
-    ~Game() override = default;
+    ~Game() override;
 
     // Inisialisasi
     void initialize();

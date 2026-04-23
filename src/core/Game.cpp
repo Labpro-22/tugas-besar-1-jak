@@ -1,5 +1,13 @@
 #include "core/Game.hpp"
 #include "utils/TransactionLogger.hpp"
+#include "models/Board.hpp"
+#include "models/Player.hpp"
+#include "models/Dice.hpp"
+#include "models/BankruptcyManager.hpp"
+#include "models/AuctionManager.hpp"
+#include "models/CardDeck.hpp"
+#include "models/ActionCard.hpp"
+#include "models/SkillCard.hpp"
 #include <iostream>
 
 Game::Game()
@@ -11,14 +19,13 @@ Game::Game()
       currentAuctionProperty(nullptr),
       currentHighestBid(0),
       currentHighestBidder(nullptr),
+      renderer(nullptr),
       turnsInJailForCurrentPlayer(0),
-      waitingForJailChoice(false),
-      renderer(nullptr)
+      waitingForJailChoice(false)
 {
-    std::cout << "[Game] Constructor" << std::endl;
 }
 
-Game::~Game() {}
+Game::~Game() = default;
 
 // Inisialisasi
 void Game::initialize()

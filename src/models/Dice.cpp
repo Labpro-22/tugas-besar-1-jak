@@ -1,4 +1,4 @@
-#include "Dice.hpp"
+#include "models/Dice.hpp"
 #include <cstdlib>
 #include <ctime>
 

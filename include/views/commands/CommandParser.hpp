@@ -1,6 +1,6 @@
 #pragma once
 #include "Command.hpp"
-#include "NimonspoliException.hpp"
+#include "utils/NimonspoliException.hpp"
 #include "AkhiriGiliran.hpp"
 #include "AturDadu.hpp"
 #include "Bangkrut.hpp"

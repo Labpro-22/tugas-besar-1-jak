@@ -1,6 +1,6 @@
 #pragma once
 #include "Command.hpp"
-#include "IGameAction.hpp"
+#include "core/IGameAction.hpp"
 #include <string>
 
 // JUAL_BANGUNAN <kode_petak>
