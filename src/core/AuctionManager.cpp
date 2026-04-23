@@ -27,13 +27,13 @@ void AuctionManager::startAuction(PropertyTile* property, Player* triggerPlayer,
     hasAnyBid = false;
     currentHighBid = 0;
     currentHighBidder = nullptr;
+    activeParticipants.clear();
 
     auto it = std::find(eligiblePlayers.begin(), eligiblePlayers.end(), triggerPlayer);
     if (it == eligiblePlayers.end()) {
         activeParticipants = eligiblePlayers;
     } else {
         size_t startIdx = (it - eligiblePlayers.begin() + 1) % eligiblePlayers.size();
-        activeParticipants.clear();
         for (size_t i = 0; i < eligiblePlayers.size(); ++i) {
             activeParticipants.push_back(eligiblePlayers[(startIdx + i) % eligiblePlayers.size()]);
         }
@@ -46,6 +46,12 @@ void AuctionManager::startAuction(PropertyTile* property, Player* triggerPlayer,
 void AuctionManager::processBid(Player* bidder, int amount) {
     if (finished) throw InvalidActionException("Lelang sudah selesai.");
     if (bidder != activeParticipants[currentIndex]) throw InvalidActionException("Bukan giliran Anda.");
+
+    if (bidder->getCash() <= currentHighBid) {
+        processPass(bidder);
+        return;
+    }
+
     if (amount <= currentHighBid) throw InvalidActionException("Tawaran harus lebih tinggi dari " + std::to_string(currentHighBid));
     if (amount > bidder->getCash()) throw InsufficientFundsException("Uang tidak cukup. Anda hanya memiliki " + std::to_string(bidder->getCash()));
 
@@ -60,6 +66,10 @@ void AuctionManager::processBid(Player* bidder, int amount) {
 void AuctionManager::processPass(Player* passer) {
     if (finished) throw InvalidActionException("Lelang sudah selesai.");
     if (passer != activeParticipants[currentIndex]) throw InvalidActionException("Bukan giliran Anda.");
+
+    if (std::find(activeParticipants.begin(), activeParticipants.end(), passer) == activeParticipants.end()) {
+        throw InvalidActionException("Player tidak ikut lelang.");
+    }
 
     logEvent("PASS", passer->getUsername() + " melewatkan giliran.");
 
@@ -89,6 +99,7 @@ void AuctionManager::processPass(Player* passer) {
     if (currentIndex >= activeParticipants.size()) {
         currentIndex = 0;
     }
+
     logEvent("GILIRAN", "Giliran sekarang: " + activeParticipants[currentIndex]->getUsername());
 }
 
