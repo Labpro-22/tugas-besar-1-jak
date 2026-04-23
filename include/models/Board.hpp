@@ -5,6 +5,7 @@
 
 class Tile;
 class Player;
+class PropertyTile;
 
 class Board
 {
