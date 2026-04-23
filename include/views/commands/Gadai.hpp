@@ -7,10 +7,10 @@
 // GADAI <kode_petak> [<kode_petak> ...]
 class GadaiCommand : public Command {
     private:
-    std::vector<string> tileCodes;
+    std::vector<std::string> tileCodes;
 
     public:
-    explicit GadaiCommand(std::vector<string> tileCodes) : tileCodes(std::move(tileCodes)) {}
+    explicit GadaiCommand(std::vector<std::string> tileCodes) : tileCodes(std::move(tileCodes)) {}
 
     bool execute(IGameAction& game) override {
         for (const auto& code : tileCodes) {

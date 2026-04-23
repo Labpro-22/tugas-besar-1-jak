@@ -1,14 +1,18 @@
 #pragma once
 #include "Command.hpp"
 #include "NimonspoliException.hpp"
+#include "AkhiriGiliran.hpp"
 #include "AturDadu.hpp"
+#include "Bangkrut.hpp"
 #include "Bangun.hpp"
+#include "Bantuan.hpp"
 #include "BayarDenda.hpp"
 #include "Beli.hpp"
 #include "CetakAkta.hpp"
 #include "CetakLog.hpp"
 #include "CetakPapan.hpp"
 #include "CetakProperti.hpp"
+#include "CetakStatus.hpp"
 #include "Gadai.hpp"
 #include "GunakanKartuBebas.hpp"
 #include "GunakanKemampuan.hpp"
@@ -16,12 +20,10 @@
 #include "LemparDadu.hpp"
 #include "Lepas.hpp"
 #include "Muat.hpp"
+#include "Quit.hpp"
 #include "Simpan.hpp"
 #include "Tawar.hpp"
 #include "Tebus.hpp"
-#include "QuitCommand.hpp"
-#include "EndTurnCommand.hpp"
-#include "BankruptCommand.hpp"
 
 #include <string>
 #include <vector>
@@ -226,13 +228,25 @@ class CommandParser {
         // ===== AKHIRI_GILIRAN =====
         if (cmd == "AKHIRI_GILIRAN") {
             requireArgCount(tokens, 0, cmd);
-            return new EndTurnCommand();
+            return new AkhiriGiliranCommand();
         }
 
         // ===== BANGKRUT =====
         if (cmd == "BANGKRUT") {
             requireArgCount(tokens, 0, cmd);
-            return new BankruptCommand();
+            return new BangkrutCommand();
+        }
+
+        // ===== BANTUAN =====
+        if (cmd == "BANTUAN") {
+            requireArgCount(tokens, 0, cmd);
+            return new BantuanCommand();
+        }
+
+        // ===== CETAK_STATUS =====
+        if (cmd == "CETAK_STATUS") {
+            requireArgCount(tokens, 0, cmd);
+            return new CetakStatusommand();
         }
 
         // Tidak dikenali
