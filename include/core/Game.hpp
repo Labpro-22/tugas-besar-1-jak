@@ -54,7 +54,7 @@ private:
     std::string currentSaveFile;
 
     // private helper
-    void nextTurn(); // Dipanggil oleh endTurn()
+    void nextTurn();
     void processTileLanding(Player &player, int tileIndex);
     void applyRent(Player &player, PropertyTile &tile);
     void startAuctionForProperty(PropertyTile &tile);

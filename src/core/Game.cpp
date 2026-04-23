@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "TransactionLogger.hpp"
 #include <iostream>
 
 Game::Game()
@@ -17,16 +18,21 @@ Game::Game()
     std::cout << "[Game] Constructor" << std::endl;
 }
 
+Game::~Game() {}
+
 // Inisialisasi
 void Game::initialize()
 {
-    std::cout << "[Game] initialize()" << std::endl;
-    // TODO: Implementation
+    logger = std::make_unique<TransactionLogger>();
+    gameActive = true;
+    logger->addLog("Permainan Nimonspoli telah dimulai!");
 }
 
 void Game::initializeFromSave(const std::string& currentSaveFile)
 {
-    std::cout << "[Game] initializeFromSave() with filename: " << currentSaveFile << std::endl;
+    logger = std::make_unique<TransactionLogger>();
+    logger->addLog("Memuat permainan dari file: " + currentSaveFile);
+    gameActive = true;
     // TODO: Implementation
 }
 
@@ -52,12 +58,14 @@ void Game::setGameActive(bool active)
 void Game::rollDice()
 {
     std::cout << "[Game] rollDice()" << std::endl;
+    logger->addLog("Pemain melempar dadu.");
     // TODO: Implementation
 }
 
 void Game::setDice(int x, int y)
 {
     std::cout << "[Game] setDice() with values: " << x << ", " << y << std::endl;
+    logger->addLog("Cheat Aktif: Dadu diatur ke " + std::to_string(x) + " dan " + std::to_string(y));
     // TODO: Implementation
 }
 
@@ -65,30 +73,35 @@ void Game::setDice(int x, int y)
 void Game::buyCurrentProperty()
 {
     std::cout << "[Game] buyCurrentProperty()" << std::endl;
+    logger->addLog("Pemain mencoba membeli properti di petak saat ini.");
     // TODO: Implementation
 }
 
 void Game::mortgageProperty(const std::string &code)
 {
     std::cout << "[Game] mortgageProperty() for property code: " << code << std::endl;
+    logger->addLog("Pemain menggadaikan properti: " + code);
     // TODO: Implementation
 }
 
 void Game::redeemProperty(const std::string &tileCode)
 {
     std::cout << "[Game] redeemProperty() for tile code: " << tileCode << std::endl;
+    logger->addLog("Pemain menebus properti: " + tileCode);
     // TODO: Implementation
 }
 
 void Game::buildOnProperty(const std::string &tileCode)
 {
     std::cout << "[Game] buildOnProperty() for tile code: " << tileCode << std::endl;
+    logger->addLog("Pemain membangun di properti: " + tileCode);
     // TODO: Implementation
 }
 
 void Game::sellBuildingOnProperty(const std::string &tileCode)
 {
     std::cout << "[Game] sellBuildingOnProperty() for tile code: " << tileCode << std::endl;
+    logger->addLog("Pemain menjual bangunan di properti: " + tileCode);
     // TODO: Implementation
 }
 
@@ -96,12 +109,14 @@ void Game::sellBuildingOnProperty(const std::string &tileCode)
 void Game::placeBid(int amount)
 {
     std::cout << "[Game] placeBid() with amount: " << amount << std::endl;
+    logger->addLog("Pemain melakukan penawaran lelang sebesar: " + std::to_string(amount));
     // TODO: Implementation
 }
 
 void Game::passAuction()
 {
     std::cout << "[Game] passAuction()" << std::endl;
+    logger->addLog("Pemain melewati giliran lelang.");
     // TODO: Implementation
 }
 
@@ -109,6 +124,7 @@ void Game::passAuction()
 void Game::useSkillCard(int cardIndex)
 {
     std::cout << "[Game] useSkillCard() with card index: " << cardIndex << std::endl;
+    logger->addLog("Pemain menggunakan kartu skill index ke-" + std::to_string(cardIndex));
     // TODO: Implementation
 }
 
@@ -116,12 +132,14 @@ void Game::useSkillCard(int cardIndex)
 void Game::payJailFine()
 {
     std::cout << "[Game] payJailFine()" << std::endl;
+    logger->addLog("Pemain membayar denda penjara.");
     // TODO: Implementation
 }
 
 void Game::useJailFreeCard()
 {
     std::cout << "[Game] useJailFreeCard()" << std::endl;
+    logger->addLog("Pemain menggunakan kartu bebas penjara.");
     // TODO: Implementation
 }
 
@@ -129,12 +147,14 @@ void Game::useJailFreeCard()
 void Game::saveGame(const std::string &filename)
 {
     std::cout << "[Game] saveGame() with filename: " << filename << std::endl;
+    logger->addLog("Menyimpan progres game ke: " + filename);
     // TODO: Implementation
 }
 
 void Game::loadGame(const std::string &filename)
 {
     std::cout << "[Game] loadGame() with filename: " << filename << std::endl;
+    logger->addLog("Mencoba memuat game dari: " + filename);
     // TODO: Implementation
 }
 
@@ -142,45 +162,54 @@ void Game::loadGame(const std::string &filename)
 void Game::printBoard()
 {
     std::cout << "[Game] printBoard()" << std::endl;
+    logger->addLog("Menampilkan papan permainan.");
     // TODO: Implementation
 }
 
 void Game::printDeed(const std::string &tileCode)
 {
     std::cout << "[Game] printDeed() for tile code: " << tileCode << std::endl;
+    logger->addLog("Menampilkan detail akta: " + tileCode);
     // TODO: Implementation
 }
 
 void Game::printPropertyInventory()
 {
     std::cout << "[Game] printPropertyInventory()" << std::endl;
+    logger->addLog("Menampilkan daftar properti pemain.");
     // TODO: Implementation
 }
 
 void Game::printLog(int limit)
 {
     std::cout << "[Game] printLog() with limit: " << limit << std::endl;
+    if (logger) {
+        logger->printLog(limit);
+    }
     // TODO: Implementation
 }
 
 void Game::printHelp() { 
-    std::cout << "[Game] printHelp() - Menampilkan daftar perintah...\n"; 
+    std::cout << "--- Daftar Perintah Nimonspoli ---" << std::endl; 
     // TODO: Implementation
 }
 
 void Game::printPlayerStatus() { 
     std::cout << "[Game] printPlayerStatus() - Menampilkan status pemain...\n"; 
+    logger->addLog("Menampilkan status pemain saat ini.");
     // TODO: Implementation
 }
 
 // Flow Giliran
 void Game::endTurn() { 
     std::cout << "[Game] endTurn()\n"; 
+    logger->addLog("Giliran pemain berakhir.");
     // TODO: panggil nextTurn()
 }
 
 void Game::declareBankruptcy() { 
     std::cout << "[Game] declareBankruptcy()\n"; 
+    logger->addLog("Pemain menyatakan bangkrut!");
     // TODO: panggil fungsi di BankruptcyManager
 }
 
