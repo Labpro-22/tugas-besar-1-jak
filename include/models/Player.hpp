@@ -74,4 +74,6 @@ public:
     bool hasUsedSkillThisTurn() const;
     const std::vector<PropertyTile *> &getOwnedProperties() const;
     const std::vector<SkillCard *> &getOwnedSkillCards() const;
+    std::vector<std::string> getSkillCardNames() const;
+    std::vector<std::string> getSkillCardDescriptions() const;
 };

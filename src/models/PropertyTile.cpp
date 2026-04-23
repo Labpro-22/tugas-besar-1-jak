@@ -1,4 +1,5 @@
 #include "models/PropertyTile.hpp"
+#include "models/Player.hpp"
 
 // PropertyTile
 
@@ -13,15 +14,15 @@ void PropertyTile::redeem() {
     status = PropertyStatus::OWNED;
 }
 
-Player* PropertyTile::getOwner() {
+Player* PropertyTile::getOwner() const {
     return owner;
 }
 
-bool PropertyTile::isMortgaged() { 
+bool PropertyTile::isMortgaged() const { 
     return status == PropertyStatus::MORTGAGED; 
 }
 
-int PropertyTile::getPrice()
+int PropertyTile::getPrice() const
 {
     return buyPrice;
 }
@@ -29,6 +30,13 @@ int PropertyTile::getPrice()
 void PropertyTile::changeOwner(Player *newOwner)
 {
     this->owner = newOwner;
+}
+
+int PropertyTile::getMortgageValue() const {
+    return mortgageValue;
+}
+PropertyStatus PropertyTile::getStatus() const {
+    return status;
 }
 
 int PropertyTile::getMortgageValue() const {
@@ -156,6 +164,16 @@ void RailroadTile::onLanded(Player& player, Game& game) {
         }
     }
 }
+void RailroadTile::onLanded(Player& player, Game& game) {
+    if (status == PropertyStatus::BANK) {
+        changeOwner(&player);
+        status = PropertyStatus::OWNED;
+    } else if (status == PropertyStatus::OWNED) {
+        if (owner != &player) {
+            player.payRent(calculateRent(0), *owner);
+        }
+    }
+}
 
 // UtilityTile
 
@@ -170,6 +188,16 @@ int UtilityTile::calculateRent(int diceTotal) {
     return 0;
 }
 
+void UtilityTile::onLanded(Player& player, Game& game) {
+    if (status == PropertyStatus::BANK) {
+        changeOwner(&player);
+        status = PropertyStatus::OWNED;
+    } else {
+        if (owner != &player) {
+            player.payRent(calculateRent(0), *owner);
+        }
+    }
+}
 void UtilityTile::onLanded(Player& player, Game& game) {
     if (status == PropertyStatus::BANK) {
         changeOwner(&player);

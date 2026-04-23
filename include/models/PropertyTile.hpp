@@ -19,11 +19,15 @@ class PropertyTile : public Tile {
         // menebus properti dari bank
         void redeem();
         // getter pemilik properti
-        Player* getOwner();
+        Player* getOwner() const;
         // cek apakah properti sedang digadai
-        bool isMortgaged();
-        int getPrice();
+        bool isMortgaged() const;
+        int getPrice() const;
         void changeOwner(Player *newOwner);
+        // getter atribut
+
+        int getMortgageValue() const;
+        PropertyStatus getStatus() const;
         // getter atribut
 
         int getMortgageValue() const;
