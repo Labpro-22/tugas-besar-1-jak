@@ -3,8 +3,8 @@
 #include "models/Board.hpp"
 #include "models/Player.hpp"
 #include "models/Dice.hpp"
-#include "models/BankruptcyManager.hpp"
-#include "models/AuctionManager.hpp"
+#include "core/BankruptcyManager.hpp"
+#include "core/AuctionManager.hpp"
 #include "models/CardDeck.hpp"
 #include "models/ActionCard.hpp"
 #include "models/SkillCard.hpp"
@@ -125,6 +125,22 @@ void Game::passAuction()
     std::cout << "[Game] passAuction()" << std::endl;
     logger->addLog("Pemain melewati giliran lelang.");
     // TODO: Implementation
+}
+
+void Game::finalizeAuction(Player* winner, PropertyTile* property, int winningBid) {
+    if (winner == nullptr) {
+        logger->addLog("Lelang gagal: " + property->getCode() + " tidak terjual.");
+        return;
+    }
+
+    *winner -= winningBid;
+    property->changeOwner(winner);
+    winner->addProperty(property);
+    logger->addLog(winner->getUsername() + " memenangkan lelang " + property->getCode() + " dengan harga " + std::to_string(winningBid));
+}
+
+void Game::logAuctionEvent(const std::string& action, const std::string& detail) {
+    logger->addLog("[AUCTION] " + action + ": " + detail);
 }
 
 // SkillCard

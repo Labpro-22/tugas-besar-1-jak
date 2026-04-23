@@ -93,6 +93,8 @@ public:
     // Auction
     void placeBid(int amount) override;
     void passAuction() override;
+    void finalizeAuction(Player* winner, PropertyTile* property, int winningBid) override;
+    void logAuctionEvent(const std::string& action, const std::string& detail) override;
 
     // SkillCard
     void useSkillCard(int cardIndex) override;
