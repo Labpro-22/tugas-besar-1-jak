@@ -3,8 +3,8 @@
 #include "models/Board.hpp"
 #include "models/Player.hpp"
 #include "models/Dice.hpp"
-#include "models/BankruptcyManager.hpp"
-#include "models/AuctionManager.hpp"
+#include "core/BankruptcyManager.hpp"
+#include "core/AuctionManager.hpp"
 #include "models/CardDeck.hpp"
 #include "models/ActionCard.hpp"
 #include "models/SkillCard.hpp"
@@ -309,4 +309,20 @@ void Game::addActionCardToPlayer(Player &player, std::unique_ptr<ActionCard> car
 {
     std::cout << "[Game] addActionCardToPlayer()" << std::endl;
     // TODO: Implementation
+}
+
+TransactionLogger* getLogger() override { 
+    return logger.get(); 
+}
+
+void triggerAuction(PropertyTile& property) override {
+    startAuctionForProperty(property);
+}
+
+int countActivePlayers() const override {
+    int count = 0;
+    for (auto& p : players) {
+        if (p->getStatus() != "BANKRUPT") count++;
+    }
+    return count;
 }
