@@ -3,16 +3,16 @@
 #include "IGameAction.hpp"
 #include <string>
 
-// GUNAKAN_KARTU_BEBAS
-class GunakanKartuBebasCommand : public Command {
+// BANTUAN
+class BantuanCommand : public Command {
     public:
     bool execute(IGameAction& game) override {
-        // Panggil fungsi beli yang ada di kelas Game
-        game.useJailFreeCard();
+        // Panggil fungsi bantuan yang ada di kelas Game
+        game.printHelp();
         return false;
     }
-    
+
     std::string getName() const override { 
-        return "GUNAKAN_KARTU_BEBAS"; 
+        return "BANTUAN"; 
     }
 };

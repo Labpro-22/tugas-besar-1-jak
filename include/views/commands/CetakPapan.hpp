@@ -6,9 +6,10 @@
 // CETAK_PAPAN
 class CetakPapanCommand : public Command {
     public:
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi cetak/print yang ada di kelas Game
-        // Misal: game.cetakPapan();
+    bool execute(IGameAction& game) override {
+        // Panggil fungsi cetak/print yang ada di kelas Game
+        game.printBoard();
+        return false;
     }
     
     std::string getName() const override { 

@@ -6,9 +6,10 @@
 // LEPAS
 class LepasCommand : public Command {
     public:
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi lepas yang ada di kelas Game
-        // Misal: game.lepasLelang();
+    bool execute(IGameAction& game) override {
+        // Panggil fungsi lepas yang ada di kelas Game
+        game.passAuction();
+        return false;
     }
     std::string getName() const override { 
         return "LEPAS"; 

@@ -3,11 +3,12 @@
 #include "IGameAction.hpp"
 #include <string>
 
+// QUIT
 class QuitCommand : public Command {
-public:
+    public:
     bool execute(IGameAction& game) override {
-        // TODO: panggil fungsi keluar yang ada di kelas Game
-        // Misal: game.quitGame();
+        // Panggil fungsi keluar yang ada di kelas Game
+        game.quitGame();
         return true; // True karena game-nya berhenti, otomatis gilirannya habis
     }
     
