@@ -39,7 +39,7 @@ public:
     // Card management
     void addCard(SkillCard *card);
     void removeCard(int index);
-    void useSkillCard(int index);
+    void useSkillCard(int index, Game& game);
 
     // Property management
     void addProperty(PropertyTile *prop);
