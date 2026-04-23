@@ -127,6 +127,22 @@ void Game::passAuction()
     // TODO: Implementation
 }
 
+void Game::finalizeAuction(Player* winner, PropertyTile* property, int winningBid) {
+    if (winner == nullptr) {
+        logger->addLog("Lelang gagal: " + property->getCode() + " tidak terjual.");
+        return;
+    }
+
+    *winner -= winningBid;
+    property->changeOwner(winner);
+    winner->addProperty(property);
+    logger->addLog(winner->getUsername() + " memenangkan lelang " + property->getCode() + " dengan harga " + std::to_string(winningBid));
+}
+
+void Game::logAuctionEvent(const std::string& action, const std::string& detail) {
+    logger->addLog("[AUCTION] " + action + ": " + detail);
+}
+
 // SkillCard
 void Game::useSkillCard(int cardIndex)
 {
@@ -309,20 +325,4 @@ void Game::addActionCardToPlayer(Player &player, std::unique_ptr<ActionCard> car
 {
     std::cout << "[Game] addActionCardToPlayer()" << std::endl;
     // TODO: Implementation
-}
-
-TransactionLogger* getLogger() override { 
-    return logger.get(); 
-}
-
-void triggerAuction(PropertyTile& property) override {
-    startAuctionForProperty(property);
-}
-
-int countActivePlayers() const override {
-    int count = 0;
-    for (auto& p : players) {
-        if (p->getStatus() != "BANKRUPT") count++;
-    }
-    return count;
 }

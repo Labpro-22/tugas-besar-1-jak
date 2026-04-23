@@ -93,6 +93,8 @@ public:
     // Auction
     void placeBid(int amount) override;
     void passAuction() override;
+    void finalizeAuction(Player* winner, PropertyTile* property, int winningBid) override;
+    void logAuctionEvent(const std::string& action, const std::string& detail) override;
 
     // SkillCard
     void useSkillCard(int cardIndex) override;
@@ -128,8 +130,4 @@ public:
     // Manajemen Aset Pemain
     void addSkillCardToPlayer(Player &player, std::unique_ptr<SkillCard> card);
     void addActionCardToPlayer(Player &player, std::unique_ptr<ActionCard> card);
-
-    TransactionLogger* getLogger() override;
-    void triggerAuction(PropertyTile& property) override;
-    int countActivePlayers() const override;
 };
