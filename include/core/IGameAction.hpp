@@ -5,6 +5,8 @@
 
 class Board;
 class Player;
+class TransactionLogger;
+class PropertyTile;
 
 enum class GamePhase
 {
@@ -60,4 +62,8 @@ public:
     // Game Selesai
     virtual void endTurn() = 0;
     virtual void declareBankruptcy() = 0;
+
+    virtual TransactionLogger* getLogger() = 0;
+    virtual void triggerAuction(PropertyTile& property) = 0;
+    virtual int countActivePlayers() const = 0;
 };
