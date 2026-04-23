@@ -1,8 +1,8 @@
 #pragma once
+#include "models/Tile.hpp"
 #include <vector>
 #include <string>
 #include <map>
-#include "Tile.hpp"
 
 class ConfigLoader {
     public:

@@ -1,6 +1,6 @@
 #pragma once
 #include "Command.hpp"
-#include "IGameAction.hpp"
+#include "core/IGameAction.hpp"
 #include <string>
 
 // BAYAR_DENDA

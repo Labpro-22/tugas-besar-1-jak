@@ -1,6 +1,6 @@
 #pragma once
 #include "Command.hpp"
-#include "IGameAction.hpp"
+#include "core/IGameAction.hpp"
 #include <string>
 #include <vector>
 
@@ -16,8 +16,8 @@ class GadaiCommand : public Command {
         for (const auto& code : tileCodes) {
             // Panggil fungsi gadai yang ada di kelas Game
             game.mortgageProperty(code);
-            return false;
         }
+        return false;
     }
     
     std::string getName() const override { 

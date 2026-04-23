@@ -1,7 +1,7 @@
-#include "ConfigLoader.hpp"
-#include "PropertyTile.hpp"
-#include "ActionTile.hpp"
-#include "SpecialTile.hpp"
+#include "utils/ConfigLoader.hpp"
+#include "models/PropertyTile.hpp"
+#include "models/ActionTile.hpp"
+#include "models/SpecialTile.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>

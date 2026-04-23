@@ -1,9 +1,8 @@
 #pragma once
 #include "Command.hpp"
-#include "NimonspoliException.hpp"
+#include "utils/NimonspoliException.hpp"
 #include "AkhiriGiliran.hpp"
 #include "AturDadu.hpp"
-#include "Bangkrut.hpp"
 #include "Bangun.hpp"
 #include "Bantuan.hpp"
 #include "BayarDenda.hpp"
@@ -88,6 +87,7 @@ class CommandParser {
 
         const std::string& cmd = tokens[0];
 
+        // Command yang dipanggil manual
         // ===== LEMPAR_DADU =====
         if (cmd == "LEMPAR_DADU") {
             requireArgCount(tokens, 0, cmd);
@@ -103,12 +103,6 @@ class CommandParser {
                 throw InvalidInputException("ATUR_DADU: nilai dadu harus antara 1-6.");
             }
             return new AturDaduCommand(x, y);
-        }
-
-        // ===== BELI =====
-        if (cmd == "BELI") {
-            requireArgCount(tokens, 0, cmd);
-            return new BeliCommand();
         }
 
         // ===== GADAI <kode> [<kode> ...] =====
@@ -231,12 +225,6 @@ class CommandParser {
             return new AkhiriGiliranCommand();
         }
 
-        // ===== BANGKRUT =====
-        if (cmd == "BANGKRUT") {
-            requireArgCount(tokens, 0, cmd);
-            return new BangkrutCommand();
-        }
-
         // ===== BANTUAN =====
         if (cmd == "BANTUAN") {
             requireArgCount(tokens, 0, cmd);
@@ -246,7 +234,13 @@ class CommandParser {
         // ===== CETAK_STATUS =====
         if (cmd == "CETAK_STATUS") {
             requireArgCount(tokens, 0, cmd);
-            return new CetakStatusommand();
+            return new CetakStatusCommand();
+        }
+
+        // ===== BELI =====
+        if (cmd == "BELI") {
+            requireArgCount(tokens, 0, cmd);
+            return new BeliCommand();
         }
 
         // Tidak dikenali

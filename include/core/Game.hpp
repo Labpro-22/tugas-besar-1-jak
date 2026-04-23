@@ -1,5 +1,5 @@
 #pragma once
-#include "IGameAction.hpp"
+#include "core/IGameAction.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -69,14 +69,14 @@ private:
 
 public:
     Game();
-    ~Game() override = default;
+    ~Game() override;
 
     // Inisialisasi
     void initialize();
     void initializeFromSave(const std::string& currentSaveFile);
     bool isGameActive() const override;
     GamePhase getCurrentPhase() const;
-    void setGameActive(bool active);
+    void setGameActive(bool active) override;
 
     // Yang bakal dipake sama Command dari IGameAction
     // Dadu

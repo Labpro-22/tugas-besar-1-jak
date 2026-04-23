@@ -1,10 +1,10 @@
 #pragma once
 #include "Command.hpp"
-#include "IGameAction.hpp"
+#include "core/IGameAction.hpp"
 #include <string>
 
 // CETAK_STATUS
-class CetakStatusommand : public Command {
+class CetakStatusCommand : public Command {
     public:
     bool execute(IGameAction& game) override {
         // Panggil fungsi cetak status yang ada di kelas Game
