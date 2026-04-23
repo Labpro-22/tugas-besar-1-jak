@@ -1,5 +1,5 @@
-#include "Game.hpp"
-#include "TransactionLogger.hpp"
+#include "core/Game.hpp"
+#include "utils/TransactionLogger.hpp"
 #include <iostream>
 
 Game::Game()
