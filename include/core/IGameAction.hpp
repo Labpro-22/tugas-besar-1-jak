@@ -2,8 +2,9 @@
 
 #include <string>
 #include <vector>
-#include "../models/Board.hpp"
-#include "../models/Player.hpp"
+
+class Board;
+class Player;
 
 enum class GamePhase
 {
