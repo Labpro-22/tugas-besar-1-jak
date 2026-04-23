@@ -329,6 +329,10 @@ int Player::getCash() const
 {
     return cash;
 }
+bool Player::isJailed() const
+{
+    return status == "JAILED";
+}
 void Player::setCash(int amount)
 {
     cash = amount;
