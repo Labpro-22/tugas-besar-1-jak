@@ -40,5 +40,7 @@ class Tile {
         std::string getCode() const;
         // getter atribut index
         int getIndex() const;
+        // getter atribut name
+        std::string getName() const;
         virtual ~Tile() = default;
 };

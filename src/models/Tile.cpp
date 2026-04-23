@@ -14,3 +14,7 @@ std::string Tile::getCode() const {
 int Tile::getIndex() const {
     return index;
 }
+
+std::string Tile::getName() const {
+    return name; 
+}
