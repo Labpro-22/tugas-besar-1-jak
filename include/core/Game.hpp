@@ -128,4 +128,8 @@ public:
     // Manajemen Aset Pemain
     void addSkillCardToPlayer(Player &player, std::unique_ptr<SkillCard> card);
     void addActionCardToPlayer(Player &player, std::unique_ptr<ActionCard> card);
+
+    TransactionLogger* getLogger() override;
+    void triggerAuction(PropertyTile& property) override;
+    int countActivePlayers() const override;
 };
