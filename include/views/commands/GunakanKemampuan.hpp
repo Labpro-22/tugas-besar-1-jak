@@ -11,9 +11,9 @@ class GunakanKemampuanCommand : public Command {
     public:
     explicit GunakanKemampuanCommand(int cardIndex) : cardIndex(cardIndex) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi gunakan kemampuan yang ada di kelas Game
-        // Misal: game.gunakanKartuKemampuan(cardIndex);
+    bool execute(IGameAction& game) override {
+        game.gunakanKartuKemampuan(cardIndex);
+        return false;
     }
     
     std::string getName() const override { 

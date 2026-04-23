@@ -6,9 +6,9 @@
 // CETAK_PROPERTI
 class CetakPropertiCommand : public Command {
     public:
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi cetak properti yang ada di kelas Game
-        // Misal: game.cetakInventoriProperti();
+    bool execute(IGameAction& game) override {
+        game.cetakInventoriProperti();
+        return false;
     }
     
     std::string getName() const override { 

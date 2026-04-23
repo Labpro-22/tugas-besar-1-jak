@@ -11,9 +11,9 @@ class SimpanCommand : public Command {
     public:
     explicit SimpanCommand(std::string filename) : filename(std::move(filename)) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi simpan game yang ada di kelas Game
-        // Misal: game.simpanGame(filename);
+    bool execute(IGameAction& game) override {
+        game.simpanGame(filename);
+        return false;
     }
     
     std::string getName() const override { 

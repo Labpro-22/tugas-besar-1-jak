@@ -6,9 +6,9 @@
 // LEMPAR_DADU
 class LemparDaduCommand : public Command {
     public:
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi kocok dadu yang ada di kelas Game
-        // Misal: game.lemparDadu();
+    bool execute(IGameAction& game) override {
+        game.lemparDadu();
+        return false;
     }
 
     std::string getName() const override { 

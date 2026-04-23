@@ -11,9 +11,9 @@ class BangunCommand : public Command {
     public:
     explicit BangunCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi bangun yang ada di kelas Game
-        // Misal: game.bangunDiProperti(tileCode);
+    bool execute(IGameAction& game) override {
+        game.bangunDiProperti(tileCode);
+        return false;
     }
     
     std::string getName() const override { 

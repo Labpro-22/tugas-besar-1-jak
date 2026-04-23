@@ -1,7 +1,7 @@
 #pragma once
 #include "CommandParser.hpp"
 #include "IGameAction.hpp"
-#include "NimonspoliException.hpp"
+#include "utils/NimonspoliException.hpp"
 #include <string>
 #include <iostream>
 

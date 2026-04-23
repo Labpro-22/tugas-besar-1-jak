@@ -11,9 +11,9 @@ class JualBangunanCommand : public Command {
     public:
     explicit JualBangunanCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi jual bangunan yang ada di kelas Game
-        // Misal: game.jualBangunan(tileCode);
+    bool execute(IGameAction& game) override {
+        game.jualBangunan(tileCode);
+        return false;
     }
     
     std::string getName() const override { 

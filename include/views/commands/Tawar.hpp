@@ -11,9 +11,9 @@ class TawarCommand : public Command {
     public:
     explicit TawarCommand(int amount) : amount(amount) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi tawar yang ada di kelas Game
-        // Misal: game.tawar(amount);
+    bool execute(IGameAction& game) override {
+        game.tawar(amount);
+        return false;
     }
     
     std::string getName() const override { 

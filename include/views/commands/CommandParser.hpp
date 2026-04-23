@@ -1,6 +1,6 @@
 #pragma once
 #include "Command.hpp"
-#include "NimonspoliException.hpp"
+#include "utils/NimonspoliException.hpp"
 #include "AturDadu.hpp"
 #include "Bangun.hpp"
 #include "BayarDenda.hpp"
@@ -19,9 +19,9 @@
 #include "Simpan.hpp"
 #include "Tawar.hpp"
 #include "Tebus.hpp"
-#include "QuitCommand.hpp"
-#include "EndTurnCommand.hpp"
-#include "BankruptCommand.hpp"
+#include "Quit.hpp"
+#include "AkhiriGiliran.hpp"
+#include "Bangkrut.hpp"
 
 #include <string>
 #include <vector>
@@ -226,13 +226,13 @@ class CommandParser {
         // ===== AKHIRI_GILIRAN =====
         if (cmd == "AKHIRI_GILIRAN") {
             requireArgCount(tokens, 0, cmd);
-            return new EndTurnCommand();
+            return new AkhiriGiliranCommand();
         }
 
         // ===== BANGKRUT =====
         if (cmd == "BANGKRUT") {
             requireArgCount(tokens, 0, cmd);
-            return new BankruptCommand();
+            return new BangkrutCommand();
         }
 
         // Tidak dikenali

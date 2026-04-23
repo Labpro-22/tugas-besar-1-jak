@@ -11,9 +11,9 @@ class CetakAktaCommand : public Command {
     public:
     explicit CetakAktaCommand(std::string tileCode = "") : tileCode(std::move(tileCode)) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi cetak akta yang ada di kelas Game
-        // Misal: game.cetakAkta(tileCode);
+    bool execute(IGameAction& game) override {
+        game.cetakAkta(tileCode);
+        return false;
     }
 
     std::string getName() const override { 

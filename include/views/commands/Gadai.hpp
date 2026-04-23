@@ -7,16 +7,16 @@
 // GADAI <kode_petak> [<kode_petak> ...]
 class GadaiCommand : public Command {
     private:
-    std::vector<string> tileCodes;
+    std::vector<std::string> tileCodes;
 
     public:
-    explicit GadaiCommand(std::vector<string> tileCodes) : tileCodes(std::move(tileCodes)) {}
+    explicit GadaiCommand(std::vector<std::string> tileCodes) : tileCodes(std::move(tileCodes)) {}
 
-    void execute(IGameAction& game) override {
+    bool execute(IGameAction& game) override {
         for (const auto& code : tileCodes) {
-            // TODO: panggil fungsi gadai yang ada di kelas Game
-            // Misal: game.gadaiProperti(code);
+            game.gadaiProperti(code);
         }
+        return false;
     }
     
     std::string getName() const override { 

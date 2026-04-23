@@ -6,9 +6,9 @@
 // BELI
 class BeliCommand : public Command {
     public:
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi beli yang ada di kelas Game
-        // Misal: game.beliProperti();
+    bool execute(IGameAction& game) override {
+        game.beliProperti();
+        return false;
     }
     
     std::string getName() const override { 
