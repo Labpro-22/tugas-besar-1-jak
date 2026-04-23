@@ -8,7 +8,7 @@ class QuitCommand : public Command {
     public:
     bool execute(IGameAction& game) override {
         // Panggil fungsi keluar yang ada di kelas Game
-        game.quitGame();
+        game.setGameActive(false);
         return true; // True karena game-nya berhenti, otomatis gilirannya habis
     }
     

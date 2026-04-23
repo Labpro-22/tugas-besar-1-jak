@@ -76,7 +76,7 @@ public:
     void initializeFromSave(const std::string& currentSaveFile);
     bool isGameActive() const override;
     GamePhase getCurrentPhase() const;
-    void setGameActive(bool active);
+    void setGameActive(bool active) override;
 
     // Yang bakal dipake sama Command dari IGameAction
     // Dadu
