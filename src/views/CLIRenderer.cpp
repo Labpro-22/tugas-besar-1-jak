@@ -3,6 +3,7 @@
 #include "models/Tile.hpp"
 #include "models/PropertyTile.hpp"
 #include "models/Player.hpp"
+#include "models/SkillCard.hpp"
 #include "utils/NimonspoliException.hpp"
 
 #include <iostream>
@@ -285,52 +286,41 @@ void CLIRenderer::renderBoard(const Board& board, const std::vector<Player*>& pl
 
 // ===== printAkta =====
 void CLIRenderer::printAkta(const StreetTile& tile) const {
-    // TODO: Uncomment setelah temenmu tambah getter di StreetTile:
-    // getColorGroup(), getRents(), getHouseCost(), getHotelCost(),
-    // getBuildingLevel(), getMortgageValue(), getStatus()
-
     std::cout << "\n";
     std::cout << "+==================================+\n";
     std::cout << "|         AKTA KEPEMILIKAN         |\n";
 
-    // TODO: ganti dengan getter yang sesuai setelah dipush
-    // std::string colorGroup = tile.getColorGroup();
-    // std::string colorCode  = getColorCode(colorGroup);
-    // std::cout << "| " << colorCode
-    //           << "[" << colorGroup << "] "
-    //           << tile.getName() << " (" << tile.getCode() << ")"
-    //           << RESET << " |\n";
+    std::string colorGroup = tile.getColorGroup();
+    std::string colorCode  = getColorCode(colorGroup);
+    std::cout << "| " << colorCode << "[" << colorGroup << "] " << tile.getName() << " (" << tile.getCode() << ")" << RESET << " |\n";
 
     std::cout << "| Kode: " << std::left << std::setw(27) << tile.getCode() << "|\n";
     std::cout << "+==================================+\n";
-
-    std::cout << "| Harga Beli       : M"
-              << std::left << std::setw(13) << tile.getPrice() << "|\n";
-
-    // TODO: std::cout << "| Nilai Gadai      : M" << tile.getMortgageValue() << "\n";
-
+    std::cout << "| Harga Beli       : M" << std::left << std::setw(13) << tile.getPrice() << "|\n";
+    std::cout << "| Nilai Gadai      : M" << std::left << std::setw(13) << tile.getMortgageValue() << "|\n";
     std::cout << "+----------------------------------+\n";
 
-    // TODO: Uncomment setelah getter getRents() ada
-    // std::vector<std::string> levels = {
-    //     "unimproved", "1 rumah", "2 rumah", "3 rumah", "4 rumah", "hotel"
-    // };
-    // auto rents = tile.getRents();
-    // for (int i = 0; i < (int)rents.size() && i < 6; i++) {
-    //     std::cout << "| Sewa (" << std::left << std::setw(10) << (levels[i] + ")")
-    //               << ": M" << std::left << std::setw(10) << rents[i] << "|\n";
-    // }
+    std::vector<std::string> levels = {
+        "unimproved", "1 rumah", "2 rumah", "3 rumah", "4 rumah", "hotel"
+    };
+    auto rents = tile.getRents();
+    for (int i = 0; i < (int)rents.size() && i < 6; i++) {
+        std::cout << "| Sewa (" << std::left << std::setw(10) << (levels[i] + ")") << ": M" << std::left << std::setw(10) << rents[i] << "|\n";
+    }
 
-    // TODO: std::cout << "| Harga Rumah : M" << tile.getHouseCost() << "\n";
-    // TODO: std::cout << "| Harga Hotel : M" << tile.getHotelCost() << "\n";
+    std::cout << "| Harga Rumah : M" << tile.getHouseCost() << "\n";
+    std::cout << "| Harga Hotel : M" << tile.getHotelCost() << "\n";
 
     std::cout << "+==================================+\n";
 
-    // TODO: tampilkan status kepemilikan
-    // std::string statusStr = ...;
-    // if (tile.getOwner()) statusStr += " (" + tile.getOwner()->getUsername() + ")";
-    // std::cout << "| Status : " << statusStr << "\n";
+    std::string statusStr = "";
+    PropertyStatus ps = tile.getStatus();
+    if (ps == PropertyStatus::BANK) statusStr = "BANK";
+    else if (ps == PropertyStatus::OWNED) statusStr = "OWNED";
+    else if (ps == PropertyStatus::MORTGAGED) statusStr = "MORTGAGED";
+    if (tile.getOwner()) statusStr += " (" + tile.getOwner()->getUsername() + ")";
 
+    std::cout << "| Status : " << std::left << std::setw(24) << statusStr << "|\n";
     std::cout << "+==================================+\n\n";
 }
 
@@ -351,13 +341,12 @@ void CLIRenderer::printPropertyInventory(const Player& player) const {
     }
 
     // Kelompokkan per warna
-    // TODO: Uncomment setelah getter getColorGroup() ada di StreetTile
-    // std::map<std::string, std::vector<PropertyTile*>> byColor;
-    // for (auto* prop : properties) {
-    //     StreetTile* st = dynamic_cast<StreetTile*>(prop);
-    //     std::string color = st ? st->getColorGroup() : "DEFAULT";
-    //     byColor[color].push_back(prop);
-    // }
+    std::map<std::string, std::vector<PropertyTile*>> byColor;
+    for (auto* prop : properties) {
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        std::string color = st ? st->getColorGroup() : "DEFAULT";
+        byColor[color].push_back(prop);
+    }
 
     // Urutan warna sesuai papan (clockwise dari GO)
     std::vector<std::string> colorOrder = {
@@ -366,24 +355,34 @@ void CLIRenderer::printPropertyInventory(const Player& player) const {
     };
 
     int totalWealth = 0;
+    for (const auto& color : colorOrder) {
+        if (byColor.find(color) == byColor.end()) continue;
 
-    // Sementara tanpa grouping warna
-    for (auto* prop : properties) {
-        std::string status = prop->isMortgaged() ? "MORTGAGED [M]" : "OWNED";
-        std::string owner  = prop->getOwner() ? prop->getOwner()->getUsername() : "BANK";
+        std::string colorCode = getColorCode(color);
+        if (color == "DEFAULT") {
+            std::cout << "[STASIUN/UTILITAS]\n";
+        } else {
+            std::cout << colorCode << "[" << color << "]" << RESET << "\n";
+        }
 
-        // TODO: Ganti dengan colorGroup setelah getter tersedia
-        // StreetTile* st = dynamic_cast<StreetTile*>(prop);
-        // std::string buildInfo = "";
-        // if (st) {
-        //     int level = st->getBuildingLevel();
-        //     if (level == 5) buildInfo = "Hotel";
-        //     else if (level > 0) buildInfo = std::to_string(level) + " rumah";
-        // }
+        for (auto* prop : byColor[color]) {
+            std::string status = prop->isMortgaged() ? "MORTGAGED [M]" : "OWNED";
 
-        std::cout << "  - " << prop->getCode() << "\tM" << prop->getPrice() << "\t" << status << "\n";
+            std::string buildInfo = "";
+            StreetTile* st = dynamic_cast<StreetTile*>(prop);
+            if (st) {
+                int level = st->getBuildingLevel();
+                if (level == 5)      buildInfo = "Hotel";
+                else if (level > 0)  buildInfo = std::to_string(level) + " rumah";
+            }
 
-        totalWealth += prop->getPrice();
+            std::cout << "  - " << prop->getCode();
+            if (!buildInfo.empty()) std::cout << "\t" << buildInfo;
+            std::cout << "\tM" << prop->getPrice() << "\t" << status << "\n";
+
+            totalWealth += prop->getPrice();
+        }
+        std::cout << "\n";
     }
 
     std::cout << "\nTotal kekayaan properti: M" << totalWealth << "\n\n";
@@ -416,8 +415,7 @@ void CLIRenderer::printPlayerStatus(const Player& player, const Board& board) co
     if (!cards.empty()) {
         std::cout << "Kartu Kemampuan (" << cards.size() << "):\n";
         for (int i = 0; i < (int)cards.size(); i++) {
-            std::cout << "  [" << i << "] " << cards[i]->getName()
-                      << " - " << cards[i]->getDescription() << "\n";
+            std::cout << "  [" << i << "] " << cards[i]->getName() << " - " << cards[i]->getDescription() << "\n";
         }
     }
     std::cout << "--------------------\n\n";

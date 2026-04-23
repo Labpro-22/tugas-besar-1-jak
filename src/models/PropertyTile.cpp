@@ -13,15 +13,15 @@ void PropertyTile::redeem() {
     status = PropertyStatus::OWNED;
 }
 
-Player* PropertyTile::getOwner() {
+Player* PropertyTile::getOwner() const {
     return owner;
 }
 
-bool PropertyTile::isMortgaged() { 
+bool PropertyTile::isMortgaged() const { 
     return status == PropertyStatus::MORTGAGED; 
 }
 
-int PropertyTile::getPrice()
+int PropertyTile::getPrice() const
 {
     return buyPrice;
 }
@@ -120,10 +120,10 @@ const std::vector<int> StreetTile::getRents() const {
 int StreetTile::getHouseCost() const {
     return houseCost;
 }
-int StreetTile::geteHotelCost() const {
+int StreetTile::getHotelCost() const {
     return hotelCost;
 }
-int StreetTile::getBuildinglevel() const {
+int StreetTile::getBuildingLevel() const {
     return buildingLevel;
 }
 int StreetTile::getFestivalMultiplier() const {

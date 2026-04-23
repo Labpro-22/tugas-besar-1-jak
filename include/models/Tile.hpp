@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "core\Game.hpp"
+#include "core/Game.hpp"
 #include "Player.hpp"
 
 
