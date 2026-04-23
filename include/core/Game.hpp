@@ -25,6 +25,8 @@ private:
     GamePhase currentPhase;
     int currentPlayerIndex;
     int turnsPlayed;
+    int maxTurn;
+    std::vector<int> turnOrder;
 
     // Auction State
     bool isAuctionActive;
@@ -73,6 +75,7 @@ public:
 
     // Inisialisasi
     void initialize();
+    void startNewGame(const std::vector<std::string>& playerNames);
     void initializeFromSave(const std::string& currentSaveFile);
     bool isGameActive() const override;
     GamePhase getCurrentPhase() const;

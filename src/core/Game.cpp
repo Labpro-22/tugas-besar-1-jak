@@ -8,7 +8,10 @@
 #include "models/CardDeck.hpp"
 #include "models/ActionCard.hpp"
 #include "models/SkillCard.hpp"
+#include "utils/ConfigLoader.hpp"
 #include <iostream>
+#include <algorithm>
+#include <random>
 
 Game::Game()
     : gameActive(false),
@@ -30,9 +33,57 @@ Game::~Game() = default;
 // Inisialisasi
 void Game::initialize()
 {
+    board = std::make_unique<Board>();
+    board->initializeBoard("config/");
+    dice = std::make_unique<Dice>();
     logger = std::make_unique<TransactionLogger>();
+    bankruptcyManager = std::make_unique<BankruptcyManager>();
+    auctionManager = std::make_unique<AuctionManager>(this);
     gameActive = true;
     logger->addLog("Permainan Nimonspoli telah dimulai!");
+}
+
+// Mulai game baru
+void Game::startNewGame(const std::vector<std::string>& playerNames) {
+    // Baca config misc untuk saldo awal dan max turn
+    auto misc = ConfigLoader::loadMisc("config/");
+    int saldoAwal = 1000;
+    if (misc.count("SALDO_AWAL")) {
+        saldoAwal = misc["SALDO_AWAL"];
+    }
+    maxTurn = 15;
+    if (misc.count("MAX_TURN")) {
+        maxTurn = misc["MAX_TURN"];
+    }
+
+    // Buat player
+    players.clear();
+    for (const auto& name : playerNames) {
+        auto p = std::make_unique<Player>(name);
+        p->setCash(saldoAwal);
+        p->setPosition(board->getStartTileIndex());
+        players.push_back(std::move(p));
+    }
+
+    // Acak urutan giliran
+    turnOrder.clear();
+    for (int i = 0; i < (int)players.size(); i++) {
+        turnOrder.push_back(i);
+    }
+    std::shuffle(turnOrder.begin(), turnOrder.end(), std::mt19937(std::random_device{}()));
+    currentPlayerIndex = 0;
+    turnsPlayed = 1;
+
+    logger->addLog("New game dimulai dengan " + std::to_string(players.size()) + " pemain.");
+}
+
+// Ambil pemain aktif saat ini
+Player *Game::getCurrentPlayer() const
+{
+    if (players.empty()) {
+        return nullptr;
+    }
+    return players[turnOrder[currentPlayerIndex]].get();
 }
 
 void Game::initializeFromSave(const std::string& currentSaveFile)
@@ -306,13 +357,6 @@ std::string Game::getCurrentPlayerBalanceString()
     std::cout << "[Game] getCurrentPlayerBalanceString() " << std::endl;
     // TODO: Implementation - return balance as string
     return "Rp 0"; // Stub
-}
-
-Player *Game::getCurrentPlayer() const
-{
-    std::cout << "[Game] getCurrentPlayer()" << std::endl;
-    // TODO: Implementation - return current player pointer
-    return nullptr;
 }
 
 Board& Game::getBoard() const
