@@ -6,6 +6,7 @@
 class Board;
 class Player;
 class PropertyTile;
+class TransactionLogger;
 
 enum class GamePhase
 {
@@ -40,6 +41,7 @@ public:
     virtual void passAuction() = 0;
     virtual void finalizeAuction(Player* winner, PropertyTile* property, int winningBid) = 0;
     virtual void logAuctionEvent(const std::string& action, const std::string& detail) = 0;
+    virtual void triggerAuction(PropertyTile& property) = 0;
 
     // SkillCard
     virtual void useSkillCard(int cardIndex) = 0;
@@ -59,6 +61,12 @@ public:
     virtual void printLog(int limit) = 0;
     virtual void printHelp() = 0;
     virtual void printPlayerStatus() = 0;
+
+    // Logger
+    virtual TransactionLogger *getLogger() = 0;
+
+    // Player
+    virtual int countActivePlayers() const = 0;
 
     // Game Selesai
     virtual void endTurn() = 0;

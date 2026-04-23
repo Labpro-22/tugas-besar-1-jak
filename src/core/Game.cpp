@@ -143,6 +143,10 @@ void Game::logAuctionEvent(const std::string& action, const std::string& detail)
     logger->addLog("[AUCTION] " + action + ": " + detail);
 }
 
+void Game::triggerAuction(PropertyTile& property) {
+    // TODO: mulai lelang via auctionManager
+}
+
 // SkillCard
 void Game::useSkillCard(int cardIndex)
 {
@@ -272,6 +276,15 @@ void Game::declareBankruptcy() {
     std::cout << "[Game] declareBankruptcy()\n"; 
     logger->addLog("Pemain menyatakan bangkrut!");
     // TODO: panggil fungsi di BankruptcyManager
+}
+
+// Player
+int Game::countActivePlayers() const {
+    int count = 0;
+    for (const auto& p : players) {
+        if (p && p->getStatus() != "BANKRUPT") count++;
+    }
+    return count;
 }
 
 // Getter

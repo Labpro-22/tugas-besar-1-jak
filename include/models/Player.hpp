@@ -56,6 +56,11 @@ public:
     void handleBankruptcy(Player &creditor, int amountOwed);
     void liquidateAssets(int targetAmount);
 
+    void removeProperty(PropertyTile* prop);
+    void clearProperties();
+    void clearSkillCards();
+    std::vector<PropertyTile*> releaseAllProperties();
+
     // Getters
     std::string getUsername() const;
     int getPosition() const;

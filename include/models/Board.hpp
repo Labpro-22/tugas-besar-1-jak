@@ -33,6 +33,7 @@ public:
     int getStartTileIndex() const;
     int getJailTileIndex() const;
     bool isValidPosition(int index) const;
+    std::vector<PropertyTile*> getPropertiesByColor(const std::string& colorGroup) const;
 
 private:
     // helper inisialisasi

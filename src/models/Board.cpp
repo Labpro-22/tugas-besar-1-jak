@@ -1,5 +1,6 @@
 #include "models/Board.hpp"
 #include "models/Tile.hpp"
+#include "models/PropertyTile.hpp"
 #include "utils/NimonspoliException.hpp"
 #include "utils/ConfigLoader.hpp"
 #include <iostream>
@@ -111,6 +112,17 @@ int Board::getJailTileIndex() const
 bool Board::isValidPosition(int index) const
 {
     return index >= 0 && index < static_cast<int>(tiles.size());
+}
+
+std::vector<PropertyTile*> Board::getPropertiesByColor(const std::string& colorGroup) const {
+    std::vector<PropertyTile*> result;
+    for (Tile* tile : tiles) {
+        StreetTile* st = dynamic_cast<StreetTile*>(tile);
+        if (st && st->getColorGroup() == colorGroup) {
+            result.push_back(st);
+        }
+    }
+    return result;
 }
 
 void Board::validateBoard()
