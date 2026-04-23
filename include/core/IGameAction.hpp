@@ -18,6 +18,7 @@ class IGameAction
 public:
     virtual ~IGameAction() = default;
 
+    virtual bool isGameActive() const = 0;
     virtual Board &getBoard() const = 0;
     virtual Player *getCurrentPlayer() const = 0;
 
@@ -37,7 +38,7 @@ public:
     virtual void passAuction() = 0;
 
     // SkillCard
-    virtual void useSkillCard(int &cardIndex) = 0;
+    virtual void useSkillCard(int cardIndex) = 0;
 
     // Jail
     virtual void payJailFine() = 0;

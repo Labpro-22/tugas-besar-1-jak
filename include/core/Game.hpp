@@ -73,9 +73,9 @@ public:
 
     // Inisialisasi
     void initialize();
-    void initializeFromSave(const std::string currentSaveFile);
-    bool isGameActive();
-    GamePhase getCurrentPhase();
+    void initializeFromSave(const std::string& currentSaveFile);
+    bool isGameActive() const override;
+    GamePhase getCurrentPhase() const;
     void setGameActive(bool active);
 
     // Yang bakal dipake sama Command dari IGameAction
@@ -95,7 +95,7 @@ public:
     void passAuction() override;
 
     // SkillCard
-    void useSkillCard(int &cardIndex) override;
+    void useSkillCard(int cardIndex) override;
 
     // Jail
     void payJailFine() override;
