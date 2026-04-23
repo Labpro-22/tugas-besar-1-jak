@@ -55,21 +55,11 @@ std::vector<LiquidationOption> BankruptcyManager::getLiquidationOptions(const Pl
         if (prop->isMortgaged()) continue;
 
         int sellVal = getSellValue(*prop);
-        options.push_back({
-            LiquidationOption::Type::SELL_PROPERTY,
-            prop,
-            sellVal,
-            "Jual " + prop->getName() + " → M" + std::to_string(sellVal)
-        });
+        options.push_back(LiquidationOption(LiquidationOption::Type::SELL_PROPERTY, prop, sellVal, "Jual " + prop->getName() + " -> M" + std::to_string(sellVal)));
 
         if (isMortgageable(*prop, game)) {
             int mortVal = prop->getMortgageValue();
-            options.push_back({
-                LiquidationOption::Type::MORTGAGE_PROPERTY,
-                prop,
-                mortVal,
-                "Gadai " + prop->getName() + " → M" + std::to_string(mortVal)
-            });
+            options.push_back(LiquidationOption(LiquidationOption::Type::MORTGAGE_PROPERTY, prop, mortVal, "Gadai " + prop->getName() + " -> M" + std::to_string(mortVal)));
         }
     }
 
@@ -77,23 +67,23 @@ std::vector<LiquidationOption> BankruptcyManager::getLiquidationOptions(const Pl
 }
 
 void BankruptcyManager::executeLiquidation(Player& debtor, const LiquidationOption& option, IGameAction& game) {
-    auto prop = option.property;
+    auto prop = option.getProperty();;
 
-    if (option.type == LiquidationOption::Type::SELL_PROPERTY) {
+    if (option.getType() == LiquidationOption::Type::SELL_PROPERTY) {
         if (auto street = dynamic_cast<StreetTile*>(prop)) {
             street->resetBuildings();
         }
 
         debtor.removeProperty(prop);
         prop->changeOwner(nullptr);
-        debtor += option.amount;
+        debtor += option.getAmount();
 
         if (game.getLogger())
             game.getLogger()->addLog(debtor.getUsername() + " menjual " + prop->getName());
     }
     else {
         prop->mortgage();
-        debtor += option.amount;
+        debtor += option.getAmount();
 
         if (game.getLogger())
             game.getLogger()->addLog(debtor.getUsername() + " menggadaikan " + prop->getName());

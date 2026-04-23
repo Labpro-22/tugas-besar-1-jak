@@ -2,19 +2,12 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include "models/LiquidationOption.hpp"
 
 class Player;
 class IGameAction;
 class TransactionLogger;
 class PropertyTile;
-
-struct LiquidationOption {
-    enum class Type { SELL_PROPERTY, MORTGAGE_PROPERTY };
-    Type type;
-    PropertyTile* property;
-    int amount;
-    std::string description;
-};
 
 class BankruptcyManager {
 public:
