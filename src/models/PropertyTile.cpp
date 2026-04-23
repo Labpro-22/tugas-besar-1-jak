@@ -133,6 +133,12 @@ int StreetTile::getFestivalMultiplier() const {
 int StreetTile::getFestivalDuration() const {
     return festivalDuration;
 }
+int StreetTile::getBuildingSaleValue() const {
+    return buildingLevel * (houseCost / 2); 
+}
+void StreetTile::resetBuildings() {
+    buildingLevel = 0;
+}
 
 // RailroadTile
 
