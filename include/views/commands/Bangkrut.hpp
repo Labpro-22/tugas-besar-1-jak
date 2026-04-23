@@ -3,11 +3,12 @@
 #include "IGameAction.hpp"
 #include <string>
 
+// BANGKRUT
 class BangkrutCommand : public Command {
 public:
     bool execute(IGameAction& game) override {
-        // TODO: panggil fungsi bangkrut yang ada di kelas Game
-        // Misal: game.bangkrut();
+        // Panggil fungsi bangkrut yang ada di kelas Game
+        game.declareBankruptcy();
         return true; // True karena kalau udah bangkrut, gilirannya berganti
     }
     

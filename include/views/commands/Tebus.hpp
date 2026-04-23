@@ -11,9 +11,10 @@ class TebusCommand : public Command {
     public:
     explicit TebusCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi tebus yang ada di kelas Game
-        // Misal: game.tebusProperti(tileCode);
+    bool execute(IGameAction& game) override {
+        // Panggil fungsi tebus yang ada di kelas Game
+        game.redeemProperty(tileCode);
+        return false;
     }
     
     std::string getName() const override { 

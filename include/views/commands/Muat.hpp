@@ -11,9 +11,10 @@ class MuatCommand : public Command {
     public:
     explicit MuatCommand(std::string filename) : filename(std::move(filename)) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi muat game yang ada di kelas Game
-        // Misal: game.muatGame(filename);
+    bool execute(IGameAction& game) override {
+        // Panggil fungsi muat game yang ada di kelas Game
+        game.loadGame(filename);
+        return false;
     }
     
     std::string getName() const override { 

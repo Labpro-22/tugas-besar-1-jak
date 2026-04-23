@@ -12,10 +12,11 @@ class GadaiCommand : public Command {
     public:
     explicit GadaiCommand(std::vector<string> tileCodes) : tileCodes(std::move(tileCodes)) {}
 
-    void execute(IGameAction& game) override {
+    bool execute(IGameAction& game) override {
         for (const auto& code : tileCodes) {
-            // TODO: panggil fungsi gadai yang ada di kelas Game
-            // Misal: game.gadaiProperti(code);
+            // Panggil fungsi gadai yang ada di kelas Game
+            game.mortgageProperty(code);
+            return false;
         }
     }
     

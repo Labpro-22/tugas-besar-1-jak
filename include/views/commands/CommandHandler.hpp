@@ -28,6 +28,11 @@ class CommandHandler {
             }
             // Info giliran dah habis belum
             bool turnEnded = handleInput(rawInput);
+
+            // Kalau habis (true)
+            if (turnEnded) {
+                break;
+            }
         }
     }
 

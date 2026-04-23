@@ -11,9 +11,10 @@ class CetakLogCommand : public Command {
     public:
     explicit CetakLogCommand(int limit = -1) : limit(limit) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi cetak log yang ada di kelas Game
-        // Misal: game.cetakLog(limit);
+    bool execute(IGameAction& game) override {
+        // Panggil fungsi cetak log yang ada di kelas Game
+        game.printLog(limit);
+        return false;
     }
     
     std::string getName() const override { 

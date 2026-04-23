@@ -3,11 +3,12 @@
 #include "IGameAction.hpp"
 #include <string>
 
+// AKHIRI_GILIRAN
 class AkhiriGiliranCommand : public Command {
 public:
     bool execute(IGameAction& game) override {
-        // TODO: panggil fungsi akhiri giliran yang ada di kelas Game
-        // Misal: game.akhiriGiliran();
+        // Panggil fungsi akhiri giliran yang ada di kelas Game
+        game.endTurn();
         return true; // True karena buat ganti giliran pemain
     }
     

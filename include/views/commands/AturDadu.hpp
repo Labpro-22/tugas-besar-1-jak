@@ -11,9 +11,10 @@ class AturDaduCommand : public Command {
     public:
     AturDaduCommand(int x, int y) : x(x), y(y) {}
 
-    void execute(IGameAction& game) override {
-        // TODO: panggil fungsi atur dadu yang ada di kelas Game
-        // Misal: game.aturDadu(x, y);
+    bool execute(IGameAction& game) override {
+        // Panggil fungsi atur dadu yang ada di kelas Game
+        game.setDice(x, y);
+        return false; // Ga ngubah giliran
     }
     
     std::string getName() const override { 
