@@ -22,6 +22,8 @@ class PropertyTile : public Tile {
         Player* getOwner();
         // cek apakah properti sedang digadai
         bool isMortgaged();
+        int getPrice();
+        void changeOwner(Player *newOwner);
 };
 
 // Merepresentasikan petak properti yang dapat ditingkatkan dan dikelompokkan berdasarkan color group
