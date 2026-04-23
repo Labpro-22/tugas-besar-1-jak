@@ -21,6 +21,16 @@ bool PropertyTile::isMortgaged() {
     return status == PropertyStatus::MORTGAGED; 
 }
 
+int PropertyTile::getPrice()
+{
+    return buyPrice;
+}
+
+void PropertyTile::changeOwner(Player *newOwner)
+{
+    this->owner = newOwner;
+}
+
 // StreetTile
 
 StreetTile::StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, std::string cg, 
