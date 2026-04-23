@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
+#include "PropertyTile.hpp"
 
-class Property;
 class SkillCard;
 class Game;
 
@@ -14,7 +14,7 @@ private:
     int position;
     std::string status;
     int cash;
-    std::vector<Property *> ownedProperties;
+    std::vector<PropertyTile *> ownedProperties;
     std::vector<SkillCard *> ownedSkillCards;
     bool shieldActive;
     int discountPercent;
@@ -43,8 +43,8 @@ public:
     void useSkillCard(int index);
 
     // Property management
-    void addProperty(Property *prop);
-    void buyProperty(Property *property, Game &game);
+    void addProperty(PropertyTile *prop);
+    void buyProperty(PropertyTile *property, Game &game);
     void payRent(int amount, Player &landlord);
 
     // Game actions
@@ -72,6 +72,6 @@ public:
     int getConsecutiveDoublesDice() const;
     void setConsecutiveDoublesDice(int count);
     bool hasUsedSkillThisTurn() const;
-    const std::vector<Property *> &getOwnedProperties() const;
+    const std::vector<PropertyTile *> &getOwnedProperties() const;
     const std::vector<SkillCard *> &getOwnedSkillCards() const;
 };

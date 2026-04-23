@@ -25,12 +25,23 @@ bool PropertyTile::isMortgaged()
     return status == PropertyStatus::MORTGAGED;
 }
 
+int PropertyTile::getPrice()
+{
+    return buyPrice;
+}
+
+void PropertyTile::changeOwner(Player *newOwner)
+{
+    this->owner = newOwner;
+}
 // StreetTile
 
 StreetTile::StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, std::string cg,
                        std::vector<int> rnt, int hc, int htc)
     : PropertyTile(idx, cd, nm, bp, mv), colorGroup(cg), rents(rnt), buildingLevel(0),
-      festivalMultiplier(1), festivalDuration(0), houseCost(hc), hotelCost(htc) {}
+      festivalMultiplier(1), festivalDuration(0), houseCost(hc), hotelCost(htc)
+{
+}
 
 int StreetTile::calculateRent(int diceTotal)
 {

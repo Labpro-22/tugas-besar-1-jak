@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <stdexcept>
 
-class Property;
 class SkillCard;
 
 // Constructor
@@ -14,7 +13,7 @@ Player::Player(const std::string &username)
       consecutiveDoublesDice(0), hasUsedSkillThisTurnVal(false)
 {
     // Iniaialisasi
-    ownedProperties = std::vector<Property *>();
+    ownedProperties = std::vector<PropertyTile *>();
     ownedSkillCards = std::vector<SkillCard *>();
 }
 
@@ -70,11 +69,11 @@ int Player::getTotalWealth() const
     int total = cash;
 
     // harga total seluruh properti
-    for (Property *prop : ownedProperties)
+    for (PropertyTile *prop : ownedProperties)
     {
         if (prop != nullptr)
         {
-            total += prop->getValue();
+            total += prop->getPrice();
         }
     }
 
@@ -88,11 +87,11 @@ int Player::getMaxLiquidation() const
     // max hasil penjualan semua properti
     const double LIQUIDATION_RATE = 0.7; // 70% harga properti
 
-    for (Property *prop : ownedProperties)
+    for (PropertyTile *prop : ownedProperties)
     {
         if (prop != nullptr)
         {
-            maxLiquidation += static_cast<int>(prop->getValue() * LIQUIDATION_RATE);
+            maxLiquidation += static_cast<int>(prop->getPrice() * LIQUIDATION_RATE);
         }
     }
 
@@ -121,7 +120,7 @@ void Player::removeCard(int index)
 }
 
 // Property management methods
-void Player::addProperty(Property *prop)
+void Player::addProperty(PropertyTile *prop)
 {
     if (prop == nullptr)
     {
@@ -129,7 +128,7 @@ void Player::addProperty(Property *prop)
     }
 
     // Cek kepemilikan
-    for (Property *owned : ownedProperties)
+    for (PropertyTile *owned : ownedProperties)
     {
         if (owned == prop)
         {
@@ -150,7 +149,7 @@ void Player::useSkillCard(int index)
 
     if (index < 0 || index >= static_cast<int>(ownedSkillCards.size()))
     {
-        throw NimonspoliException("[useSkillCard] Index Kartu Skill tidak valid")
+        throw NimonspoliException("[useSkillCard] Index Kartu Skill tidak valid");
     }
 
     if (ownedSkillCards[index] == nullptr)
@@ -166,7 +165,7 @@ void Player::useSkillCard(int index)
     hasUsedSkillThisTurnVal = true;
 }
 
-void Player::buyProperty(Property *property, Game &game)
+void Player::buyProperty(PropertyTile *property, Game &game)
 {
     if (property == nullptr)
     {
@@ -186,7 +185,7 @@ void Player::buyProperty(Property *property, Game &game)
 
     // Mengurangi saldo dan pemindahan kepemilikan
     cash -= price;
-    property->setOwner(this);
+    property->changeOwner(this);
     addProperty(property);
 }
 
@@ -227,9 +226,9 @@ void Player::handleBankruptcy(Player &creditor, int amountOwed)
         status = "BANKRUPT";
 
         // transfer semua properti ke kreditor
-        for (Property *prop : ownedProperties)
+        for (PropertyTile *prop : ownedProperties)
         {
-            prop->setOwner(&creditor);
+            prop->changeOwner(&creditor);
             creditor.addProperty(prop);
         }
         ownedProperties.clear();
@@ -255,9 +254,9 @@ void Player::liquidateAssets(int targetAmount)
 
     // Sort properties by value (Lowest Descending)
     std::sort(ownedProperties.begin(), ownedProperties.end(),
-              [](Property *a, Property *b)
+              [](PropertyTile *a, PropertyTile *b)
               {
-                  return a->getValue() < b->getValue();
+                  return a->getPrice() < b->getPrice();
               });
 
     const double LIQUIDATION_RATE = 0.7;
@@ -265,12 +264,12 @@ void Player::liquidateAssets(int targetAmount)
     auto it = ownedProperties.begin();
     while (it != ownedProperties.end() && amountRaised < targetAmount)
     {
-        int liquidationValue = static_cast<int>((*it)->getValue() * LIQUIDATION_RATE);
+        int liquidationValue = static_cast<int>((*it)->getPrice() * LIQUIDATION_RATE);
         amountRaised += liquidationValue;
         cash += liquidationValue;
 
         // hapus kepemilikan
-        (*it)->setOwner(nullptr);
+        (*it)->changeOwner(nullptr);
         it = ownedProperties.erase(it);
     }
 }
@@ -367,7 +366,7 @@ bool Player::hasUsedSkillThisTurn() const
 {
     return hasUsedSkillThisTurnVal;
 }
-const std::vector<Property *> &Player::getOwnedProperties() const
+const std::vector<PropertyTile *> &Player::getOwnedProperties() const
 {
     return ownedProperties;
 }
