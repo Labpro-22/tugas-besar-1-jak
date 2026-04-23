@@ -81,4 +81,8 @@ public:
     const std::vector<SkillCard *> &getOwnedSkillCards() const;
     std::vector<std::string> getSkillCardNames() const;
     std::vector<std::string> getSkillCardDescriptions() const;
+    void removeProperty(PropertyTile* prop);
+    void clearProperties();
+    void clearSkillCards();
+    std::vector<PropertyTile*> releaseAllProperties();
 };

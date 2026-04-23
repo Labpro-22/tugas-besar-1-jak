@@ -418,3 +418,27 @@ std::vector<std::string> Player::getSkillCardDescriptions() const {
     }
     return descs;
 }
+
+void Player::removeProperty(PropertyTile* prop) {
+    auto it = std::find(ownedProperties.begin(), ownedProperties.end(), prop);
+    if (it != ownedProperties.end()) {
+        ownedProperties.erase(it);
+    }
+}
+
+void Player::clearProperties() {
+    ownedProperties.clear();
+}
+
+void Player::clearSkillCards() {
+    for (SkillCard* card : ownedSkillCards) {
+        delete card;
+    }
+    ownedSkillCards.clear();
+}
+
+std::vector<PropertyTile*> Player::releaseAllProperties() {
+    std::vector<PropertyTile*> released = ownedProperties;
+    ownedProperties.clear();
+    return released;
+}

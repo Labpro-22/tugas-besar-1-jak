@@ -134,7 +134,10 @@ int StreetTile::getFestivalDuration() const {
     return festivalDuration;
 }
 int StreetTile::getBuildingSaleValue() const {
-    return buildingLevel * (houseCost / 2); 
+    if (buildingLevel == 5) {
+        return (houseCost / 2) * 4 + (hotelCost / 2);
+    }
+    return buildingLevel * (houseCost / 2);
 }
 void StreetTile::resetBuildings() {
     buildingLevel = 0;
