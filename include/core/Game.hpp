@@ -28,6 +28,13 @@ private:
     int maxTurn;
     std::vector<int> turnOrder;
 
+    // Buat nyimpen nilai-nilai config biar ga load berkali-kali
+    int goSalary;
+    int jailFine;
+    int pphFlat;
+    int pphPersen;
+    int pbmFlat;
+
     // Auction State
     bool isAuctionActive;
     class PropertyTile *currentAuctionProperty;
@@ -42,8 +49,9 @@ private:
     std::unique_ptr<TransactionLogger> logger;
     std::unique_ptr<BankruptcyManager> bankruptcyManager;
     std::unique_ptr<AuctionManager> auctionManager;
-    std::unique_ptr<CardDeck<ActionCard>> actionCardDeck;
     std::unique_ptr<CardDeck<SkillCard>> skillCardDeck;
+    std::unique_ptr<CardDeck<ActionCard>> chanceDeck;
+    std::unique_ptr<CardDeck<ActionCard>> generalFundsDeck;
 
     // Renderer
     CLIRenderer *renderer;
@@ -69,9 +77,22 @@ private:
     bool canBuildOnProperty(Player &player, PropertyTile &tile);
     int calculatePropertyValue(PropertyTile &tile);
 
+    // Private helper terkait handle landed tiap petak
+    void handleStreetLanding(Player& player, StreetTile& tile);
+    void handleRailroadLanding(Player& player, RailroadTile& tile);
+    void handleUtilityLanding(Player& player, UtilityTile& tile);
+    void handleTaxLanding(Player& player, TaxTile& tile);
+    void handleFestivalLanding(Player& player);
+    void handleCardLanding(Player& player, CardTile& tile);
+
+    void handleGameEnd();
+
 public:
     Game();
     ~Game() override;
+
+    void processTileLandingPublic(Player& player, int tileIndex);
+    std::vector<Player*> getActivePlayers() const;
 
     // Inisialisasi
     void initialize();

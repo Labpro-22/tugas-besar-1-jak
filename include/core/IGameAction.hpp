@@ -20,6 +20,9 @@ class IGameAction
 public:
     virtual ~IGameAction() = default;
 
+    virtual std::vector<Player*> getActivePlayers() const = 0;
+    virtual void processTileLandingPublic(Player& player, int tileIndex) = 0;
+
     virtual void setGameActive(bool active) = 0;
     virtual bool isGameActive() const = 0;
     virtual Board &getBoard() const = 0;

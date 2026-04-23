@@ -10,6 +10,10 @@ ActionTile::ActionTile(int idx, std::string cd, std::string nm)
 CardTile::CardTile(int idx, std::string cd, std::string nm, DeckType dt) 
     : ActionTile(idx, cd, nm), deckType(dt) {}
 
+DeckType CardTile::getDeckType() const {
+    return deckType;
+}
+
 void CardTile::onLanded(Player& player, Game& game) {}
 
 // FestivalTile
@@ -31,4 +35,8 @@ void TaxTile::onLanded(Player& player, Game& game) {
     } else {
         
     }
+}
+
+TaxType TaxTile::getTaxType() const {
+    return taxType;
 }
