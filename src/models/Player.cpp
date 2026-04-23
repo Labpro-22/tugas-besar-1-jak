@@ -325,6 +325,9 @@ std::string Player::getStatus() const
 {
     return status;
 }
+void Player::setStatus(const std::string& status) { 
+    this->status = status; 
+}
 int Player::getCash() const
 {
     return cash;

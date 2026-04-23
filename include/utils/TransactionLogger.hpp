@@ -10,6 +10,9 @@ class TransactionLogger {
     TransactionLogger() {};
     ~TransactionLogger() {};
 
+    // Getter
+    const std::vector<std::string>& getLogs() const;
+
     // Tambah entri log baru
     void addLog(const std::string& message);
 

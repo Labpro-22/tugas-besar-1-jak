@@ -1,6 +1,10 @@
 #include "utils/TransactionLogger.hpp"
 #include <iostream>
 
+const std::vector<std::string>& TransactionLogger::getLogs() const {
+    return logs;
+}
+
 void TransactionLogger::addLog(const std::string& message) {
     logs.push_back(message);
 }
