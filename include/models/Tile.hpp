@@ -3,9 +3,10 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "core/Game.hpp"
-#include "Player.hpp"
 
+// Forward declarations
+class Player;
+class Game;
 
 // Status petak properti
 enum class PropertyStatus {
