@@ -190,8 +190,46 @@ void Game::printLog(int limit)
 }
 
 void Game::printHelp() { 
-    std::cout << "--- Daftar Perintah Nimonspoli ---" << std::endl; 
-    // TODO: Implementation
+    std::cout << "=================================================================\n";
+    std::cout << "                 DAFTAR PERINTAH NIMONSPOLI                      \n";
+    std::cout << "=================================================================\n\n";
+
+    std::cout << "[AKSI GILIRAN]\n";
+    std::cout << "  LEMPAR_DADU    : Melempar dadu untuk bergerak ke petak baru.\n";
+    std::cout << "  AKHIRI_GILIRAN : Mengakhiri giliranmu dan lanjut ke pemain berikutnya.\n\n";
+
+    std::cout << "[PROPERTI & BANGUNAN]\n";
+    std::cout << "  BELI               : Membeli properti di petak tempatmu berada.\n";
+    std::cout << "  BANGUN <petak>     : Membangun rumah/hotel di properti milikmu.\n";
+    std::cout << "  JUAL_BANGUNAN <ptk>: Menjual bangunan yang ada di properti milikmu.\n\n";
+
+    std::cout << "[MANAJEMEN ASET & LELANG]\n";
+    std::cout << "  GADAI <petak> : Menggadaikan properti untuk mendapatkan uang.\n";
+    std::cout << "  TEBUS <petak> : Menebus properti yang sedang digadaikan.\n";
+    std::cout << "  TAWAR <harga> : Mengajukan harga saat sesi lelang properti.\n";
+    std::cout << "  LEPAS         : Mundur dari sesi lelang saat ini.\n";
+    std::cout << "  BANGKRUT      : Menyerah dan keluar dari permainan karena kehabisan uang.\n\n";
+
+    std::cout << "[PENJARA & KARTU]\n";
+    std::cout << "  BAYAR_DENDA                 : Membayar denda agar bisa keluar dari penjara.\n";
+    std::cout << "  GUNAKAN_KARTU_BEBAS         : Menggunakan kartu khusus untuk bebas.\n";
+    std::cout << "  GUNAKAN_KEMAMPUAN <index>   : Menggunakan kartu skill (kemampuan) yang dimiliki.\n\n";
+
+    std::cout << "[INFORMASI]\n";
+    std::cout << "  CETAK_STATUS   : Melihat info saldo, posisi, dan statusmu saat ini.\n";
+    std::cout << "  CETAK_PAPAN    : Menampilkan kondisi papan Nimonspoli saat ini.\n";
+    std::cout << "  CETAK_PROPERTI : Menampilkan daftar seluruh properti yang kamu miliki.\n";
+    std::cout << "  CETAK_AKTA <p> : Melihat detail harga, biaya sewa, dan status sebuah properti.\n";
+    std::cout << "  CETAK_LOG      : Melihat riwayat aksi yang sudah terjadi di dalam game.\n";
+    std::cout << "  BANTUAN        : Menampilkan menu daftar perintah ini.\n\n";
+
+    std::cout << "[SISTEM & CHEAT]\n";
+    std::cout << "  SIMPAN <file>   : Menyimpan progres permainan (contoh: SIMPAN game1.txt).\n";
+    std::cout << "  MUAT <file>     : Memuat progres permainan dari file penyimpanan.\n";
+    std::cout << "  ATUR_DADU <x> <y>: [Cheat] Mengatur angka dadu secara manual untuk testing.\n";
+    std::cout << "  QUIT            : Keluar dari aplikasi Nimonspoli sepenuhnya.\n\n";
+    
+    std::cout << "=================================================================\n";
 }
 
 void Game::printPlayerStatus() { 
