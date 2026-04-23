@@ -45,6 +45,10 @@ public:
     void addProperty(PropertyTile *prop);
     void buyProperty(PropertyTile *property, Game &game);
     void payRent(int amount, Player &landlord);
+    void clearProperties();
+    std::vector<PropertyTile*> releaseAllProperties();
+    void clearSkillCards();
+    void removeProperty(PropertyTile* prop);
 
     // Game actions
     void goToJail();
@@ -61,6 +65,7 @@ public:
     int getPosition() const;
     void setPosition(int pos);
     std::string getStatus() const;
+    void setStatus(const std::string& s);
     bool isJailed() const;
     int getCash() const;
     void setCash(int amount);

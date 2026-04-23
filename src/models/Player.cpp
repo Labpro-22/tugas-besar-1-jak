@@ -214,6 +214,27 @@ void Player::payRent(int amount, Player &landlord)
     }
 }
 
+void Player::clearProperties() {
+    ownedProperties.clear();
+}
+
+std::vector<PropertyTile*> Player::releaseAllProperties() {
+    std::vector<PropertyTile*> temp = ownedProperties;
+    ownedProperties.clear();
+    return temp;
+}
+
+void Player::clearSkillCards() {
+    ownedSkillCards.clear();
+}
+
+void Player::removeProperty(PropertyTile* prop) {
+    auto it = std::find(ownedProperties.begin(), ownedProperties.end(), prop);
+    if (it != ownedProperties.end()) {
+        ownedProperties.erase(it);
+    }
+}
+
 void Player::handleBankruptcy(Player &creditor, int amountOwed)
 {
     // cairkan semua property
@@ -324,6 +345,10 @@ void Player::setPosition(int pos)
 std::string Player::getStatus() const
 {
     return status;
+}
+void Player::setStatus(const std::string& s) 
+{
+    status = s;
 }
 int Player::getCash() const
 {
