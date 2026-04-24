@@ -1,17 +1,16 @@
 #pragma once
 #include "core/IGameAction.hpp"
+#include "models\Board.hpp"
+#include "models\Dice.hpp"
+#include "models\Player.hpp"
+#include "models\ActionCard.hpp"
+#include "models\SkillCard.hpp"
+#include "models\CardDeck.hpp"
 #include <memory>
 #include <string>
 #include <vector>
 
 // Forward declarations
-class PropertyTile;
-class Dice;
-class Board;
-class Player;
-class ActionCard;
-class SkillCard;
-template <typename T> class CardDeck;
 class TransactionLogger;
 class BankruptcyManager;
 class AuctionManager;
@@ -40,7 +39,8 @@ private:
     std::unique_ptr<TransactionLogger> logger;
     std::unique_ptr<BankruptcyManager> bankruptcyManager;
     std::unique_ptr<AuctionManager> auctionManager;
-    std::unique_ptr<CardDeck<ActionCard>> actionCardDeck;
+    std::unique_ptr<CardDeck<ActionCard>> chanceCardDeck;
+    std::unique_ptr<CardDeck<ActionCard>> communityChestCardDeck;
     std::unique_ptr<CardDeck<SkillCard>> skillCardDeck;
 
     // Renderer
@@ -60,7 +60,6 @@ private:
     void startAuctionForProperty(PropertyTile &tile);
     void endAuction();
     void checkBankruptcy(Player &player);
-    void drawActionCard(Player &player);
     void drawSkillCard(Player &player);
     void movePlayer(Player &player, int steps);
     void teleportPlayer(Player &player, int targetTileIndex);
@@ -124,6 +123,10 @@ public:
     Player *getCurrentPlayer() const override;
     Board &getBoard() const override;
     TransactionLogger *getLogger();
+
+    // draw kartu
+    void drawChanceCard(Player &player);
+    void drawCommunityChestCard(Player &player);
 
     // Manajemen Aset Pemain
     void addSkillCardToPlayer(Player &player, std::unique_ptr<SkillCard> card);

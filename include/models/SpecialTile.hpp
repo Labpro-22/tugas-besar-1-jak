@@ -7,6 +7,8 @@ class SpecialTile : public Tile {
     public:
         // ctor
         SpecialTile(int idx, std::string cd, std::string nm);
+        // getter tile type (return SEPCIAL)
+        TileType getTileType() const override;
 };
 
 // Petak spesial berupa petak mulai
