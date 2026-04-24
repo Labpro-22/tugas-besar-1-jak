@@ -1,12 +1,13 @@
 #include "models/SpecialTile.hpp"
-#include "models/Player.hpp"
 
 // SpecialTile
 
 SpecialTile::SpecialTile(int idx, std::string cd, std::string nm)
     : Tile(idx, cd, nm) {}
 
-TileType SpecialTile::getTileType() const { return TileType::SPECIAL; }
+TileType SpecialTile::getTileType() const {
+    return TileType::SPECIAL;
+}
 
 // GoTile
 

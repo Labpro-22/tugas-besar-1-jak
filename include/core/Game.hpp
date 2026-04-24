@@ -1,20 +1,16 @@
 #pragma once
 #include "core/IGameAction.hpp"
+#include "models\Board.hpp"
+#include "models\Dice.hpp"
+#include "models\Player.hpp"
+#include "models\ActionCard.hpp"
+#include "models\SkillCard.hpp"
+#include "models\CardDeck.hpp"
 #include <memory>
 #include <string>
 #include <vector>
 
 // Forward declarations
-class PropertyTile;
-class StreetTile;
-class RailroadTile;
-class UtilityTile;
-class Dice;
-class Board;
-class Player;
-class ActionCard;
-class SkillCard;
-template <typename T> class CardDeck;
 class TransactionLogger;
 class BankruptcyManager;
 class AuctionManager;
@@ -74,6 +70,8 @@ private:
     void processTileLanding(Player &player, int tileIndex);
     void applyRent(Player &player, PropertyTile &tile);
     void startAuctionForProperty(PropertyTile &tile);
+    void endAuction();
+    void checkBankruptcy(Player &player);
     void drawSkillCard(Player &player);
     void movePlayer(Player &player, int steps);
     void teleportPlayer(Player &player, int targetTileIndex);

@@ -108,7 +108,7 @@ int StreetTile::calculateRent(int diceTotal, bool isMonopolized) {
         throw NimonspoliException("Rent Calculation: building level " + this->name + " melewati batas.");
     }
     int baseRent = rents[buildingLevel];
-    if (buildingLevel == 0 && isMonopolized()) {
+    if (buildingLevel == 0 && isMonopolized) {
         baseRent *= 2;
     }
     if (festivalDuration > 0) {
@@ -305,6 +305,9 @@ void StreetTile::resetBuildings() {
     buildingLevel = 0;
     festivalDuration = 0;
     festivalMultiplier = 1;
+}
+PropertyType StreetTile::getPropertyType() const {
+    return PropertyType::STREET;
 }
 
 // RailroadTile
