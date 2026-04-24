@@ -689,6 +689,7 @@ void Game::printBoard() {
     renderer->renderBoard(*board, rawPlayers, turnsPlayed, maxTurn, currentIdx);
 }
 
+// Cetak akta
 void Game::printDeed(const std::string& tileCode) {
     if (tileCode.empty()) {
         std::cout << "Masukkan kode petak: ";
@@ -702,17 +703,24 @@ void Game::printDeed(const std::string& tileCode) {
         Tile* tile = board->getTile(i);
         if (tile && tile->getCode() == tileCode) {
             StreetTile* st = dynamic_cast<StreetTile*>(tile);
+            RailroadTile* rr = dynamic_cast<RailroadTile*>(tile);
+            UtilityTile* ut = dynamic_cast<UtilityTile*>(tile);
+
             if (st) {
-                renderer->printAkta(*st);
+                renderer->printDeed(*st);
+            } else if (rr) {
+                renderer->printDeed(*rr);
+            } else if (ut) {
+                renderer->printDeed(*ut);
             } else {
-                renderer->printAktaNotFound(tileCode);
+                renderer->printDeedNotFound(tileCode);
             }
-            return;
         }
     }
-    renderer->printAktaNotFound(tileCode);
+    renderer->printDeedNotFound(tileCode);
 }
 
+// Cetak properti
 void Game::printPropertyInventory() {
     Player* player = getCurrentPlayer();
     if (!player) return;
