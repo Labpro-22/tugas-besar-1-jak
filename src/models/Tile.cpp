@@ -4,7 +4,7 @@ Tile::Tile(int idx, std::string cd, std::string nm)
     : index(idx), code(cd), name(nm) {}
 
 std::string Tile::getDisplayColor() {
-    return "WHITE";
+    return "DEFAULT";
 }
 
 std::string Tile::getCode() const {

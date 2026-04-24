@@ -9,6 +9,8 @@ class PropertyTile : public Tile {
         int mortgageValue; // nilai uang yang diterima saat properti digadai
         Player* owner; // pointer ke player pemilik properti
         PropertyStatus status; // status properti (bank, owned, mortgaged)
+        int festivalMultiplier; // pengali sewa dari efek festival (no efek: 1, efek: 2, 4, 8 maks)
+        int festivalDuration; // durasi efek festival (0 - 3 giliran)
     public:
         // constructor
         PropertyTile(int idx, std::string cd, std::string nm, int bp, int mv);
@@ -22,12 +24,31 @@ class PropertyTile : public Tile {
         Player* getOwner() const;
         // cek apakah properti sedang digadai
         bool isMortgaged() const;
+        bool isOwned() const;
         int getPrice() const;
         void changeOwner(Player *newOwner);
         // getter atribut
 
         int getMortgageValue() const;
         PropertyStatus getStatus() const;
+        // getter atribut
+
+        int getMortgageValue() const;
+        PropertyStatus getStatus() const;
+        virtual PropertyType getPropertyType() const;
+        TileType getTileType() const;
+        virtual void resetBuildings();
+        virtual int getTotalBuildingPrice();
+        // mengaktifkan efek festival yang menggandakan nilai sewa
+        void applyFestival();
+        // mengurangi durasi festival tiap giliran
+        void tickFestival();
+        // checker efek
+        bool isFestivalActive();
+        bool isFestivalMax();
+        //getter
+        int getFestivalMultiplier() const;
+        int getFestivalDuration() const;
 };
 
 // Merepresentasikan petak properti yang dapat ditingkatkan dan dikelompokkan berdasarkan color group
@@ -38,8 +59,6 @@ class StreetTile : public PropertyTile {
         int houseCost; // biaya membangun 1 rumah
         int hotelCost; // biaya upgrade ke level 5/hotel
         int buildingLevel; // level bangunan saat ini (0 - 5)
-        int festivalMultiplier; // pengali sewa dari efek festival (no efek: 1, efek: 2, 4, 8 maks)
-        int festivalDuration; // durasi efek festival (0 - 3 giliran)
     public:
         // ctor
         StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, std::string cg, 
@@ -49,35 +68,29 @@ class StreetTile : public PropertyTile {
         // dipanggil ketika pemain mendarat di petak
         void onLanded(Player& player, Game& game) override;
         // menaikkan level bangunan dan memotong saldo pemain
-        void build();
-        // menjual bangunan ke Bank seharga 1/2 harga beli
+        void build(bool isMonopolized);
+        // menjual bangunan ke Bank
         void sell();
         // cek apakah pemilik menguasai color group
         bool isMonopolized();
         // cek syarat pemerataan bangunan antar petak color group
-        bool canBuild();
-        // mengaktifkan efek festival yang menggandakan nilai sewa
-        void applyFestival();
-        // mengurangi durasi festival tiap giliran
-        void tickFestival();
-        // cetak akta kepemilikan, menggunakan CLI renderer
-        void printDeed();
+        bool canBuild(bool isMonopolized);
         // buat saveload
         void setFestivalMultiplier(int mult);
         void setFestivalDuration(int dur);
         void setBuildingLevel(int level);
-
+        bool isMaxLevel() const;
         // getter atribut
-
         std::string getColorGroup() const;
+        std::string getDisplayColor() override;
         const std::vector<int> getRents() const;
         int getHouseCost() const;
         int getHotelCost() const;
         int getBuildingLevel() const;
-        int getFestivalMultiplier() const;
-        int getFestivalDuration() const;
         int getBuildingSaleValue() const;
-        void resetBuildings();
+        void resetBuildings() override;
+        PropertyType getPropertyType() const override;
+        int getTotalBuildingPrice() override;
 };
 
 // Merepresentasikan petak properti berupa stasiun
@@ -92,6 +105,8 @@ class RailroadTile : public PropertyTile {
         int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
+        PropertyType getPropertyType() const override;
+        const std::map<int, int>& getRentTable() const;
 };
 
 // Merepresentasikan petak properti berupa utilitas (PLN dan PAM)
@@ -106,4 +121,7 @@ class UtilityTile : public PropertyTile {
         int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
+        PropertyType getPropertyType() const override;
+        std::string getDisplayColor() override;
+        const std::map<int, int>& getMultiplierTable() const;
 };
