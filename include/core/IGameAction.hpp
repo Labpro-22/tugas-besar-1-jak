@@ -20,6 +20,9 @@ class IGameAction
 public:
     virtual ~IGameAction() = default;
 
+    virtual std::vector<Player*> getActivePlayers() const = 0;
+    virtual void processTileLandingPublic(Player& player, int tileIndex) = 0;
+
     virtual void setGameActive(bool active) = 0;
     virtual bool isGameActive() const = 0;
     virtual Board &getBoard() const = 0;
@@ -30,11 +33,9 @@ public:
     virtual void setDice(int x, int y) = 0;
 
     // Property
-    virtual void buyCurrentProperty() = 0;
     virtual void mortgageProperty(const std::string &code) = 0;
     virtual void redeemProperty(const std::string &tileCode) = 0;
     virtual void buildOnProperty(const std::string &tileCode) = 0;
-    virtual void sellBuildingOnProperty(const std::string &tileCode) = 0;
 
     // Auction
     virtual void placeBid(int amount) = 0;

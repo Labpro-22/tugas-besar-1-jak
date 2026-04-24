@@ -5,7 +5,6 @@
 #include "models/PropertyTile.hpp"
 #include "models/SkillCard.hpp"
 #include "models/CardDeck.hpp"
-#include "models/ActionCard.hpp"
 #include "utils/TransactionLogger.hpp"
 #include "utils/NimonspoliException.hpp"
 
@@ -22,7 +21,7 @@ bool SaveLoadManager::fileExists(const std::string& filename) {
 }
 
 // ===== saveGame =====
-bool SaveLoadManager::saveGame(const std::string& filename, int turn, int maxTurn, const std::vector<Player*>& players, const std::vector<int>& turnOrder, int currentPlayerIndex, const Board& board, const CardDeck<ActionCard>& skillDeck, const TransactionLogger& logger) const {
+bool SaveLoadManager::saveGame(const std::string& filename, int turn, int maxTurn, const std::vector<Player*>& players, const std::vector<int>& turnOrder, int currentPlayerIndex, const Board& board, const CardDeck<SkillCard>& skillDeck, const TransactionLogger& logger) const {
     std::ofstream out(filename);
     if (!out.is_open()) {
         throw FileNotFoundException("Gagal membuat file: " + filename);
@@ -126,7 +125,7 @@ void SaveLoadManager::savePropertyState(std::ofstream& out, const Board& board) 
 }
 
 // ===== saveDeckState =====
-void SaveLoadManager::saveDeckState(std::ofstream& out, const CardDeck<ActionCard>& skillDeck) const {
+void SaveLoadManager::saveDeckState(std::ofstream& out, const CardDeck<SkillCard>& skillDeck) const {
     auto names = skillDeck.getCardNames();
     out << names.size() << "\n";
     for (const auto& name : names) {

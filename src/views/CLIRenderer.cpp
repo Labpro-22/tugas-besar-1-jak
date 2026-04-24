@@ -284,8 +284,9 @@ void CLIRenderer::renderBoard(const Board& board, const std::vector<Player*>& pl
     std::cout << "\n";
 }
 
-// ===== printAkta =====
-void CLIRenderer::printAkta(const StreetTile& tile) const {
+// ===== printDeed =====
+// StreetTile
+void CLIRenderer::printDeed(const StreetTile& tile) const {
     std::cout << "\n";
     std::cout << "+==================================+\n";
     std::cout << "|         AKTA KEPEMILIKAN         |\n";
@@ -324,8 +325,64 @@ void CLIRenderer::printAkta(const StreetTile& tile) const {
     std::cout << "+==================================+\n\n";
 }
 
-// ===== printAktaNotFound =====
-void CLIRenderer::printAktaNotFound(const std::string& tileCode) const {
+// RailroadTile
+void CLIRenderer::printDeed(const RailroadTile& tile) const {
+    std::cout << "\n";
+    std::cout << "+==================================+\n";
+    std::cout << "|         AKTA KEPEMILIKAN         |\n";
+    std::cout << "|   [STASIUN] " << std::left << std::setw(21) << (tile.getName() + " (" + tile.getCode() + ")") << "|\n";
+    std::cout << "+==================================+\n";
+    std::cout << "| Nilai Gadai : M" << std::left << std::setw(18) << tile.getMortgageValue() << "|\n";
+    std::cout << "+----------------------------------+\n";
+
+    for (const auto& entry : tile.getRentTable()) {
+        std::string label = "Sewa (" + std::to_string(entry.first) + " stasiun)";
+        std::cout << "| " << std::left << std::setw(20) << label << ": M" << std::left << std::setw(12) << entry.second << "|\n";
+    }
+
+    std::cout << "+==================================+\n";
+
+    std::string statusStr = "";
+    PropertyStatus ps = tile.getStatus();
+    if (ps == PropertyStatus::BANK) statusStr = "BANK";
+    else if (ps == PropertyStatus::OWNED) statusStr = "OWNED";
+    else if (ps == PropertyStatus::MORTGAGED) statusStr = "MORTGAGED";
+    if (tile.getOwner()) statusStr += " (" + tile.getOwner()->getUsername() + ")";
+
+    std::cout << "| Status : " << std::left << std::setw(24) << statusStr << "|\n";
+    std::cout << "+==================================+\n\n";
+}
+
+// UtilityTile
+void CLIRenderer::printDeed(const UtilityTile& tile) const {
+    std::cout << "\n";
+    std::cout << "+==================================+\n";
+    std::cout << "|         AKTA KEPEMILIKAN         |\n";
+    std::cout << "|   [UTILITAS] " << std::left << std::setw(20) << (tile.getName() + " (" + tile.getCode() + ")") << "|\n";
+    std::cout << "+==================================+\n";
+    std::cout << "| Nilai Gadai : M" << std::left << std::setw(18) << tile.getMortgageValue() << "|\n";
+    std::cout << "+----------------------------------+\n";
+
+    for (const auto& entry : tile.getMultiplierTable()) {
+        std::string label = "Pengali (" + std::to_string(entry.first) + " utilitas)";
+        std::cout << "| " << std::left << std::setw(20) << label << ": " << std::left << std::setw(14) << (std::to_string(entry.second) + "x dadu") << "|\n";
+    }
+
+    std::cout << "+==================================+\n";
+
+    std::string statusStr = "";
+    PropertyStatus ps = tile.getStatus();
+    if (ps == PropertyStatus::BANK) statusStr = "BANK";
+    else if (ps == PropertyStatus::OWNED) statusStr = "OWNED";
+    else if (ps == PropertyStatus::MORTGAGED) statusStr = "MORTGAGED";
+    if (tile.getOwner()) statusStr += " (" + tile.getOwner()->getUsername() + ")";
+
+    std::cout << "| Status : " << std::left << std::setw(24) << statusStr << "|\n";
+    std::cout << "+==================================+\n\n";
+}
+
+// ===== printDeeedNotFound =====
+void CLIRenderer::printDeedNotFound(const std::string& tileCode) const {
     std::cout << "Petak \"" << tileCode << "\" tidak ditemukan atau bukan properti.\n";
 }
 
