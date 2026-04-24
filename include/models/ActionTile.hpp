@@ -8,6 +8,8 @@ class ActionTile: public Tile {
     public:
         // ctor
         ActionTile(int idx, std::string cd, std::string nm);
+        // getter tile type (return ACTION)
+        TileType getTileType() const override;
 };
 
 // Merepresentasikan petak aksi untuk mengambil kartu sesuai tipe dek

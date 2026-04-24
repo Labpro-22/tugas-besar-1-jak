@@ -1,10 +1,13 @@
 #include "models/SpecialTile.hpp"
-#include "models/Player.hpp"
 
 // SpecialTile
 
 SpecialTile::SpecialTile(int idx, std::string cd, std::string nm)
     : Tile(idx, cd, nm) {}
+
+TileType SpecialTile::getTileType() const {
+    return TileType::SPECIAL;
+}
 
 // GoTile
 
@@ -21,7 +24,6 @@ JailTile::JailTile(int idx, std::string cd, std::string nm, int fn)
     : SpecialTile(idx, cd, nm), fine(fn) {}
 
 void JailTile::onLanded(Player& player, Game& game) {
-    /* else {do nothing}*/
 }
 
 void JailTile::processJailTurn(Player& player, Game& game) {}

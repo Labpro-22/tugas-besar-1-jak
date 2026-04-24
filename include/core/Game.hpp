@@ -1,20 +1,16 @@
 #pragma once
 #include "core/IGameAction.hpp"
+#include "models\Board.hpp"
+#include "models\Dice.hpp"
+#include "models\Player.hpp"
+#include "models\ActionCard.hpp"
+#include "models\SkillCard.hpp"
+#include "models\CardDeck.hpp"
 #include <memory>
 #include <string>
 #include <vector>
 
 // Forward declarations
-class PropertyTile;
-class StreetTile;
-class RailroadTile;
-class UtilityTile;
-class Dice;
-class Board;
-class Player;
-class ActionCard;
-class SkillCard;
-template <typename T> class CardDeck;
 class TransactionLogger;
 class BankruptcyManager;
 class AuctionManager;

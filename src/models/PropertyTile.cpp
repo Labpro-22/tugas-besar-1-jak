@@ -38,6 +38,12 @@ int PropertyTile::getMortgageValue() const {
 PropertyStatus PropertyTile::getStatus() const {
     return status;
 }
+PropertyType PropertyTile::getPropertyType() const {
+    return PropertyType::UNDEFINED;
+}
+TileType PropertyTile::getTileType() const {
+    return TileType::PROPERTY;
+}
 
 // StreetTile
 
@@ -46,12 +52,12 @@ StreetTile::StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, 
     : PropertyTile(idx, cd, nm, bp, mv), colorGroup(cg), rents(rnt), buildingLevel(0),
       festivalMultiplier(1), festivalDuration(0), houseCost(hc), hotelCost(htc) {}
 
-int StreetTile::calculateRent(int diceTotal) {
+int StreetTile::calculateRent(int diceTotal = 0, bool isMonopolized = false) {
     if (status != PropertyStatus::OWNED) {
         return 0;
     }
     int baseRent = rents[buildingLevel];
-    if (buildingLevel == 0 && isMonopolized()) {
+    if (buildingLevel == 0 && isMonopolized) {
         baseRent *= 2;
     }
     if (festivalDuration > 0) {
@@ -60,7 +66,23 @@ int StreetTile::calculateRent(int diceTotal) {
     return baseRent;
 }
 
-void StreetTile::onLanded(Player& player, Game& game) {}
+void StreetTile::onLanded(Player& player, Game& game) {
+    if (status == PropertyStatus::BANK) {
+        changeOwner(&player);
+        status = PropertyStatus::OWNED;
+    } else {
+        if (owner != &player) {
+            player.payRent(calculateRent(), *owner);
+        }
+    }
+}
+
+void StreetTile::mortgage() {
+    buildingLevel = 0;
+    festivalDuration = 0;
+    festivalMultiplier = 1;
+    PropertyTile::mortgage();
+}
 
 void StreetTile::build() {
     if (canBuild()) {
@@ -84,10 +106,6 @@ void StreetTile::sell() {
     }
     nilaiGadai += mortgageValue;
     mortgage();
-}
-
-bool StreetTile::isMonopolized() {
-    return false; 
 }
 
 bool StreetTile::canBuild() {
@@ -143,6 +161,9 @@ int StreetTile::getFestivalMultiplier() const {
 int StreetTile::getFestivalDuration() const {
     return festivalDuration;
 }
+PropertyType StreetTile::getPropertyType() const {
+    return PropertyType::STREET;
+}
 
 int StreetTile::getBuildingSaleValue() const {
     if (buildingLevel == 0) return 0;
@@ -159,9 +180,9 @@ void StreetTile::resetBuildings() {
 RailroadTile::RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, std::map<int, int> rt) 
     : PropertyTile(idx, cd, nm, bp, mv), rentTable(rt) {}
 
-int RailroadTile::calculateRent(int diceTotal) {
+int RailroadTile::calculateRent(int diceTotal = 0, bool isMonopolized = false) {
     if (status == PropertyStatus::OWNED) {
-        int railloadCount = 0; 
+        int railloadCount = owner->getRailroadCount(); 
         return rentTable[railloadCount];
     }
     return 0;
@@ -173,9 +194,12 @@ void RailroadTile::onLanded(Player& player, Game& game) {
         status = PropertyStatus::OWNED;
     } else if (status == PropertyStatus::OWNED) {
         if (owner != &player) {
-            player.payRent(calculateRent(0), *owner);
+            player.payRent(calculateRent(), *owner);
         }
     }
+}
+PropertyType RailroadTile::getPropertyType() const {
+    return PropertyType::RAILROAD;
 }
 
 // UtilityTile
@@ -183,9 +207,9 @@ void RailroadTile::onLanded(Player& player, Game& game) {
 UtilityTile::UtilityTile(int idx, std::string cd, std::string nm, int bp, int mv, std::map<int, int> mt) 
     : PropertyTile(idx, cd, nm, bp, mv), multiplierTable(mt) {}
 
-int UtilityTile::calculateRent(int diceTotal) {
+int UtilityTile::calculateRent(int diceTotal = 0, bool isMonopolized = false) {
     if (status == PropertyStatus::OWNED) {
-        int utilityCount = 0; 
+        int utilityCount = owner->getUtilityCount(); 
         return multiplierTable[utilityCount] * diceTotal;
     }
     return 0;
@@ -197,7 +221,10 @@ void UtilityTile::onLanded(Player& player, Game& game) {
         status = PropertyStatus::OWNED;
     } else {
         if (owner != &player) {
-            player.payRent(calculateRent(0), *owner);
+            player.payRent(calculateRent(), *owner);
         }
     }
+}
+PropertyType UtilityTile::getPropertyType() const {
+    return PropertyType::UTILITY;
 }
