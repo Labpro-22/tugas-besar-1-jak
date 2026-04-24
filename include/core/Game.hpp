@@ -38,8 +38,6 @@ private:
     // Auction State
     bool isAuctionActive;
     class PropertyTile *currentAuctionProperty;
-    int currentHighestBid;
-    Player *currentHighestBidder;
     std::vector<bool> auctionPassed;
 
     // Komponen utama
@@ -70,7 +68,6 @@ private:
     void startAuctionForProperty(PropertyTile &tile);
     void endAuction();
     void checkBankruptcy(Player &player);
-    void drawActionCard(Player &player);
     void drawSkillCard(Player &player);
     void movePlayer(Player &player, int steps);
     void teleportPlayer(Player &player, int targetTileIndex);
@@ -86,6 +83,8 @@ private:
     void handleCardLanding(Player& player, CardTile& tile);
 
     void handleGameEnd();
+    void initializeDecks();
+    void initializeConfig();
 
 public:
     Game();
@@ -99,7 +98,6 @@ public:
     void startNewGame(const std::vector<std::string>& playerNames);
     void initializeFromSave(const std::string& currentSaveFile);
     bool isGameActive() const override;
-    GamePhase getCurrentPhase() const;
     void setGameActive(bool active) override;
 
     // Yang bakal dipake sama Command dari IGameAction
@@ -108,11 +106,9 @@ public:
     void setDice(int x, int y) override;
 
     // Property
-    void buyCurrentProperty() override;
     void mortgageProperty(const std::string &code) override;
     void redeemProperty(const std::string &tileCode) override;
     void buildOnProperty(const std::string &tileCode) override;
-    void sellBuildingOnProperty(const std::string &tileCode) override;
 
     // Auction
     void placeBid(int amount) override;
