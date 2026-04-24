@@ -14,6 +14,7 @@ private:
     Player* currentHighBidder;
     int currentHighBid;
     bool hasAnyBid;
+    int consecutivePasses;
     bool finished;
     size_t currentIndex;
     IGameAction* gameAction;
