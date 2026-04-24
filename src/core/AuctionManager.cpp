@@ -25,6 +25,7 @@ void AuctionManager::startAuction(PropertyTile* property, Player* triggerPlayer,
     targetProperty = property;
     finished = false;
     hasAnyBid = false;
+    consecutivePasses = 0;
     currentHighBid = 0;
     currentHighBidder = nullptr;
     activeParticipants.clear();
@@ -67,40 +68,16 @@ void AuctionManager::processPass(Player* passer) {
     if (finished) throw InvalidActionException("Lelang sudah selesai.");
     if (passer != activeParticipants[currentIndex]) throw InvalidActionException("Bukan giliran Anda.");
 
-    if (std::find(activeParticipants.begin(), activeParticipants.end(), passer) == activeParticipants.end()) {
-        throw InvalidActionException("Player tidak ikut lelang.");
-    }
-
     logEvent("PASS", passer->getUsername() + " melewatkan giliran.");
 
-    activeParticipants.erase(activeParticipants.begin() + currentIndex);
-    
-    if (activeParticipants.empty()) {
-        finished = true;
-        logEvent("LELANG_BATAL", "Tidak ada peserta yang tersisa. Lelang dibatalkan.");
-        gameAction->finalizeAuction(nullptr, targetProperty, 0);
+    consecutivePasses++;
+
+    if (consecutivePasses >= (int)activeParticipants.size() - 1) {
+        endAuction();
         return;
     }
 
-    if (activeParticipants.size() == 1) {
-        if (hasAnyBid) {
-            endAuction();
-        } else {
-            Player* lastPlayer = activeParticipants[0];
-            currentHighBidder = lastPlayer;
-            currentHighBid = 0;
-            hasAnyBid = true;
-            logEvent("BID_PAKSA", lastPlayer->getUsername() + " dipaksa membeli dengan harga 0.");
-            endAuction();
-        }
-        return;
-    }
-
-    if (currentIndex >= activeParticipants.size()) {
-        currentIndex = 0;
-    }
-
-    logEvent("GILIRAN", "Giliran sekarang: " + activeParticipants[currentIndex]->getUsername());
+    advanceToNextParticipant();
 }
 
 void AuctionManager::advanceToNextParticipant() {
