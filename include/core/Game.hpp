@@ -82,6 +82,7 @@ private:
     void drawSkillCard(Player &player);
     void movePlayer(Player &player, int steps);
     void teleportPlayer(Player &player, int targetTileIndex);
+    void tickFestivalFor(Player& player);
 
     // Private helper terkait handle landed tiap petak
     void handleStreetLanding(Player& player, StreetTile& tile);
@@ -104,6 +105,7 @@ public:
     // Dadu
     void rollDice() override;
     void setDice(int x, int y) override;
+    int getDiceTotal();
 
     // Property
     void mortgageProperty(const std::string &code) override;
@@ -128,6 +130,7 @@ public:
     Player *getCurrentPlayer() const override;
     std::vector<Player*> getActivePlayers() const;
     int countActivePlayers() const override;
+    void sendPlayerToJail(Player& player, const std::string& cause);
     
     // Save and load
     void saveGame(const std::string &filename) override;
@@ -150,5 +153,16 @@ public:
 
     // Helper
     Board &getBoard() const override;
-    TransactionLogger *getLogger() override;
+    TransactionLogger *getLogger();
+
+    // draw kartu
+    void drawChanceCard(Player &player);
+    void drawGeneralFundsCard(Player &player);
+
+    CLIRenderer* getCLIRenderer() const;
+    void addLog(std::string playerName, std::string action, std::string detail);
+
+    // Manajemen Aset Pemain
+    void addSkillCardToPlayer(Player &player, std::unique_ptr<SkillCard> card);
+    void addActionCardToPlayer(Player &player, std::unique_ptr<ActionCard> card);
 };
