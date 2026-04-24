@@ -506,6 +506,7 @@ void Game::passAuction() {
     }
 }
 
+// Kondisi akhir lelang
 void Game::finalizeAuction(Player* winner, PropertyTile* property, int winningBid) {
     if (!property) return;
 
@@ -526,12 +527,9 @@ void Game::finalizeAuction(Player* winner, PropertyTile* property, int winningBi
     renderer->printInfo("Harga akhir: M" + std::to_string(winningBid));
     renderer->printInfo("Properti " + property->getCode() + " kini dimiliki " + winner->getUsername());
 
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                   winner->getUsername() + " | LELANG | Menang lelang " +
-                   property->getCode() + " seharga M" + std::to_string(winningBid));
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + winner->getUsername() + " | LELANG | Menang lelang " + property->getCode() + " seharga M" + std::to_string(winningBid));
 
     isAuctionActive = false;
-    currentPhase = GamePhase::NORMAL;
 }
 
 void Game::logAuctionEvent(const std::string& action, const std::string& detail) {
@@ -542,7 +540,7 @@ void Game::triggerAuction(PropertyTile& property) {
     startAuctionForProperty(property);
 }
 
-// SkillCard
+// ===== SKILLCARD (KARTU KEMAMPUAN) =====
 void Game::useSkillCard(int cardIndex) {
     Player* player = getCurrentPlayer();
     if (!player) return;
@@ -563,15 +561,13 @@ void Game::useSkillCard(int cardIndex) {
 
     try {
         player->useSkillCard(cardIndex, *this);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       player->getUsername() + " | KARTU_KEMAMPUAN | Pakai " +
-                       cardNames[cardIndex]);
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_KEMAMPUAN | Pakai " + cardNames[cardIndex]);
     } catch (const NimonspoliException& e) {
         renderer->printError(e.what());
     }
 }
 
-// Jail
+// ===== JAIL =====
 void Game::payJailFine() {
     Player* player = getCurrentPlayer();
     if (!player) return;
@@ -593,10 +589,10 @@ void Game::payJailFine() {
     renderer->printInfo("Kamu bebas dari penjara!");
     renderer->printInfo("Uang kamu sekarang: M" + std::to_string(player->getCash()));
 
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                   player->getUsername() + " | BAYAR_DENDA | M" + std::to_string(jailFine));
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | BAYAR_DENDA | M" + std::to_string(jailFine));
 }
 
+// ===== GUNAKAN KARTU BEBAS =====
 void Game::useJailFreeCard() {
     Player* player = getCurrentPlayer();
     if (!player) return;
@@ -627,45 +623,44 @@ void Game::useJailFreeCard() {
     renderer->printInfo("Kartu bebas penjara digunakan!");
     renderer->printInfo("Kamu bebas dari penjara!");
 
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                   player->getUsername() + " | KARTU_BEBAS | Keluar penjara dengan kartu.");
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_BEBAS | Keluar penjara dengan kartu.");
 }
 
-// SaveLoad
+// ===== SAVE =====
 void Game::saveGame(const std::string& filename) {
     // Cek apakah file sudah ada
     if (SaveLoadManager::fileExists(filename)) {
         std::cout << "File \"" << filename << "\" sudah ada. Timpa file lama? (y/n): ";
         std::string input;
-        std::getline(std::cin, input);
-        if (input != "y" && input != "Y") {
-            renderer->printInfo("Penyimpanan dibatalkan.");
-            return;
+        while (true) {
+            std::getline(std::cin, input);
+            if (input == "y" || input == "Y") {
+                break;
+            } else if (input == "n" || input == "N") {
+                return;
+            } else {
+                renderer->printInfo("Masukkan y atau n: ");
+            }
         }
     }
 
     SaveLoadManager slm;
     try {
-        slm.saveGame(filename, turnsPlayed, maxTurn, 
-                     getActivePlayers(), turnOrder,
-                     currentPlayerIndex, *board,
-                     *skillCardDeck, *logger);
+        slm.saveGame(filename, turnsPlayed, maxTurn,  getActivePlayers(), turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
         renderer->printInfo("Permainan berhasil disimpan ke: " + filename);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       getCurrentPlayer()->getUsername() + " | SIMPAN | " + filename);
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + getCurrentPlayer()->getUsername() + " | SIMPAN | " + filename);
     } catch (const NimonspoliException& e) {
         renderer->printError(e.what());
     }
 }
 
+// ===== LOAD =====
 void Game::loadGame(const std::string& filename) {
     SaveLoadManager slm;
     try {
         initialize();
         std::vector<Player*> rawPlayers;
-        slm.loadGame(filename, turnsPlayed, maxTurn,
-                     rawPlayers, turnOrder,
-                     currentPlayerIndex, *board, *logger);
+        slm.loadGame(filename, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *logger);
 
         // Pindahkan raw pointer ke unique_ptr
         players.clear();
@@ -673,17 +668,23 @@ void Game::loadGame(const std::string& filename) {
             players.push_back(std::unique_ptr<Player>(p));
         }
 
-        renderer->printInfo("Permainan berhasil dimuat. Melanjutkan giliran " +
-                            getCurrentPlayer()->getUsername() + "...");
+        renderer->printInfo("Permainan berhasil dimuat. Melanjutkan giliran " + getCurrentPlayer()->getUsername() + "...");
         logger->addLog("Permainan dimuat dari: " + filename);
     } catch (const NimonspoliException& e) {
         renderer->printError(e.what());
     }
 }
-// Display
+
+// ===== DISPLAY =====
+// Cetak papan
 void Game::printBoard() {
     Player* current = getCurrentPlayer();
-    int currentIdx = current ? turnOrder[currentPlayerIndex] : 0;
+    int currentIdx;
+    if (current) {
+        currentIdx = turnOrder[currentPlayerIndex];
+    } else {
+        currentIdx = 0;
+    }
     std::vector<Player*> rawPlayers = getActivePlayers();
     renderer->renderBoard(*board, rawPlayers, turnsPlayed, maxTurn, currentIdx);
 }
