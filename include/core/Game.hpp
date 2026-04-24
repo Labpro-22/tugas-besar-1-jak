@@ -34,6 +34,15 @@ private:
     int pphFlat;
     int pphPersen;
     int pbmFlat;
+    int maxTurn;
+    std::vector<int> turnOrder;
+
+    // Buat nyimpen nilai-nilai config biar ga load berkali-kali
+    int goSalary;
+    int jailFine;
+    int pphFlat;
+    int pphPersen;
+    int pbmFlat;
 
     // Auction State
     bool isAuctionActive;

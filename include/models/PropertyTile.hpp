@@ -85,6 +85,8 @@ class StreetTile : public PropertyTile {
         int getBuildingLevel() const;
         int getFestivalMultiplier() const;
         int getFestivalDuration() const;
+        int getBuildingSaleValue() const;
+        void resetBuildings();
         PropertyType getPropertyType() const override;
         int getBuildingSaleValue() const;
         void resetBuildings();
