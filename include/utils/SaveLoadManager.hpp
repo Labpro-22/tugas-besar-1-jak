@@ -9,7 +9,7 @@ class Board;
 class TransactionLogger;
 class SkillCard;
 template <typename T> class CardDeck;
-class ActionCard;
+class SkillCard;
 
 /*
  * Format file save
@@ -27,7 +27,7 @@ class SaveLoadManager {
     // ===== Save Helpers =====
     void savePlayerState(std::ofstream& out, const Player* player) const;
     void savePropertyState(std::ofstream& out, const Board& board) const;
-    void saveDeckState(std::ofstream& out, const CardDeck<ActionCard>& skillDeck) const;
+    void saveDeckState(std::ofstream& out, const CardDeck<SkillCard>& skillDeck) const;
     void saveLogState(std::ofstream& out, const TransactionLogger& logger) const;
 
     // ===== Load Helpers =====
@@ -43,7 +43,7 @@ class SaveLoadManager {
     SaveLoadManager() {}
     ~SaveLoadManager() {}
 
-    bool saveGame(const std::string& filename, int turn, int maxTurn, const std::vector<Player*>& players, const std::vector<int>& turnOrder, int currentPlayerIndex, const Board& board, const CardDeck<ActionCard>& skillDeck, const TransactionLogger& logger) const;
+    bool saveGame(const std::string& filename, int turn, int maxTurn, const std::vector<Player*>& players, const std::vector<int>& turnOrder, int currentPlayerIndex, const Board& board, const CardDeck<SkillCard>& skillDeck, const TransactionLogger& logger) const;
     bool loadGame(const std::string& filename, int& turn, int& maxTurn, std::vector<Player*>& players, std::vector<int>& turnOrder, int& currentPlayerIndex, Board& board, TransactionLogger& logger) const;
 
     // Cek apakah file sudah ada
