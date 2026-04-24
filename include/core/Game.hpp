@@ -20,6 +20,7 @@ class Game : public IGameAction
 {
 private:
     // ===== Attribute =====
+    // ===== Attribute =====
     // Game State
     bool gameActive;
     GamePhase currentPhase;

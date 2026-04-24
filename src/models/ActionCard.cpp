@@ -5,6 +5,12 @@
 #include "core/Game.hpp"
 #include "utils/NimonspoliException.hpp"
 #include <vector>
+#include "models/Player.hpp"
+#include "models/Board.hpp"
+#include "models/PropertyTile.hpp"
+#include "core/Game.hpp"
+#include "utils/NimonspoliException.hpp"
+#include <vector>
 
 GoToNearestStationCard::GoToNearestStationCard() 
     : ActionCard("Pergi ke Stasiun Terdekat", "Pergi ke stasiun terdekat dari posisimu saat ini.", CardType::CHANCE) {}
