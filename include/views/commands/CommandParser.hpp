@@ -6,7 +6,6 @@
 #include "Bangun.hpp"
 #include "Bantuan.hpp"
 #include "BayarDenda.hpp"
-#include "Beli.hpp"
 #include "CetakAkta.hpp"
 #include "CetakLog.hpp"
 #include "CetakPapan.hpp"
@@ -15,7 +14,6 @@
 #include "Gadai.hpp"
 #include "GunakanKartuBebas.hpp"
 #include "GunakanKemampuan.hpp"
-#include "JualBangunan.hpp"
 #include "LemparDadu.hpp"
 #include "Lepas.hpp"
 #include "Muat.hpp"
@@ -124,12 +122,6 @@ class CommandParser {
             return new BangunCommand(tokens[1]);
         }
 
-        // ===== JUAL_BANGUNAN <kode> =====
-        if (cmd == "JUAL_BANGUNAN") {
-            requireArgCount(tokens, 1, cmd);
-            return new JualBangunanCommand(tokens[1]);
-        }
-
         // ===== TAWAR <jumlah> =====
         if (cmd == "TAWAR") {
             requireArgCount(tokens, 1, cmd);
@@ -236,13 +228,7 @@ class CommandParser {
             requireArgCount(tokens, 0, cmd);
             return new CetakStatusCommand();
         }
-
-        // ===== BELI =====
-        if (cmd == "BELI") {
-            requireArgCount(tokens, 0, cmd);
-            return new BeliCommand();
-        }
-
+        
         // Tidak dikenali
         throw InvalidInputException("Perintah tidak dikenal: \"" + cmd + "\".");
     }
