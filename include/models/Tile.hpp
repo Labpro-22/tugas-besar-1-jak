@@ -5,6 +5,8 @@
 #include <map>
 #include "core\Game.hpp"
 #include "Player.hpp"
+#include "views\CLIRenderer.hpp"
+#include "utils\TransactionLogger.hpp"
 
 
 // Status petak properti

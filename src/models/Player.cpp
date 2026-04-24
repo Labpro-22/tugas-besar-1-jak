@@ -66,13 +66,40 @@ bool Player::operator<(const Player &o) const
 int Player::getTotalWealth() const
 {
     int total = cash;
+    for (PropertyTile *prop : ownedProperties)
+    {
+        if (prop != nullptr)
+        {
+            total += prop->getPrice();
+            total += prop->getTotalBuildingPrice();
+        }
+    }
+    return total;
+}
+
+int Player::getTotalPropertyPrice() const
+{
+    int total = 0;
+    for (PropertyTile *prop : ownedProperties)
+    {
+        if (prop != nullptr)
+        {
+            total += prop->getPrice();
+        }
+    }
+    return total;
+}
+
+int Player::getTotalBuildingPrice() const
+{
+    int total = 0;
 
     // harga total seluruh properti
     for (PropertyTile *prop : ownedProperties)
     {
         if (prop != nullptr)
         {
-            total += prop->getPrice();
+            total += prop->getTotalBuildingPrice();
         }
     }
 
@@ -185,6 +212,7 @@ void Player::buyProperty(PropertyTile *property, Game &game)
     // Mengurangi saldo dan pemindahan kepemilikan
     cash -= price;
     property->changeOwner(this);
+    property->redeem();
     addProperty(property);
 }
 
@@ -192,26 +220,29 @@ void Player::payRent(int amount, Player &landlord)
 {
     if (amount < 0)
     {
-        throw NimonspoliException("[payRent] Harga sewa harus positif");
+        return;
     }
+    int discountedAmount = calculatePayableRent(amount);
+    if (cash < discountedAmount) {
+        throw NimonspoliException("[payRent] player tidak bisa bayar sewa");
+    } else
+    {
+        cash -= discountedAmount;
+        landlord.cash += discountedAmount;
+    }
+}
 
-    // harga diskon, kalau ada
+int Player::calculatePayableRent(int amount) {
+    if (amount < 0)
+    {
+        return 0;
+    }
     int discountedAmount = amount;
     if (discountPercent > 0)
     {
         discountedAmount = amount * (100 - discountPercent) / 100;
     }
-
-    if (cash < discountedAmount)
-    {
-        // harga diskon pun ga mampu
-        handleBankruptcy(landlord, discountedAmount);
-    }
-    else
-    {
-        cash -= discountedAmount;
-        landlord.cash += discountedAmount;
-    }
+    return discountedAmount;
 }
 
 void Player::handleBankruptcy(Player &creditor, int amountOwed)
@@ -273,11 +304,12 @@ void Player::liquidateAssets(int targetAmount)
     }
 }
 
-void Player::goToJail()
+void Player::goToJail(int jailTileIndex)
 {
     status = "JAILED";
-    jailTurns = 3; // jail duration
-    position = 10; // tile index
+    jailTurns = 3;
+    position = jailTileIndex;
+    consecutiveDoublesDice = 0;
 }
 
 void Player::serveJailTurn()

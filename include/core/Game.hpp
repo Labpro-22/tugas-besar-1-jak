@@ -47,8 +47,6 @@ private:
     std::unique_ptr<TransactionLogger> logger;
     std::unique_ptr<BankruptcyManager> bankruptcyManager;
     std::unique_ptr<AuctionManager> auctionManager;
-    std::unique_ptr<CardDeck<ActionCard>> chanceCardDeck;
-    std::unique_ptr<CardDeck<ActionCard>> communityChestCardDeck;
     std::unique_ptr<CardDeck<SkillCard>> skillCardDeck;
     std::unique_ptr<CardDeck<ActionCard>> chanceDeck;
     std::unique_ptr<CardDeck<ActionCard>> generalFundsDeck;
@@ -77,6 +75,7 @@ private:
     void drawSkillCard(Player &player);
     void movePlayer(Player &player, int steps);
     void teleportPlayer(Player &player, int targetTileIndex);
+    void tickFestivalFor(Player& player);
 
     // Private helper terkait handle landed tiap petak
     void handleStreetLanding(Player& player, StreetTile& tile);
@@ -99,6 +98,7 @@ public:
     // Dadu
     void rollDice() override;
     void setDice(int x, int y) override;
+    int getDiceTotal();
 
     // Property
     void mortgageProperty(const std::string &code) override;
@@ -123,6 +123,7 @@ public:
     Player *getCurrentPlayer() const override;
     std::vector<Player*> getActivePlayers() const;
     int countActivePlayers() const override;
+    void sendPlayerToJail(Player& player, const std::string& cause);
     
     // Save and load
     void saveGame(const std::string &filename) override;
@@ -149,7 +150,10 @@ public:
 
     // draw kartu
     void drawChanceCard(Player &player);
-    void drawCommunityChestCard(Player &player);
+    void drawGeneralFundsCard(Player &player);
+
+    CLIRenderer* getCLIRenderer() const;
+    void addLog(std::string playerName, std::string action, std::string detail);
 
     // Manajemen Aset Pemain
     void addSkillCardToPlayer(Player &player, std::unique_ptr<SkillCard> card);

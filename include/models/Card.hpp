@@ -1,11 +1,8 @@
 #ifndef CARD_HPP
 #define CARD_HPP
+#include "core/Game.hpp"
 
 #include <string>
-
-// Forward declarations untuk menghindari circular dependency
-class Player;
-class Game;
 
 class Card {
 protected:
