@@ -19,17 +19,25 @@ class CLIRenderer;
 class Game : public IGameAction
 {
 private:
+    // ===== Attribute =====
     // Game State
     bool gameActive;
     GamePhase currentPhase;
     int currentPlayerIndex;
     int turnsPlayed;
+    int maxTurn;
+    std::vector<int> turnOrder;
+
+    // Buat nyimpen nilai-nilai config biar ga load berkali-kali
+    int goSalary;
+    int jailFine;
+    int pphFlat;
+    int pphPersen;
+    int pbmFlat;
 
     // Auction State
     bool isAuctionActive;
     class PropertyTile *currentAuctionProperty;
-    int currentHighestBid;
-    Player *currentHighestBidder;
     std::vector<bool> auctionPassed;
 
     // Komponen utama
@@ -42,6 +50,8 @@ private:
     std::unique_ptr<CardDeck<ActionCard>> chanceCardDeck;
     std::unique_ptr<CardDeck<ActionCard>> communityChestCardDeck;
     std::unique_ptr<CardDeck<SkillCard>> skillCardDeck;
+    std::unique_ptr<CardDeck<ActionCard>> chanceDeck;
+    std::unique_ptr<CardDeck<ActionCard>> generalFundsDeck;
 
     // Renderer
     CLIRenderer *renderer;
@@ -49,6 +59,10 @@ private:
     // Jail State
     int turnsInJailForCurrentPlayer;
     bool waitingForJailChoice;
+
+    // ===== Method =====
+    void initializeDecks();
+    void initializeConfig();
 
     // SaveLoad
     std::string currentSaveFile;
@@ -63,44 +77,54 @@ private:
     void drawSkillCard(Player &player);
     void movePlayer(Player &player, int steps);
     void teleportPlayer(Player &player, int targetTileIndex);
-    bool canBuildOnProperty(Player &player, PropertyTile &tile);
-    int calculatePropertyValue(PropertyTile &tile);
 
+    // Private helper terkait handle landed tiap petak
+    void handleStreetLanding(Player& player, StreetTile& tile);
+    void handleRailroadLanding(Player& player, RailroadTile& tile);
+    void handleUtilityLanding(Player& player, UtilityTile& tile);
+
+    void handleGameEnd();
 public:
+    // Konstruktor dan destruktor
     Game();
     ~Game() override;
 
-    // Inisialisasi
+    // Inisialisasi awal
     void initialize();
-    void initializeFromSave(const std::string& currentSaveFile);
+    void initializeFromSave(const std::string& saveFile);
+    void startNewGame(const std::vector<std::string>& playerNames);
     bool isGameActive() const override;
-    GamePhase getCurrentPhase() const;
     void setGameActive(bool active) override;
 
-    // Yang bakal dipake sama Command dari IGameAction
     // Dadu
     void rollDice() override;
     void setDice(int x, int y) override;
 
     // Property
-    void buyCurrentProperty() override;
     void mortgageProperty(const std::string &code) override;
     void redeemProperty(const std::string &tileCode) override;
     void buildOnProperty(const std::string &tileCode) override;
-    void sellBuildingOnProperty(const std::string &tileCode) override;
-
+    
     // Auction
     void placeBid(int amount) override;
     void passAuction() override;
-
+    void finalizeAuction(Player* winner, PropertyTile* property, int winningBid) override;
+    void logAuctionEvent(const std::string& action, const std::string& detail) override;
+    void triggerAuction(PropertyTile& property) override;
+    
     // SkillCard
     void useSkillCard(int cardIndex) override;
-
+    
     // Jail
     void payJailFine() override;
     void useJailFreeCard() override;
-
-    // SaveLoad
+    
+    // Player
+    Player *getCurrentPlayer() const override;
+    std::vector<Player*> getActivePlayers() const;
+    int countActivePlayers() const override;
+    
+    // Save and load
     void saveGame(const std::string &filename) override;
     void loadGame(const std::string &filename) override;
 
@@ -108,19 +132,18 @@ public:
     void printBoard() override;
     void printDeed(const std::string &tileCode) override;
     void printPropertyInventory() override;
+    void printPlayerStatus() override;
     void printLog(int limit) override;
     void printHelp() override;
-    void printPlayerStatus() override;
 
     // Flow Giliran
     void endTurn() override;
     void declareBankruptcy() override;
 
-    // Getter
-    CLIRenderer &getRenderer();
-    int getCurrentPlayerBalance();
-    std::string getCurrentPlayerBalanceString(); 
-    Player *getCurrentPlayer() const override;
+    // Sewa
+    void processTileLandingPublic(Player& player, int tileIndex);
+
+    // Helper
     Board &getBoard() const override;
     TransactionLogger *getLogger();
 

@@ -20,6 +20,7 @@ class CardTile: public ActionTile {
     public:
         // ctor
         CardTile(int idx, std::string cd, std::string nm, DeckType dt);
+        DeckType getDeckType() const;
         // dipanggil saat mendarat, player mengambil kartu teratas sesuai tipe dek
         void onLanded(Player& player, Game& game) override;
 };
@@ -48,4 +49,5 @@ class TaxTile: public ActionTile {
         // dipanggil saat mendarat, player membayar pajak sesuai tipe (untuk PPH ada dua opsi:
         // persen kekayaan atau flat)
         void onLanded(Player& player, Game& game) override;
+        TaxType getTaxType() const;
 };

@@ -11,6 +11,8 @@ class Board;
 class Player;
 class PropertyTile;
 class StreetTile;
+class RailroadTile;
+class UtilityTile;
 class Tile;
 
 class CLIRenderer {
@@ -69,9 +71,10 @@ class CLIRenderer {
     // ===== CETAK_AKTA =====
     // Menampilkan akta kepemilikan sebuah properti street
     // Jika tile bukan properti atau tidak ditemukan, tampilkan pesan error
-    void printAkta(const StreetTile& tile) const;
-    void printAktaNotFound(const std::string& tileCode) const;
-
+    void printDeed(const StreetTile& tile) const;
+    void printDeed(const RailroadTile& tile) const;
+    void printDeed(const UtilityTile& tile) const;
+    void printDeedNotFound(const std::string& tileCode) const;
     // ===== CETAK_PROPERTI =====
     // Menampilkan semua properti milik pemain, dikelompokkan per warna
     void printPropertyInventory(const Player& player) const;

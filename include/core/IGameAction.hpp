@@ -5,6 +5,8 @@
 
 class Board;
 class Player;
+class PropertyTile;
+class TransactionLogger;
 
 enum class GamePhase
 {
@@ -18,6 +20,9 @@ class IGameAction
 public:
     virtual ~IGameAction() = default;
 
+    virtual std::vector<Player*> getActivePlayers() const = 0;
+    virtual void processTileLandingPublic(Player& player, int tileIndex) = 0;
+
     virtual void setGameActive(bool active) = 0;
     virtual bool isGameActive() const = 0;
     virtual Board &getBoard() const = 0;
@@ -28,15 +33,16 @@ public:
     virtual void setDice(int x, int y) = 0;
 
     // Property
-    virtual void buyCurrentProperty() = 0;
     virtual void mortgageProperty(const std::string &code) = 0;
     virtual void redeemProperty(const std::string &tileCode) = 0;
     virtual void buildOnProperty(const std::string &tileCode) = 0;
-    virtual void sellBuildingOnProperty(const std::string &tileCode) = 0;
 
     // Auction
     virtual void placeBid(int amount) = 0;
     virtual void passAuction() = 0;
+    virtual void finalizeAuction(Player* winner, PropertyTile* property, int winningBid) = 0;
+    virtual void logAuctionEvent(const std::string& action, const std::string& detail) = 0;
+    virtual void triggerAuction(PropertyTile& property) = 0;
 
     // SkillCard
     virtual void useSkillCard(int cardIndex) = 0;
@@ -56,6 +62,12 @@ public:
     virtual void printLog(int limit) = 0;
     virtual void printHelp() = 0;
     virtual void printPlayerStatus() = 0;
+
+    // Logger
+    virtual TransactionLogger *getLogger() = 0;
+
+    // Player
+    virtual int countActivePlayers() const = 0;
 
     // Game Selesai
     virtual void endTurn() = 0;

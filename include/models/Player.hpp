@@ -57,11 +57,17 @@ public:
     void handleBankruptcy(Player &creditor, int amountOwed);
     void liquidateAssets(int targetAmount);
 
+    void removeProperty(PropertyTile* prop);
+    void clearProperties();
+    void clearSkillCards();
+    std::vector<PropertyTile*> releaseAllProperties();
+
     // Getters
     std::string getUsername() const;
     int getPosition() const;
     void setPosition(int pos);
     std::string getStatus() const;
+    void setStatus(const std::string& status);
     bool isJailed() const;
     int getUtilityCount() const;
     int getRailroadCount() const;

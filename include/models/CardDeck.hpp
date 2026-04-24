@@ -73,6 +73,20 @@ public:
             cards.push(card);
         }
     }
+
+    // Biar bisa dapetin nama kartu
+    std::vector<std::string> getCardNames() const {
+        std::vector<std::string> names;
+        std::queue<T*> temp = cards;
+        while (!temp.empty()) {
+            names.push_back(temp.front()->getName());
+            temp.pop();
+        }
+        for (T* card : discardPile) {
+            names.push_back(card->getName());
+        }
+        return names;
+    }
 };
 
 #endif

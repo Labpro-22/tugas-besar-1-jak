@@ -24,6 +24,11 @@ void CardTile::onLanded(Player& player, Game& game) {
         game.drawCommunityChestCard(player);
     }
 }
+DeckType CardTile::getDeckType() const {
+    return deckType;
+}
+
+void CardTile::onLanded(Player& player, Game& game) {}
 
 // FestivalTile
 
@@ -38,4 +43,8 @@ void FestivalTile::onLanded(Player& player, Game& game) {
 
 void TaxTile::onLanded(Player& player, Game& game) {
     //
+}
+
+TaxType TaxTile::getTaxType() const {
+    return taxType;
 }

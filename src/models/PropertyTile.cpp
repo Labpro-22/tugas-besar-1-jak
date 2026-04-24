@@ -130,6 +130,16 @@ void StreetTile::tickFestival() {
 
 void StreetTile::printDeed() {}
 
+void StreetTile::setFestivalMultiplier(int mult) { 
+    festivalMultiplier = mult; 
+}
+void StreetTile::setFestivalDuration(int dur) { 
+    festivalDuration = dur; 
+}
+void StreetTile::setBuildingLevel(int level) { 
+    buildingLevel = level; 
+}
+
 std::string StreetTile::getColorGroup() const {
     return colorGroup;
 }
@@ -153,6 +163,16 @@ int StreetTile::getFestivalDuration() const {
 }
 PropertyType StreetTile::getPropertyType() const {
     return PropertyType::STREET;
+}
+
+int StreetTile::getBuildingSaleValue() const {
+    if (buildingLevel == 0) return 0;
+    if (buildingLevel == 5) return (houseCost / 2) * 4 + (hotelCost / 2);
+    return (houseCost / 2) * buildingLevel;
+}
+
+void StreetTile::resetBuildings() {
+    buildingLevel = 0;
 }
 
 // RailroadTile

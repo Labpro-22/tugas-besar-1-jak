@@ -308,6 +308,26 @@ void Player::resetTurnFlags()
     hasUsedSkillThisTurnVal = false;
 }
 
+void Player::removeProperty(PropertyTile* prop) {
+    auto it = std::find(ownedProperties.begin(), ownedProperties.end(), prop);
+    if (it != ownedProperties.end()) ownedProperties.erase(it);
+}
+
+void Player::clearProperties() {
+    ownedProperties.clear();
+}
+
+void Player::clearSkillCards() {
+    for (SkillCard* card : ownedSkillCards) delete card;
+    ownedSkillCards.clear();
+}
+
+std::vector<PropertyTile*> Player::releaseAllProperties() {
+    std::vector<PropertyTile*> released = ownedProperties;
+    ownedProperties.clear();
+    return released;
+}
+
 // Getters and Setters
 std::string Player::getUsername() const
 {
@@ -324,6 +344,9 @@ void Player::setPosition(int pos)
 std::string Player::getStatus() const
 {
     return status;
+}
+void Player::setStatus(const std::string& status) { 
+    this->status = status; 
 }
 int Player::getCash() const
 {
