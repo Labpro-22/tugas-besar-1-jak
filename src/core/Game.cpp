@@ -25,14 +25,10 @@
 // ===== INISIALISASI =====
 Game::Game()
     : gameActive(false),
-      currentPhase(GamePhase::NORMAL),
       currentPlayerIndex(0),
       turnsPlayed(0),
       isAuctionActive(false),
-      currentAuctionProperty(nullptr),
-      renderer(nullptr),
-      turnsInJailForCurrentPlayer(0),
-      waitingForJailChoice(false)
+      renderer(nullptr)
 {
 }
 
@@ -177,15 +173,6 @@ void Game::setGameActive(bool active)
     gameActive = active;
 }
 
-// Ambil pemain aktif saat ini
-Player *Game::getCurrentPlayer() const
-{
-    if (players.empty()) {
-        return nullptr;
-    }
-    return players[turnOrder[currentPlayerIndex]].get();
-}
-
 // ===== DADU =====
 // Lempar dadu
 void Game::rollDice() {
@@ -226,26 +213,6 @@ void Game::setDice(int x, int y) {
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Diatur manual: " + std::to_string(x) + "+" + std::to_string(y) + "=" + std::to_string(result));
 
     movePlayer(*player, result);
-}
-
-// Ngegerakin pemain
-void Game::movePlayer(Player& player, int steps) {
-    int startPos = player.getPosition();
-    int boardSize = board->getTileCount();
-    int newPos = (startPos + steps) % boardSize;
-
-    if ((startPos + steps) >= boardSize) {
-        player += goSalary;
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GO | Melewati GO, dapat M" + std::to_string(goSalary));
-    }
-
-    player.setPosition(newPos);
-    Tile* tile = board->getTile(newPos);
-    std::string tileName = tile ? tile->getCode() : "???";
-
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GERAK | Mendarat di " + tileName);
-
-    processTileLanding(player, newPos);
 }
 
 // ===== PROPERTY =====
@@ -513,7 +480,6 @@ void Game::finalizeAuction(Player* winner, PropertyTile* property, int winningBi
     if (!winner) {
         renderer->printInfo("Lelang gagal: " + property->getCode() + " tidak terjual.");
         isAuctionActive = false;
-        currentPhase = GamePhase::NORMAL;
         return;
     }
 
@@ -536,6 +502,20 @@ void Game::logAuctionEvent(const std::string& action, const std::string& detail)
     logger->addLog("[AUCTION] " + action + ": " + detail);
 }
 
+// Mulai lelang (private punya Game)
+void Game::startAuctionForProperty(PropertyTile& tile) {
+    std::vector<Player*> active = getActivePlayers();
+    Player* trigger = getCurrentPlayer();
+
+    isAuctionActive = true;
+
+    auctionManager->startAuction(&tile, trigger, active);
+
+    renderer->printInfo("Properti " + tile.getName() + " (" + tile.getCode() + ") akan dilelang!");
+    renderer->printInfo("Urutan lelang dimulai dari pemain setelah " + trigger->getUsername() + ".");
+}
+
+// Mulai lelang (public)
 void Game::triggerAuction(PropertyTile& property) {
     startAuctionForProperty(property);
 }
@@ -624,6 +604,76 @@ void Game::useJailFreeCard() {
     renderer->printInfo("Kamu bebas dari penjara!");
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_BEBAS | Keluar penjara dengan kartu.");
+}
+
+// ===== PLAYER =====
+// Ambil pemain saat ini
+Player *Game::getCurrentPlayer() const
+{
+    if (players.empty()) {
+        return nullptr;
+    }
+    return players[turnOrder[currentPlayerIndex]].get();
+}
+
+// Ngitung jumlah pemain aktif
+int Game::countActivePlayers() const {
+    int count = 0;
+    for (const auto& p : players) {
+        if (p && p->getStatus() != "BANKRUPT") count++;
+    }
+    return count;
+}
+
+// Ambil daftar pemain yang aktif
+std::vector<Player*> Game::getActivePlayers() const {
+    std::vector<Player*> result;
+    for (const auto& p : players) {
+        if (p && p->getStatus() != "BANKRUPT") {
+            result.push_back(p.get());
+        }
+    }
+    return result;
+}
+
+// Ngegerakin pemain
+void Game::movePlayer(Player& player, int steps) {
+    int startPos = player.getPosition();
+    int boardSize = board->getTileCount();
+    int newPos = (startPos + steps) % boardSize;
+
+    if ((startPos + steps) >= boardSize) {
+        player += goSalary;
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GO | Melewati GO, dapat M" + std::to_string(goSalary));
+    }
+
+    player.setPosition(newPos);
+    Tile* tile = board->getTile(newPos);
+    std::string tileName = tile ? tile->getCode() : "???";
+
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GERAK | Mendarat di " + tileName);
+
+    processTileLanding(player, newPos);
+}
+
+// Teleport ke tile tujuan (dipake sama SkillCard)
+void Game::teleportPlayer(Player& player, int targetTileIndex) {
+    if (!board->isValidPosition(targetTileIndex)) {
+        renderer->printError("Posisi tidak valid.");
+        return;
+    }
+
+    // Cek apakah melewati GO
+    if (targetTileIndex < player.getPosition()) {
+        player += goSalary;
+        renderer->printInfo("Melewati GO! Dapat M" + std::to_string(goSalary));
+    }
+
+    player.setPosition(targetTileIndex);
+    Tile* tile = board->getTile(targetTileIndex);
+    renderer->printInfo("Bidak dipindahkan ke " + (tile ? tile->getName() : "???"));
+
+    processTileLanding(player, targetTileIndex);
 }
 
 // ===== SAVE =====
@@ -727,12 +777,14 @@ void Game::printPropertyInventory() {
     renderer->printPropertyInventory(*player);
 }
 
+// Cetak status pemain
 void Game::printPlayerStatus() {
     Player* player = getCurrentPlayer();
     if (!player) return;
     renderer->printPlayerStatus(*player, *board);
 }
 
+// Cetak log
 void Game::printLog(int limit) {
     logger->printLog(limit);
 }
@@ -747,19 +799,15 @@ void Game::printHelp() {
     std::cout << "  AKHIRI_GILIRAN : Mengakhiri giliranmu dan lanjut ke pemain berikutnya.\n\n";
 
     std::cout << "[PROPERTI & BANGUNAN]\n";
-    std::cout << "  BELI               : Membeli properti di petak tempatmu berada.\n";
     std::cout << "  BANGUN <petak>     : Membangun rumah/hotel di properti milikmu.\n";
-    std::cout << "  JUAL_BANGUNAN <ptk>: Menjual bangunan yang ada di properti milikmu.\n\n";
 
     std::cout << "[MANAJEMEN ASET & LELANG]\n";
     std::cout << "  GADAI <petak> : Menggadaikan properti untuk mendapatkan uang.\n";
     std::cout << "  TEBUS <petak> : Menebus properti yang sedang digadaikan.\n";
     std::cout << "  TAWAR <harga> : Mengajukan harga saat sesi lelang properti.\n";
     std::cout << "  LEPAS         : Mundur dari sesi lelang saat ini.\n";
-    std::cout << "  BANGKRUT      : Menyerah dan keluar dari permainan karena kehabisan uang.\n\n";
 
     std::cout << "[PENJARA & KARTU]\n";
-    std::cout << "  BAYAR_DENDA                 : Membayar denda agar bisa keluar dari penjara.\n";
     std::cout << "  GUNAKAN_KARTU_BEBAS         : Menggunakan kartu khusus untuk bebas.\n";
     std::cout << "  GUNAKAN_KEMAMPUAN <index>   : Menggunakan kartu skill (kemampuan) yang dimiliki.\n\n";
 
@@ -780,7 +828,8 @@ void Game::printHelp() {
     std::cout << "=================================================================\n";
 }
 
-// Flow Giliran
+// ===== FLOW GILIRAN =====
+// Giliran berakhir
 void Game::endTurn() {
     Player* player = getCurrentPlayer();
     if (!player) return;
@@ -801,14 +850,14 @@ void Game::endTurn() {
     if (dice->isDouble() && player->getStatus() != "JAILED"
         && player->getConsecutiveDoublesDice() > 0) {
         renderer->printInfo("Kamu mendapat double! Giliran tambahan.");
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       player->getUsername() + " | DOUBLE | Giliran tambahan.");
-        return; // tidak pindah ke pemain berikutnya
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DOUBLE | Giliran tambahan.");
+        return;
     }
 
     nextTurn();
 }
 
+// Giliran berikutnya
 void Game::nextTurn() {
     // Reset consecutive doubles
     Player* current = getCurrentPlayer();
@@ -831,9 +880,7 @@ void Game::nextTurn() {
 
     // Skip pemain bankrupt
     int attempts = 0;
-    while (getCurrentPlayer() &&
-           getCurrentPlayer()->getStatus() == "BANKRUPT" &&
-           attempts < (int)players.size()) {
+    while (getCurrentPlayer() && getCurrentPlayer()->getStatus() == "BANKRUPT" && attempts < (int)players.size()) {
         currentPlayerIndex = (currentPlayerIndex + 1) % turnOrder.size();
         attempts++;
     }
@@ -842,21 +889,18 @@ void Game::nextTurn() {
     Player* next = getCurrentPlayer();
     if (next) {
         drawSkillCard(*next);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       next->getUsername() + " | GILIRAN | Giliran dimulai.");
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + next->getUsername() + " | GILIRAN | Giliran dimulai.");
     }
 }
 
+// Kondisi game selesai
 void Game::handleGameEnd() {
     renderer->printInfo("\nPermainan selesai! (Batas giliran tercapai)");
 
     // Kumpulkan pemain aktif
     std::vector<Player*> active = getActivePlayers();
 
-    // Sort berdasarkan kriteria menang sesuai spesifikasi:
-    // 1. Uang terbanyak
-    // 2. Jumlah properti terbanyak
-    // 3. Jumlah kartu terbanyak
+    // Urutan menang: uang terbanyak, properti terbanyak, kartu terbanyak
     std::sort(active.begin(), active.end(), [](Player* a, Player* b) {
         if (a->getCash() != b->getCash()) return a->getCash() > b->getCash();
         if (a->getOwnedProperties().size() != b->getOwnedProperties().size())
@@ -873,7 +917,7 @@ void Game::handleGameEnd() {
         renderer->printInfo("  Kartu    : " + std::to_string(p->getOwnedSkillCards().size()));
     }
 
-    // Tentukan pemenang (bisa lebih dari satu kalau seri terus)
+    // Tentukan pemenang (bisa lebih dari satu kalau seri)
     std::vector<Player*> winners;
     winners.push_back(active[0]);
     for (int i = 1; i < (int)active.size(); i++) {
@@ -901,16 +945,31 @@ void Game::handleGameEnd() {
     gameActive = false;
 }
 
+// Bangkrut
 void Game::declareBankruptcy() {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
     renderer->printInfo(player->getUsername() + " menyatakan bangkrut!");
 
-    bankruptcyManager->declareBankruptcy(*player, nullptr, *this);
+    bankruptcyManager->handle(*player, nullptr, 0, *this,
+        [this](const std::vector<LiquidationOption>& options) -> int {
+            renderer->printInfo("\n=== Panel Likuidasi ===");
+            for (int i = 0; i < (int)options.size(); i++) {
+                renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
+            }
+            renderer->printInfo("0. Selesai");
+            std::cout << "Pilih aksi: ";
+            std::string input;
+            std::getline(std::cin, input);
+            try {
+                return std::stoi(input) - 1;
+            } catch (...) {
+                return -1;
+            }
+        });
 
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                   player->getUsername() + " | BANGKRUT | Menyerah dari permainan.");
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | BANGKRUT | Menyerah dari permainan.");
 
     if (countActivePlayers() <= 1) {
         std::vector<Player*> active = getActivePlayers();
@@ -926,146 +985,64 @@ void Game::declareBankruptcy() {
     nextTurn();
 }
 
-// Player
-int Game::countActivePlayers() const {
-    int count = 0;
-    for (const auto& p : players) {
-        if (p && p->getStatus() != "BANKRUPT") count++;
-    }
-    return count;
-}
-
-// Getter
-CLIRenderer &Game::getRenderer()
-{
-    std::cout << "[Game] getRenderer()" << std::endl;
-    return *renderer;
-}
-
-int Game::getCurrentPlayerBalance()
-{
-    std::cout << "[Game] getCurrentPlayerBalance() int version" << std::endl;
-    // TODO: Implementation - return balance as int
-    return 0;
-}
-
-std::string Game::getCurrentPlayerBalanceString()
-{
-    std::cout << "[Game] getCurrentPlayerBalanceString() " << std::endl;
-    // TODO: Implementation - return balance as string
-    return "Rp 0"; // Stub
-}
-
+// ===== GETTER =====
+// Dapetin papan
 Board& Game::getBoard() const
 {
-    std::cout << "[Game] getBoard()" << std::endl;
     return *board;
 }
 
+// Dapetin log
 TransactionLogger *Game::getLogger()
 {
-    std::cout << "[Game] getLogger()" << std::endl;
     return logger.get();
 }
 
-// Manajemen Aset Pemain
-void Game::addSkillCardToPlayer(Player &player, std::unique_ptr<SkillCard> card)
-{
-    std::cout << "[Game] addSkillCardToPlayer()" << std::endl;
-    // TODO: Implementation
-}
-
-void Game::addActionCardToPlayer(Player &player, std::unique_ptr<ActionCard> card)
-{
-    std::cout << "[Game] addActionCardToPlayer()" << std::endl;
-    // TODO: Implementation
-}
-
-// Private methods
+// ===== SEWA =====
+// Ketika berdiri di tiap jenis tile
 void Game::processTileLanding(Player& player, int tileIndex) {
     Tile* tile = board->getTile(tileIndex);
     if (!tile) return;
 
-    // Street
     StreetTile* street = dynamic_cast<StreetTile*>(tile);
-    if (street) {
-        handleStreetLanding(player, *street);
-        return;
-    }
+    if (street) { handleStreetLanding(player, *street); return; }
 
-    // Railroad
     RailroadTile* railroad = dynamic_cast<RailroadTile*>(tile);
-    if (railroad) {
-        handleRailroadLanding(player, *railroad);
-        return;
-    }
+    if (railroad) { handleRailroadLanding(player, *railroad); return; }
 
-    // Utility
     UtilityTile* utility = dynamic_cast<UtilityTile*>(tile);
-    if (utility) {
-        handleUtilityLanding(player, *utility);
-        return;
-    }
+    if (utility) { handleUtilityLanding(player, *utility); return; }
 
-    // Tax
-    TaxTile* tax = dynamic_cast<TaxTile*>(tile);
-    if (tax) {
-        handleTaxLanding(player, *tax);
-        return;
-    }
-
-    // Festival
-    FestivalTile* festival = dynamic_cast<FestivalTile*>(tile);
-    if (festival) {
-        handleFestivalLanding(player);
-        return;
-    }
-
-    // Card (Kesempatan/Dana Umum)
-    CardTile* card = dynamic_cast<CardTile*>(tile);
-    if (card) {
-        handleCardLanding(player, *card);
-        return;
-    }
-
-    // Spesial (GO, Penjara, Bebas Parkir, Pergi ke Penjara)
-    // sudah dihandle via onLanded() di masing-masing SpecialTile
+    // Sisanya udah (Tax, Festival, Card, Special) dari onLanded() masing-masing
     tile->onLanded(player, *this);
 }
 
-// handleStreetLanding
+// processTileLanding versi public (kayak getter)
+void Game::processTileLandingPublic(Player& player, int tileIndex) {
+    processTileLanding(player, tileIndex);
+}
+
+// Street
 void Game::handleStreetLanding(Player& player, StreetTile& tile) {
     PropertyStatus status = tile.getStatus();
 
-    // Sudah dimiliki pemain lain — bayar sewa
-    if (status == PropertyStatus::OWNED && tile.getOwner() != &player) {
-        applyRent(player, tile);
-        return;
-    }
-
-    // Digadaikan — tidak ada sewa
-    if (status == PropertyStatus::MORTGAGED) {
-        renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + "), milik " + tile.getOwner()->getUsername() + ".");
-        renderer->printInfo("Properti ini sedang digadaikan [M]. Tidak ada sewa yang dikenakan.");
-        return;
-    }
-
-    // Milik sendiri — tidak ada aksi
-    if (status == PropertyStatus::OWNED && tile.getOwner() == &player) {
-        renderer->printInfo("Kamu mendarat di properti milikmu sendiri: " + tile.getName());
-        return;
-    }
-
-    // Status BANK — tawarkan pembelian
+    // Kalau statusnya BANK, tawarin pembelian
     if (status == PropertyStatus::BANK) {
         renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + ")!");
-        renderer->printAkta(tile);
-
+        renderer->printDeed(tile);
         renderer->printInfo("Uang kamu saat ini: M" + std::to_string(player.getCash()));
         std::cout << "Apakah kamu ingin membeli properti ini seharga M" << tile.getPrice() << "? (y/n): ";
 
         std::string input;
-        std::getline(std::cin, input);
+        std::cout << "Apakah kamu ingin membeli properti ini seharga M" << tile.getPrice() << "? (y/n): ";
+        while (true) {
+            std::getline(std::cin, input);
+            if (input == "y" || input == "Y" || input == "n" || input == "N") {
+                break;
+            } else {
+                std::cout << "Input tidak valid. Masukkan y atau n: ";
+            }
+        }
 
         if (input == "y" || input == "Y") {
             if (player.getCash() < tile.getPrice()) {
@@ -1077,20 +1054,115 @@ void Game::handleStreetLanding(Player& player, StreetTile& tile) {
             tile.changeOwner(&player);
             player.addProperty(&tile);
             tile.redeem();
-            logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                           player.getUsername() + " | BELI | Beli " +
-                           tile.getName() + " (" + tile.getCode() + ") seharga M" +
-                           std::to_string(tile.getPrice()));
+            logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | BELI | Beli " + tile.getName() + " (" + tile.getCode() + ") seharga M" + std::to_string(tile.getPrice()));
             renderer->printInfo(tile.getName() + " kini menjadi milikmu!");
             renderer->printInfo("Uang tersisa: M" + std::to_string(player.getCash()));
         } else {
             renderer->printInfo("Properti ini akan masuk ke sistem lelang...");
             startAuctionForProperty(tile);
         }
+        return;
+    }
+
+    // Kalau milik sendiri (termasuk yang digadaikan), tidak ada aksi
+    if (tile.getOwner() == &player) {
+        if (status == PropertyStatus::MORTGAGED) {
+            renderer->printInfo("Kamu mendarat di properti milikmu sendiri: " + tile.getName() + " (sedang digadaikan).");
+        } else {
+            renderer->printInfo("Kamu mendarat di properti milikmu sendiri: " + tile.getName());
+        }
+        return;
+    }
+
+    // Kalau digadaikan milik orang lain, tidak ada sewa
+    if (status == PropertyStatus::MORTGAGED) {
+        renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + "), milik " + tile.getOwner()->getUsername() + ".");
+        renderer->printInfo("Properti ini sedang digadaikan [M]. Tidak ada sewa yang dikenakan.");
+        return;
+    }
+
+    // Kalau punya pemain lain, bayar sewa
+    if (status == PropertyStatus::OWNED && tile.getOwner() != &player) {
+        applyRent(player, tile);
+        return;
     }
 }
 
-// Helper applyRent
+// Railroad
+void Game::handleRailroadLanding(Player& player, RailroadTile& tile) {
+    // Status BANK: otomatis jadi milik player
+    if (tile.getStatus() == PropertyStatus::BANK) {
+        tile.changeOwner(&player);
+        tile.redeem();
+        player.addProperty(&tile);
+        renderer->printInfo("Kamu mendarat di " + tile.getName() + "!");
+        renderer->printInfo("Belum ada yang menginjaknya duluan, stasiun ini kini menjadi milikmu!");
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | RAILROAD | " + tile.getCode() + " kini milik " + player.getUsername() + " (otomatis)");
+        return;
+    }
+
+    // Milik sendiri (termasuk yang digadaikan): tidak ada aksi
+    if (tile.getOwner() == &player) {
+        if (tile.getStatus() == PropertyStatus::MORTGAGED) {
+            renderer->printInfo("Kamu mendarat di stasiun milikmu sendiri: " + tile.getName() + " (sedang digadaikan).");
+        } else {
+            renderer->printInfo("Kamu mendarat di stasiun milikmu sendiri: " + tile.getName() + ".");
+        }
+        return;
+    }
+
+    // Digadaikan milik orang lain: tidak ada sewa
+    if (tile.getStatus() == PropertyStatus::MORTGAGED) {
+        renderer->printInfo("Kamu mendarat di " + tile.getName() + ", milik " + tile.getOwner()->getUsername() + ".");
+        renderer->printInfo("Stasiun ini sedang digadaikan [M]. Tidak ada sewa yang dikenakan.");
+        return;
+    }
+
+    // Dimiliki pemain lain: bayar sewa
+    if (tile.getStatus() == PropertyStatus::OWNED) {
+        applyRent(player, tile);
+        return;
+    }
+}
+
+// Utility
+void Game::handleUtilityLanding(Player& player, UtilityTile& tile) {
+    // Status BANK: otomatis jadi milik player
+    if (tile.getStatus() == PropertyStatus::BANK) {
+        tile.changeOwner(&player);
+        tile.redeem();
+        player.addProperty(&tile);
+        renderer->printInfo("Kamu mendarat di " + tile.getName() + "!");
+        renderer->printInfo("Belum ada yang menginjaknya duluan, " + tile.getName() + " kini menjadi milikmu!");
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | UTILITY | " + tile.getCode() + " kini milik " + player.getUsername() + " (otomatis)");
+        return;
+    }
+
+    // Milik sendiri (termasuk yang digadaikan): tidak ada aksi
+    if (tile.getOwner() == &player) {
+        if (tile.getStatus() == PropertyStatus::MORTGAGED) {
+            renderer->printInfo("Kamu mendarat di " + tile.getName() + " milikmu sendiri (sedang digadaikan).");
+        } else {
+            renderer->printInfo("Kamu mendarat di " + tile.getName() + " milikmu sendiri.");
+        }
+        return;
+    }
+
+    // Digadaikan milik orang lain: tidak ada sewa
+    if (tile.getStatus() == PropertyStatus::MORTGAGED) {
+        renderer->printInfo("Kamu mendarat di " + tile.getName() + ", milik " + tile.getOwner()->getUsername() + ".");
+        renderer->printInfo("Utilitas ini sedang digadaikan [M]. Tidak ada sewa yang dikenakan.");
+        return;
+    }
+
+    // Dimiliki pemain lain: bayar sewa
+    if (tile.getStatus() == PropertyStatus::OWNED) {
+        applyRent(player, tile);
+        return;
+    }
+}
+
+// Helper buat trigger sewa
 void Game::applyRent(Player& player, PropertyTile& tile) {
     if (player.isShieldActive()) {
         renderer->printInfo("[SHIELD ACTIVE] Kamu terlindungi dari sewa!");
@@ -1100,16 +1172,12 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
     int rent = tile.calculateRent(dice->getTotal());
     Player* owner = tile.getOwner();
 
-    renderer->printInfo("Kamu mendarat di " + tile.getName() +
-                        " (" + tile.getCode() + "), milik " + owner->getUsername() + "!");
+    renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + "), milik " + owner->getUsername() + "!");
     renderer->printInfo("Sewa: M" + std::to_string(rent));
 
     try {
         player.payRent(rent, *owner);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       player.getUsername() + " | SEWA | Bayar M" +
-                       std::to_string(rent) + " ke " + owner->getUsername() +
-                       " (" + tile.getCode() + ")");
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | SEWA | Bayar M" + std::to_string(rent) + " ke " + owner->getUsername() + " (" + tile.getCode() + ")");
         renderer->printInfo("Uang kamu: M" + std::to_string(player.getCash()));
         renderer->printInfo("Uang " + owner->getUsername() + ": M" + std::to_string(owner->getCash()));
     } catch (const NimonspoliException&) {
@@ -1118,7 +1186,7 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
             [this](const std::vector<LiquidationOption>& options) -> int {
                 renderer->printInfo("\n=== Panel Likuidasi ===");
                 for (int i = 0; i < (int)options.size(); i++) {
-                    renderer->printInfo(std::to_string(i + 1) + ". " + options[i].description);
+                    renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
                 }
                 renderer->printInfo("0. Selesai");
                 std::cout << "Pilih aksi: ";
@@ -1134,255 +1202,14 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
     }
 }
 
-void Game::handleRailroadLanding(Player& player, RailroadTile& tile) {
-    if (tile.getStatus() == PropertyStatus::BANK) {
-        tile.changeOwner(&player);
-        tile.redeem();
-        player.addProperty(&tile);
-        renderer->printInfo("Kamu mendarat di " + tile.getName() + "!");
-        renderer->printInfo("Belum ada yang menginjaknya duluan, stasiun ini kini menjadi milikmu!");
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       player.getUsername() + " | RAILROAD | " +
-                       tile.getCode() + " kini milik " + player.getUsername() + " (otomatis)");
-        return;
-    }
-
-    if (tile.getStatus() == PropertyStatus::OWNED && tile.getOwner() != &player) {
-        applyRent(player, tile);
-        return;
-    }
-
-    if (tile.getStatus() == PropertyStatus::MORTGAGED) {
-        renderer->printInfo("Stasiun ini sedang digadaikan [M]. Tidak ada sewa.");
-    }
-}
-
-void Game::handleUtilityLanding(Player& player, UtilityTile& tile) {
-    if (tile.getStatus() == PropertyStatus::BANK) {
-        tile.changeOwner(&player);
-        tile.redeem();
-        player.addProperty(&tile);
-        renderer->printInfo("Kamu mendarat di " + tile.getName() + "!");
-        renderer->printInfo("Belum ada yang menginjaknya duluan, " + tile.getName() + " kini menjadi milikmu!");
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       player.getUsername() + " | UTILITY | " +
-                       tile.getCode() + " kini milik " + player.getUsername() + " (otomatis)");
-        return;
-    }
-
-    if (tile.getStatus() == PropertyStatus::OWNED && tile.getOwner() != &player) {
-        applyRent(player, tile);
-        return;
-    }
-
-    if (tile.getStatus() == PropertyStatus::MORTGAGED) {
-        renderer->printInfo("Utilitas ini sedang digadaikan [M]. Tidak ada sewa.");
-    }
-}
-
-void Game::handleTaxLanding(Player& player, TaxTile& tile) {
-    if (tile.getTaxType() == TaxType::PBM) {
-        renderer->printInfo("Kamu mendarat di Pajak Barang Mewah (PBM)!");
-        renderer->printInfo("Pajak sebesar M" + std::to_string(pbmFlat) + " langsung dipotong.");
-
-        if (player.isShieldActive()) {
-            renderer->printInfo("[SHIELD ACTIVE] Kamu terlindungi dari pajak!");
-            return;
-        }
-
-        try {
-            player -= pbmFlat;
-            logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                           player.getUsername() + " | PAJAK | Bayar PBM M" +
-                           std::to_string(pbmFlat));
-            renderer->printInfo("Uang kamu: M" + std::to_string(player.getCash()));
-        } catch (const NimonspoliException&) {
-            bankruptcyManager->handle(player, nullptr, pbmFlat, *this,
-                [this](const std::vector<LiquidationOption>& options) -> int {
-                    renderer->printInfo("\n=== Panel Likuidasi ===");
-                    for (int i = 0; i < (int)options.size(); i++) {
-                        renderer->printInfo(std::to_string(i + 1) + ". " + options[i].description);
-                    }
-                    renderer->printInfo("0. Selesai");
-                    std::cout << "Pilih aksi: ";
-                    std::string input;
-                    std::getline(std::cin, input);
-                    try {
-                        return std::stoi(input) - 1;
-                    } catch (...) {
-                        return -1;
-                    }
-                });
-        }
-        return;
-    }
-
-    // PPH
-    renderer->printInfo("Kamu mendarat di Pajak Penghasilan (PPH)!");
-    renderer->printInfo("Pilih opsi pembayaran pajak:");
-    renderer->printInfo("1. Bayar flat M" + std::to_string(pphFlat));
-    renderer->printInfo("2. Bayar " + std::to_string(pphPersen) + "% dari total kekayaan");
-    renderer->printInfo("(Pilih sebelum menghitung kekayaan!)");
-    std::cout << "Pilihan (1/2): ";
-
-    std::string input;
-    std::getline(std::cin, input);
-
-    if (player.isShieldActive()) {
-        renderer->printInfo("[SHIELD ACTIVE] Kamu terlindungi dari pajak!");
-        return;
-    }
-
-    int amount = 0;
-    if (input == "1") {
-        amount = pphFlat;
-    } else {
-        int totalWealth = player.getTotalWealth();
-        amount = totalWealth * pphPersen / 100;
-        renderer->printInfo("Total kekayaan: M" + std::to_string(totalWealth));
-        renderer->printInfo("Pajak " + std::to_string(pphPersen) + "%: M" + std::to_string(amount));
-    }
-
-    try {
-        player -= amount;
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       player.getUsername() + " | PAJAK | Bayar PPH M" +
-                       std::to_string(amount));
-        renderer->printInfo("Uang kamu: M" + std::to_string(player.getCash()));
-    } catch (const NimonspoliException&) {
-        bankruptcyManager->handle(player, nullptr, amount, *this,
-            [this](const std::vector<LiquidationOption>& options) -> int {
-                renderer->printInfo("\n=== Panel Likuidasi ===");
-                for (int i = 0; i < (int)options.size(); i++) {
-                    renderer->printInfo(std::to_string(i + 1) + ". " + options[i].description);
-                }
-                renderer->printInfo("0. Selesai");
-                std::cout << "Pilih aksi: ";
-                std::string input;
-                std::getline(std::cin, input);
-                try {
-                    return std::stoi(input) - 1;
-                } catch (...) {
-                    return -1;
-                }
-            });
-    }
-}
-
-void Game::handleFestivalLanding(Player& player) {
-    auto& ownedProps = player.getOwnedProperties();
-
-    if (ownedProps.empty()) {
-        renderer->printInfo("Kamu mendarat di petak Festival, tapi tidak punya properti!");
-        return;
-    }
-
-    renderer->printInfo("Kamu mendarat di petak Festival!");
-    renderer->printInfo("Daftar properti milikmu:");
-    for (auto* prop : ownedProps) {
-        renderer->printInfo("- " + prop->getCode() + " (" + prop->getName() + ")");
-    }
-
-    std::string kode;
-    StreetTile* chosen = nullptr;
-    while (!chosen) {
-        std::cout << "Masukkan kode properti: ";
-        std::getline(std::cin, kode);
-
-        for (auto* prop : ownedProps) {
-            StreetTile* st = dynamic_cast<StreetTile*>(prop);
-            if (st && st->getCode() == kode) {
-                chosen = st;
-                break;
-            }
-        }
-
-        if (!chosen) {
-            // Cek apakah kode ada tapi bukan milik player
-            Tile* tile = nullptr;
-            for (int i = 0; i < board->getTileCount(); i++) {
-                if (board->getTile(i)->getCode() == kode) {
-                    tile = board->getTile(i);
-                    break;
-                }
-            }
-            if (!tile) {
-                renderer->printError("Kode properti tidak valid!");
-            } else {
-                renderer->printError("Properti bukan milikmu!");
-            }
-        }
-    }
-
-    int sewaBefore = chosen->calculateRent(0);
-    chosen->applyFestival();
-    int sewaAfter = chosen->calculateRent(0);
-
-    if (chosen->getFestivalMultiplier() > 8) {
-        renderer->printInfo("Efek sudah maksimum (harga sewa sudah digandakan tiga kali)");
-        renderer->printInfo("Durasi di-reset menjadi: 3 giliran");
-    } else if (sewaBefore == sewaAfter) {
-        renderer->printInfo("Efek diperkuat!");
-        renderer->printInfo("Sewa sebelumnya: M" + std::to_string(sewaBefore));
-        renderer->printInfo("Sewa sekarang: M" + std::to_string(sewaAfter));
-        renderer->printInfo("Durasi di-reset menjadi: 3 giliran");
-    } else {
-        renderer->printInfo("Efek festival aktif!");
-        renderer->printInfo("Sewa awal: M" + std::to_string(sewaBefore));
-        renderer->printInfo("Sewa sekarang: M" + std::to_string(sewaAfter));
-        renderer->printInfo("Durasi: 3 giliran");
-    }
-
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                   player.getUsername() + " | FESTIVAL | " +
-                   chosen->getCode() + ": sewa M" + std::to_string(sewaBefore) +
-                   " -> M" + std::to_string(sewaAfter) +
-                   ", durasi 3 giliran");
-}
-
-void Game::handleCardLanding(Player& player, CardTile& tile) {
-    if (tile.getDeckType() == DeckType::CHANCE) {
-        card = chanceDeck->draw();
-    } else {
-        card = generalFundsDeck->draw();
-    }
-}
-
-void Game::processTileLandingPublic(Player& player, int tileIndex) {
-    processTileLanding(player, tileIndex);
-}
-
-std::vector<Player*> Game::getActivePlayers() const {
-    std::vector<Player*> result;
-    for (const auto& p : players) {
-        if (p && p->getStatus() != "BANKRUPT") {
-            result.push_back(p.get());
-        }
-    }
-    return result;
-}
-
-void Game::startAuctionForProperty(PropertyTile& tile) {
-    std::vector<Player*> active = getActivePlayers();
-    Player* trigger = getCurrentPlayer();
-
-    isAuctionActive = true;
-    currentAuctionProperty = &tile;
-    currentPhase = GamePhase::ACTION;
-
-    auctionManager->startAuction(&tile, trigger, active);
-
-    renderer->printInfo("Properti " + tile.getName() + " (" + tile.getCode() + ") akan dilelang!");
-    renderer->printInfo("Urutan lelang dimulai dari pemain setelah " + trigger->getUsername() + ".");
-}
-
+// ===== HELPER =====
 void Game::drawSkillCard(Player& player) {
     SkillCard* card = skillCardDeck->draw();
     if (!card) return;
 
     auto cardNames = player.getSkillCardNames();
     if ((int)cardNames.size() >= 3) {
-        // Slot penuh — wajib buang satu
+        // Slot penuh, wajib buang satu
         player.addCard(card);
         renderer->printInfo("Kamu mendapatkan 1 kartu acak baru!");
         renderer->printInfo("Kartu yang didapat: " + card->getName());
@@ -1412,51 +1239,11 @@ void Game::drawSkillCard(Player& player) {
         player.removeCard(dropIndex);
 
         renderer->printInfo(names[dropIndex] + " telah dibuang.");
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                       player.getUsername() + " | DROP_KARTU | " + names[dropIndex]);
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DROP_KARTU | " + names[dropIndex]);
     } else {
         player.addCard(card);
         renderer->printInfo("Kamu mendapatkan kartu: " + card->getName());
     }
 
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                   player.getUsername() + " | DAPAT_KARTU | " + card->getName());
-}
-
-void Game::teleportPlayer(Player& player, int targetTileIndex) {
-    if (!board->isValidPosition(targetTileIndex)) {
-        renderer->printError("Posisi tidak valid.");
-        return;
-    }
-
-    // Cek apakah melewati GO
-    if (targetTileIndex < player.getPosition()) {
-        player += goSalary;
-        renderer->printInfo("Melewati GO! Dapat M" + std::to_string(goSalary));
-    }
-
-    player.setPosition(targetTileIndex);
-    Tile* tile = board->getTile(targetTileIndex);
-    renderer->printInfo("Bidak dipindahkan ke " + (tile ? tile->getName() : "???"));
-
-    processTileLanding(player, targetTileIndex);
-}
-
-bool Game::canBuildOnProperty(Player& player, PropertyTile& tile) {
-    StreetTile* st = dynamic_cast<StreetTile*>(&tile);
-    if (!st) return false;
-    if (st->getOwner() != &player) return false;
-    if (st->isMortgaged()) return false;
-    if (!st->isMonopolized()) return false;
-    if (!st->canBuild()) return false;
-    return true;
-}
-
-int Game::calculatePropertyValue(PropertyTile& tile) {
-    int value = tile.getPrice();
-    StreetTile* st = dynamic_cast<StreetTile*>(&tile);
-    if (st && st->getBuildingLevel() > 0) {
-        value += st->getBuildingSaleValue();
-    }
-    return value;
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DAPAT_KARTU | " + card->getName());
 }

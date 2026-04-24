@@ -9,7 +9,6 @@ class Board;
 class TransactionLogger;
 class SkillCard;
 template <typename T> class CardDeck;
-class SkillCard;
 
 /*
  * Format file save
