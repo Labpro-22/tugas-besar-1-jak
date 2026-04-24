@@ -11,6 +11,8 @@ class Board;
 class Player;
 class PropertyTile;
 class StreetTile;
+class RailroadTile;
+class UtilityTile;
 class Tile;
 
 class CLIRenderer {
