@@ -72,8 +72,6 @@ class StreetTile : public PropertyTile {
         int calculateRent(int diceTotal = 0, bool isMonopolized = false) override;
         // dipanggil ketika pemain mendarat di petak
         void onLanded(Player& player, Game& game) override;
-        // gadai dan reset status
-        void mortgage() override;
         // menaikkan level bangunan dan memotong saldo pemain
         void build(bool isMonopolized);
         // menjual bangunan ke Bank
