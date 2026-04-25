@@ -27,11 +27,6 @@ enum class TaxType {
     PPH, PBM
 };
 
-// Tipe tile
-enum class TileType {
-    PROPERTY, ACTION, SPECIAL, UNDEFINED
-};
-
 // Merepresentasikan petak-petak pada papan permainan Nimonspoli
 class Tile {
     protected:
@@ -51,7 +46,5 @@ class Tile {
         int getIndex() const;
         // getter atribut nama
         std::string getName() const;
-        // getter tile type
-        virtual TileType getTileType() const;
         virtual ~Tile() = default;
 };

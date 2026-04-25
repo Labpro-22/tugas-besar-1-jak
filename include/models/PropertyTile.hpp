@@ -2,11 +2,6 @@
 
 #include "Tile.hpp"
 
-// jenis properti
-enum class PropertyType {
-    STREET, RAILROAD, UTILITY, UNDEFINED
-};
-
 // Merepresentasikan petak properti yang bisa dimiliki pemain dan mempunyai nilai sewa
 class PropertyTile : public Tile {
     protected:
@@ -20,9 +15,9 @@ class PropertyTile : public Tile {
         // constructor
         PropertyTile(int idx, std::string cd, std::string nm, int bp, int mv);
         // menghitung biaya sewa sesuai jenis properti (pure virtual)
-        virtual int calculateRent(int diceTotal = 0, bool isMonopolized = false) = 0;
+        virtual int calculateRent(int diceTotal) = 0;
         // menggadai properti ke bank
-        virtual void mortgage();
+        void mortgage();
         // menebus properti dari bank
         void redeem();
         // getter pemilik properti
@@ -69,15 +64,15 @@ class StreetTile : public PropertyTile {
         StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, std::string cg, 
             std::vector<int> rnt, int hc, int htc);
         // hitung biaya sewa berdasarkan level bangunan, ismonopolize(), dan efek festival
-        int calculateRent(int diceTotal = 0, bool isMonopolized = false) override;
+        int calculateRent(int diceTotal) override;
         // dipanggil ketika pemain mendarat di petak
         void onLanded(Player& player, Game& game) override;
-        // gadai dan reset status
-        void mortgage() override;
         // menaikkan level bangunan dan memotong saldo pemain
         void build(bool isMonopolized);
         // menjual bangunan ke Bank
         void sell();
+        // cek apakah pemilik menguasai color group
+        bool isMonopolized();
         // cek syarat pemerataan bangunan antar petak color group
         bool canBuild(bool isMonopolized);
         // buat saveload
@@ -107,7 +102,7 @@ class RailroadTile : public PropertyTile {
         RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, 
             std::map<int, int> rt);
         // menghitung sewa berdasarkan jumlah railroad pemilik
-        int calculateRent(int diceTotal = 0, bool isMonopolized = false) override;
+        int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
         PropertyType getPropertyType() const override;
@@ -123,7 +118,7 @@ class UtilityTile : public PropertyTile {
         UtilityTile(int idx, std::string cd, std::string nm, int bp, int mv, 
             std::map<int, int> mt);
         // menghitung biaya sewa berdasarkan diceTotal x faktor pengali
-        int calculateRent(int diceTotal = 0, bool isMonopolized = false) override;
+        int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
         PropertyType getPropertyType() const override;

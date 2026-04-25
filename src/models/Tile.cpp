@@ -18,7 +18,3 @@ int Tile::getIndex() const {
 std::string Tile::getName() const {
     return name;
 }
-
-TileType Tile::getTileType() const {
-    return TileType::UNDEFINED;
-}

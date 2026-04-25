@@ -1,16 +1,11 @@
 #include "models/ActionTile.hpp"
-#include "models/Player.hpp"
-#include "core/Game.hpp"
-#include <algorithm>
 
 // ActionTile 
 
 ActionTile::ActionTile(int idx, std::string cd, std::string nm)
     : Tile(idx, cd, nm) {}
 
-TileType ActionTile::getTileType() const {
-    return TileType::ACTION;
-}
+TileType ActionTile::getTileType() const { return TileType::ACTION; }
 
 // CardTile
 
@@ -105,6 +100,9 @@ void FestivalTile::onLanded(Player& player, Game& game) {
 }
 
 // TaxTile
+
+TaxTile::TaxTile(int idx, std::string cd, std::string nm, TaxType txt, int fm, double pct) 
+    : ActionTile(idx, cd, nm), taxType(txt), flatAmount(fm), percentage(pct) {}
 
 void TaxTile::onLanded(Player& player, Game& game) {
     int amount = 0; bool bangkrut = false; int choice = -1;

@@ -152,26 +152,3 @@ void Board::validateBoard()
         throw NimonspoliException("Board must have exactly 1 JAIL tile. Found: " + std::to_string(jailCount));
     }
 }
-
-bool Board::isMonopolized(std::string colorGroup) const {
-    Player* owner = nullptr;
-    bool found = false;
-    for (auto it = tiles.begin(); it != tiles.end(); it++) {
-        if ((*it)->getTileType() == TileType::PROPERTY) {
-            StreetTile* st = dynamic_cast<StreetTile*>(*it);
-            if (st && st->getColorGroup() == colorGroup) {
-                Player* currentOwner = st->getOwner();
-                if (currentOwner == nullptr) {
-                    return false;
-                }
-                found = true;
-                if (owner == nullptr) {
-                    owner = currentOwner;
-                } else if (currentOwner != owner) {
-                    return false;
-                }
-            }
-        }
-    }
-    return found;
-}

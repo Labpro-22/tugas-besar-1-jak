@@ -2,7 +2,10 @@
 
 #include <string>
 #include <vector>
-#include "Tile.hpp"
+
+class Tile;
+class Player;
+class PropertyTile;
 
 class Board
 {
@@ -28,7 +31,6 @@ public:
     void clearBoard();
 
     // utility
-    bool isMonopolized(std::string colorGroup) const;
     int getStartTileIndex() const;
     int getJailTileIndex() const;
     bool isValidPosition(int index) const;

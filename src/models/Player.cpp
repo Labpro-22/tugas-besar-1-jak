@@ -388,18 +388,6 @@ bool Player::isJailed() const
 {
     return status == "JAILED";
 }
-int Player::getUtilityCount() const 
-{
-    return std::count_if(ownedProperties.begin(), ownedProperties.end(), [](PropertyTile* p) {
-        return p->getPropertyType() == PropertyType::UTILITY;
-    });
-}
-int Player::getRailroadCount() const
-{
-    return std::count_if(ownedProperties.begin(), ownedProperties.end(), [](PropertyTile* p) {
-        return p->getPropertyType() == PropertyType::RAILROAD;
-    });
-}
 void Player::setCash(int amount)
 {
     cash = amount;

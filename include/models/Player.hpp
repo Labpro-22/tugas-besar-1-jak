@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <algorithm>
 #include "models/PropertyTile.hpp"
 
 class SkillCard;
@@ -72,8 +71,6 @@ public:
     std::string getStatus() const;
     void setStatus(const std::string& status);
     bool isJailed() const;
-    int getUtilityCount() const;
-    int getRailroadCount() const;
     int getCash() const;
     void setCash(int amount);
     bool isShieldActive() const;
