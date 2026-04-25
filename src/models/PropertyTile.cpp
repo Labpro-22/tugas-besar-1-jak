@@ -167,6 +167,10 @@ int RailroadTile::calculateRent(int diceTotal) {
     return 0;
 }
 
+const std::map<int, int>& RailroadTile::getRentTable() const {
+    return rentTable;
+}
+
 void RailroadTile::onLanded(Player& player, Game& game) {
     if (status == PropertyStatus::BANK) {
         changeOwner(&player);
@@ -189,6 +193,10 @@ int UtilityTile::calculateRent(int diceTotal) {
         return multiplierTable[utilityCount] * diceTotal;
     }
     return 0;
+}
+
+const std::map<int, int>& UtilityTile::getMultiplierTable() const {
+    return multiplierTable;
 }
 
 void UtilityTile::onLanded(Player& player, Game& game) {

@@ -92,6 +92,7 @@ class RailroadTile : public PropertyTile {
         int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
+        const std::map<int, int>& getRentTable() const;
 };
 
 // Merepresentasikan petak properti berupa utilitas (PLN dan PAM)
@@ -106,4 +107,5 @@ class UtilityTile : public PropertyTile {
         int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
+        const std::map<int, int>& getMultiplierTable() const;
 };
