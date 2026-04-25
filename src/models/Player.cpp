@@ -306,6 +306,15 @@ void Player::releaseFromJail()
 void Player::resetTurnFlags()
 {
     hasUsedSkillThisTurnVal = false;
+    hasRolledDice = false;
+}
+
+bool Player::hasRolledDiceThisTurn() const { 
+    return hasRolledDice; 
+}
+
+void Player::setRolledDiceThisTurn(bool status) { 
+    hasRolledDice = status; 
 }
 
 void Player::removeProperty(PropertyTile* prop) {

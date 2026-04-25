@@ -20,6 +20,7 @@ private:
     int jailTurns;
     int consecutiveDoublesDice;
     bool hasUsedSkillThisTurnVal;
+    bool hasRolledDice;
 
 public:
     // Constructor/Destructor
@@ -51,6 +52,8 @@ public:
     void serveJailTurn();
     void releaseFromJail();
     void resetTurnFlags();
+    bool hasRolledDiceThisTurn() const;
+    void setRolledDiceThisTurn(bool status);
 
     // Bankruptcy handling
     void handleBankruptcy(Player &creditor, int amountOwed);

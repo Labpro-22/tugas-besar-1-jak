@@ -27,6 +27,12 @@ Game::Game()
     : gameActive(false),
       currentPlayerIndex(0),
       turnsPlayed(0),
+      maxTurn(15),
+      goSalary(200),
+      jailFine(50), 
+      pphFlat(150), 
+      pphPersen(10),
+      pbmFlat(200),
       isAuctionActive(false),
       renderer(nullptr)
 {
@@ -179,9 +185,32 @@ void Game::rollDice() {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
+    if (player->hasRolledDiceThisTurn()) {
+        renderer->printError("Kamu sudah melempar dadu! Ketik AKHIRI_GILIRAN untuk selesai.");
+        return;
+    }
+
+    // Handle jail turn
+    if (player->isJailed()) {
+        int turnsLeft = player->getJailTurns();
+
+        // Giliran ke-4 — wajib bayar denda dulu
+        if (turnsLeft == 0) {
+            renderer->printError("Kamu wajib keluar penjara! Gunakan BAYAR_DENDA atau GUNAKAN_KARTU_BEBAS.");
+            return;
+        }
+    }
+
     int result = dice->roll();
     int d1 = dice->getDice1();
     int d2 = dice->getDice2();
+
+    player->setRolledDiceThisTurn(true);
+
+    renderer->printInfo("Mengocok dadu...");
+    renderer->printInfo("Hasil: " + std::to_string(d1) + " + " + std::to_string(d2) + " = " + std::to_string(result));
+    renderer->printInfo("Memajukan bidak " + player->getUsername() + " sebanyak " + std::to_string(result) + " petak...");
+
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Lempar: " + std::to_string(d1) + "+" + std::to_string(d2) + "=" + std::to_string(result));
 
@@ -189,11 +218,14 @@ void Game::rollDice() {
     if (dice->isDouble()) {
         player->setConsecutiveDoublesDice(player->getConsecutiveDoublesDice() + 1);
         if (player->getConsecutiveDoublesDice() >= 3) {
-            // Double 3x berturut — langsung ke penjara
+            // Double 3x berturut: langsung ke penjara
             player->setConsecutiveDoublesDice(0);
             player->goToJail();
             logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | PENJARA | Double 3x, masuk penjara!");
             return;
+        } else {
+            player->setRolledDiceThisTurn(false);
+            renderer->printInfo("Kamu mendapat DOUBLE! Kamu berhak melempar dadu lagi.");
         }
     } else {
         player->setConsecutiveDoublesDice(0);
@@ -207,8 +239,15 @@ void Game::setDice(int x, int y) {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
+    if (player->hasRolledDiceThisTurn()) {
+        renderer->printError("Kamu sudah melempar dadu! Ketik AKHIRI_GILIRAN untuk selesai.");
+        return;
+    }
+
     dice->setDice(x, y);
     int result = dice->getTotal();
+
+    player->setRolledDiceThisTurn(true);
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Diatur manual: " + std::to_string(x) + "+" + std::to_string(y) + "=" + std::to_string(result));
 
