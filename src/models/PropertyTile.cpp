@@ -310,16 +310,6 @@ PropertyType StreetTile::getPropertyType() const {
     return PropertyType::STREET;
 }
 
-int StreetTile::getBuildingSaleValue() const {
-    if (buildingLevel == 0) return 0;
-    if (buildingLevel == 5) return (houseCost / 2) * 4 + (hotelCost / 2);
-    return (houseCost / 2) * buildingLevel;
-}
-
-void StreetTile::resetBuildings() {
-    buildingLevel = 0;
-}
-
 // RailroadTile
 
 RailroadTile::RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, std::map<int, int> rt)

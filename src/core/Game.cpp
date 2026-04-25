@@ -11,14 +11,6 @@
 #include "models/LiquidationOption.hpp"
 #include "core/AuctionManager.hpp"
 #include "models/Card.hpp"
-#include "models/Tile.hpp"
-#include "models/PropertyTile.hpp"
-#include "models/ActionTile.hpp"
-#include "models/SpecialTile.hpp"
-#include "core/BankruptcyManager.hpp"
-#include "models/LiquidationOption.hpp"
-#include "core/AuctionManager.hpp"
-#include "models/Card.hpp"
 #include "models/CardDeck.hpp"
 #include "models/ActionCard.hpp"
 #include "models/SkillCard.hpp"
@@ -26,17 +18,10 @@
 #include "utils/NimonspoliException.hpp"
 #include "utils/SaveLoadManager.hpp"
 #include "views/CLIRenderer.hpp"
-#include "utils/ConfigLoader.hpp"
-#include "utils/NimonspoliException.hpp"
-#include "utils/SaveLoadManager.hpp"
-#include "views/CLIRenderer.hpp"
 #include <iostream>
 #include <algorithm>
 #include <random>
-#include <algorithm>
-#include <random>
 
-// ===== INISIALISASI =====
 // ===== INISIALISASI =====
 Game::Game()
     : gameActive(false),
@@ -44,29 +29,18 @@ Game::Game()
       turnsPlayed(0),
       isAuctionActive(false),
       renderer(nullptr)
-      renderer(nullptr)
 {
 }
 
 Game::~Game() = default;
 
 // Inisialisasi awal
-// Inisialisasi awal
 void Game::initialize()
 {
     board = std::make_unique<Board>();
     board->initializeBoard("config/");
     dice = std::make_unique<Dice>();
-    board = std::make_unique<Board>();
-    board->initializeBoard("config/");
-    dice = std::make_unique<Dice>();
     logger = std::make_unique<TransactionLogger>();
-    bankruptcyManager = std::make_unique<BankruptcyManager>();
-    auctionManager = std::make_unique<AuctionManager>(this);
-
-    initializeDecks();
-    initializeConfig();
-
     bankruptcyManager = std::make_unique<BankruptcyManager>();
     auctionManager = std::make_unique<AuctionManager>(this);
 
@@ -132,78 +106,7 @@ void Game::initializeFromSave(const std::string& saveFile) {
     board = std::make_unique<Board>();
     board->initializeBoard("config/");
     dice = std::make_unique<Dice>();
-// Inisialisasi deck
-void Game::initializeDecks() {
-    // Inisialisasi deck Kesempatan
-    chanceDeck = std::make_unique<CardDeck<ActionCard>>();
-    chanceDeck->addCardToDeck(new GoToNearestStationCard());
-    chanceDeck->addCardToDeck(new MoveBackCard());
-    chanceDeck->addCardToDeck(new GoToJailCard());
-
-    // Inisialisasi deck Dana Umum
-    generalFundsDeck = std::make_unique<CardDeck<ActionCard>>();
-    generalFundsDeck->addCardToDeck(new BirthdayCard());
-    generalFundsDeck->addCardToDeck(new DoctorFeeCard());
-    generalFundsDeck->addCardToDeck(new NyalegCard());
-
-    // Inisialisasi deck Skill
-    skillCardDeck = std::make_unique<CardDeck<SkillCard>>();
-    skillCardDeck->addCardToDeck(new MoveCard(3));
-    skillCardDeck->addCardToDeck(new MoveCard(4));
-    skillCardDeck->addCardToDeck(new MoveCard(5));
-    skillCardDeck->addCardToDeck(new MoveCard(6));
-    skillCardDeck->addCardToDeck(new DiscountCard(10, 1));
-    skillCardDeck->addCardToDeck(new DiscountCard(20, 1));
-    skillCardDeck->addCardToDeck(new DiscountCard(30, 1));
-    skillCardDeck->addCardToDeck(new ShieldCard(1));
-    skillCardDeck->addCardToDeck(new ShieldCard(1));
-    skillCardDeck->addCardToDeck(new TeleportCard());
-    skillCardDeck->addCardToDeck(new TeleportCard());
-    skillCardDeck->addCardToDeck(new LassoCard());
-    skillCardDeck->addCardToDeck(new LassoCard());
-    skillCardDeck->addCardToDeck(new DemolitionCard());
-    skillCardDeck->addCardToDeck(new DemolitionCard());
-}
-
-// Inisialiasi config
-void Game::initializeConfig() {
-    auto special = ConfigLoader::loadSpecial("config/");
-    goSalary = 200;
-    if (special.count("GO_SALARY")) goSalary = special["GO_SALARY"];
-    jailFine = 50;
-    if (special.count("JAIL_FINE")) jailFine = special["JAIL_FINE"];
-
-    auto tax = ConfigLoader::loadTax("config/");
-    pphFlat = 150;
-    if (tax.count("PPH_FLAT")) pphFlat = tax["PPH_FLAT"];
-    pphPersen = 10;
-    if (tax.count("PPH_PERSENTASE")) pphPersen = tax["PPH_PERSENTASE"];
-    pbmFlat = 200;
-    if (tax.count("PBM_FLAT")) pbmFlat = tax["PBM_FLAT"];
-}
-
-// Inisialisasi dari save
-void Game::initializeFromSave(const std::string& saveFile) {
-    board = std::make_unique<Board>();
-    board->initializeBoard("config/");
-    dice = std::make_unique<Dice>();
     logger = std::make_unique<TransactionLogger>();
-    bankruptcyManager = std::make_unique<BankruptcyManager>();
-    auctionManager = std::make_unique<AuctionManager>(this);
-
-    initializeDecks();
-    initializeConfig();
-
-    // Load state dari file
-    SaveLoadManager slm;
-    std::vector<Player*> rawPlayers;
-    slm.loadGame(saveFile, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *logger);
-
-    players.clear();
-    for (Player* p : rawPlayers) {
-        players.push_back(std::unique_ptr<Player>(p));
-    }
-
     bankruptcyManager = std::make_unique<BankruptcyManager>();
     auctionManager = std::make_unique<AuctionManager>(this);
 
@@ -282,7 +185,6 @@ bool Game::isGameActive() const
     return gameActive;
 }
 
-// Jadiin game aktif (kepake di command QUIT)
 // Jadiin game aktif (kepake di command QUIT)
 void Game::setGameActive(bool active)
 {
@@ -616,95 +518,8 @@ void Game::finalizeAuction(Player* winner, PropertyTile* property, int winningBi
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + winner->getUsername() + " | LELANG | Menang lelang " + property->getCode() + " seharga M" + std::to_string(winningBid));
 
     isAuctionActive = false;
-// ===== AUCTION =====
-// Kasih tawaran
-void Game::placeBid(int amount) {
-    if (!isAuctionActive) {
-        renderer->printError("Tidak ada lelang yang sedang berlangsung.");
-        return;
-    }
-
-    Player* player = getCurrentPlayer();
-    if (!player) return;
-
-    try {
-        auctionManager->processBid(player, amount);
-        renderer->printInfo("Penawaran tertinggi: M" + std::to_string(auctionManager->getWinningBid()) + " (" + player->getUsername() + ")");
-
-        if (auctionManager->isFinished()) {
-            isAuctionActive = false;
-        }
-    } catch (const NimonspoliException& e) {
-        renderer->printError(e.what());
-    }
 }
 
-// Skip lelang
-void Game::passAuction() {
-    if (!isAuctionActive) {
-        renderer->printError("Tidak ada lelang yang sedang berlangsung.");
-        return;
-    }
-
-    Player* player = getCurrentPlayer();
-    if (!player) return;
-
-    try {
-        auctionManager->processPass(player);
-
-        if (auctionManager->isFinished()) {
-            isAuctionActive = false;
-        }
-    } catch (const NimonspoliException& e) {
-        renderer->printError(e.what());
-    }
-}
-
-// Kondisi akhir lelang
-void Game::finalizeAuction(Player* winner, PropertyTile* property, int winningBid) {
-    if (!property) return;
-
-    if (!winner) {
-        renderer->printInfo("Lelang gagal: " + property->getCode() + " tidak terjual.");
-        isAuctionActive = false;
-        return;
-    }
-
-    *winner -= winningBid;
-    property->changeOwner(winner);
-    property->redeem();
-    winner->addProperty(property);
-
-    renderer->printInfo("Lelang selesai!");
-    renderer->printInfo("Pemenang: " + winner->getUsername());
-    renderer->printInfo("Harga akhir: M" + std::to_string(winningBid));
-    renderer->printInfo("Properti " + property->getCode() + " kini dimiliki " + winner->getUsername());
-
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + winner->getUsername() + " | LELANG | Menang lelang " + property->getCode() + " seharga M" + std::to_string(winningBid));
-
-    isAuctionActive = false;
-}
-
-void Game::logAuctionEvent(const std::string& action, const std::string& detail) {
-    logger->addLog("[AUCTION] " + action + ": " + detail);
-}
-
-// Mulai lelang (private punya Game)
-void Game::startAuctionForProperty(PropertyTile& tile) {
-    std::vector<Player*> active = getActivePlayers();
-    Player* trigger = getCurrentPlayer();
-
-    isAuctionActive = true;
-
-    auctionManager->startAuction(&tile, trigger, active);
-
-    renderer->printInfo("Properti " + tile.getName() + " (" + tile.getCode() + ") akan dilelang!");
-    renderer->printInfo("Urutan lelang dimulai dari pemain setelah " + trigger->getUsername() + ".");
-}
-
-// Mulai lelang (public)
-void Game::triggerAuction(PropertyTile& property) {
-    startAuctionForProperty(property);
 void Game::logAuctionEvent(const std::string& action, const std::string& detail) {
     logger->addLog("[AUCTION] " + action + ": " + detail);
 }
@@ -752,100 +567,8 @@ void Game::useSkillCard(int cardIndex) {
     } catch (const NimonspoliException& e) {
         renderer->printError(e.what());
     }
-// ===== SKILLCARD (KARTU KEMAMPUAN) =====
-void Game::useSkillCard(int cardIndex) {
-    Player* player = getCurrentPlayer();
-    if (!player) return;
-
-    if (player->hasUsedSkillThisTurn()) {
-        renderer->printError("Kamu sudah menggunakan kartu kemampuan pada giliran ini!");
-        renderer->printInfo("Penggunaan kartu dibatasi maksimal 1 kali dalam 1 giliran.");
-        return;
-    }
-
-    auto cardNames = player->getSkillCardNames();
-    if (cardIndex < 0 || cardIndex >= (int)cardNames.size()) {
-        renderer->printError("Indeks kartu tidak valid.");
-        return;
-    }
-
-    renderer->printInfo("Menggunakan " + cardNames[cardIndex] + "...");
-
-    try {
-        player->useSkillCard(cardIndex, *this);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_KEMAMPUAN | Pakai " + cardNames[cardIndex]);
-    } catch (const NimonspoliException& e) {
-        renderer->printError(e.what());
-    }
 }
 
-// ===== JAIL =====
-void Game::payJailFine() {
-    Player* player = getCurrentPlayer();
-    if (!player) return;
-
-    if (player->getStatus() != "JAILED") {
-        renderer->printError("Kamu tidak sedang di penjara.");
-        return;
-    }
-
-    if (player->getCash() < jailFine) {
-        renderer->printError("Uang tidak cukup untuk membayar denda M" + std::to_string(jailFine));
-        return;
-    }
-
-    *player -= jailFine;
-    player->releaseFromJail();
-
-    renderer->printInfo("Kamu membayar denda M" + std::to_string(jailFine) + " ke Bank.");
-    renderer->printInfo("Kamu bebas dari penjara!");
-    renderer->printInfo("Uang kamu sekarang: M" + std::to_string(player->getCash()));
-
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | BAYAR_DENDA | M" + std::to_string(jailFine));
-}
-
-// ===== GUNAKAN KARTU BEBAS =====
-void Game::useJailFreeCard() {
-    Player* player = getCurrentPlayer();
-    if (!player) return;
-
-    if (player->getStatus() != "JAILED") {
-        renderer->printError("Kamu tidak sedang di penjara.");
-        return;
-    }
-
-    // Cari kartu bebas penjara di tangan
-    auto cardNames = player->getSkillCardNames();
-    int freeCardIndex = -1;
-    for (int i = 0; i < (int)cardNames.size(); i++) {
-        if (cardNames[i] == "ShieldCard") {
-            freeCardIndex = i;
-            break;
-        }
-    }
-
-    if (freeCardIndex < 0) {
-        renderer->printError("Kamu tidak punya kartu bebas penjara.");
-        return;
-    }
-
-    player->removeCard(freeCardIndex);
-    player->releaseFromJail();
-
-    renderer->printInfo("Kartu bebas penjara digunakan!");
-    renderer->printInfo("Kamu bebas dari penjara!");
-
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_BEBAS | Keluar penjara dengan kartu.");
-}
-
-// ===== PLAYER =====
-// Ambil pemain saat ini
-Player *Game::getCurrentPlayer() const
-{
-    if (players.empty()) {
-        return nullptr;
-    }
-    return players[turnOrder[currentPlayerIndex]].get();
 // ===== JAIL =====
 void Game::payJailFine() {
     Player* player = getCurrentPlayer();
@@ -1291,14 +1014,11 @@ void Game::declareBankruptcy() {
 
 // ===== GETTER =====
 // Dapetin papan
-// ===== GETTER =====
-// Dapetin papan
 Board& Game::getBoard() const
 {
     return *board;
 }
 
-// Dapetin log
 // Dapetin log
 TransactionLogger *Game::getLogger()
 {
