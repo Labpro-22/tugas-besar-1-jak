@@ -101,7 +101,7 @@ public:
     void setDice(int x, int y) override;
 
     // Property
-    void mortgageProperty(const std::string &code) override;
+    void mortgageProperty() override;
     void redeemProperty(const std::string &tileCode) override;
     void buildOnProperty(const std::string &tileCode) override;
     

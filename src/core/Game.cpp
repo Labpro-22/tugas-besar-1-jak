@@ -260,30 +260,48 @@ void Game::setDice(int x, int y) {
 
 // ===== PROPERTY =====
 // Gadai properti
-void Game::mortgageProperty(const std::string& code) {
+void Game::mortgageProperty() {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
-    // Cari properti berdasarkan kode
-    PropertyTile* target = nullptr;
+    // Kumpulkan properti yang bisa digadaikan
+    std::vector<PropertyTile*> mortgageable;
     for (auto* prop : player->getOwnedProperties()) {
-        if (prop->getCode() == code) {
-            target = prop;
-            break;
+        if (!prop->isMortgaged()) {
+            mortgageable.push_back(prop);
         }
     }
 
-    if (!target) {
-        renderer->printError("Properti " + code + " tidak ditemukan atau bukan milikmu.");
+    if (mortgageable.empty()) {
+        renderer->printInfo("Tidak ada properti yang dapat digadaikan saat ini.");
         return;
     }
 
-    if (target->isMortgaged()) {
-        renderer->printError("Properti " + code + " sudah digadaikan.");
-        return;
+    // Tampilkan daftar
+    renderer->printInfo("===== Properti yang Dapat Digadaikan =====");
+    for (int i = 0; i < (int)mortgageable.size(); i++) {
+        auto* prop = mortgageable[i];
+        renderer->printInfo(std::to_string(i + 1) + ". " + prop->getName() + " (" + prop->getCode() + ") Nilai Gadai: M" + std::to_string(prop->getMortgageValue()));
     }
 
-    // Cek apakah ada bangunan di color group yang sama
+    // Prompt pilih nomor
+    renderer->printInfo("Pilih nomor properti (0 untuk batal): ");
+    int choice;
+    while (true) {
+        std::string input;
+        std::getline(std::cin, input);
+        try {
+            choice = std::stoi(input);
+            if (choice >= 0 && choice <= (int)mortgageable.size()) break;
+        } catch (...) {}
+        renderer->printInfo("Masukkan angka yang valid: ");
+    }
+
+    if (choice == 0) return;
+
+    PropertyTile* target = mortgageable[choice - 1];
+
+    // Cek bangunan di color group
     StreetTile* st = dynamic_cast<StreetTile*>(target);
     if (st) {
         auto group = board->getPropertiesByColor(st->getColorGroup());
@@ -297,33 +315,51 @@ void Game::mortgageProperty(const std::string& code) {
         }
 
         if (hasBangunan) {
-            renderer->printInfo("Masih ada bangunan di color group [" + st->getColorGroup() + "].");
-            renderer->printInfo("Jual semua bangunan color group ini dulu? (y/n): ");
-            std::string input;
-            while (true) {
-                std::getline(std::cin, input);
-                if (input == "y" || input == "Y") {
-                    break;
-                } else if (input == "n" || input == "N") {
-                    return;
-                } else {
-                    renderer->printInfo("Masukkan y atau n: ");
+            renderer->printInfo(target->getName() + " tidak dapat digadaikan!");
+            renderer->printInfo("Masih terdapat bangunan di color group [" + st->getColorGroup() + "].");
+            renderer->printInfo("Bangunan harus dijual terlebih dahulu.\n\n");
+
+            // Tampilkan daftar bangunan di color group
+            renderer->printInfo("Daftar bangunan di color group [" + st->getColorGroup() + "]:");
+            for (auto* prop : group) {
+                StreetTile* s = dynamic_cast<StreetTile*>(prop);
+                if (s && s->getBuildingLevel() > 0) {
+                    renderer->printInfo("- " + s->getName() + " - " +  std::to_string(s->getBuildingLevel()) + " rumah -> Nilai jual bangunan: M" +  std::to_string(s->getBuildingSaleValue()));
                 }
             }
 
-            // Jual semua bangunan di color group
+            renderer->printInfo("Jual semua bangunan color group [" + st->getColorGroup() + "]? (y/n): ");
+            std::string input;
+            while (true) {
+                std::getline(std::cin, input);
+                if (input == "y" || input == "Y") break;
+                else if (input == "n" || input == "N") return;
+                else renderer->printInfo("Masukkan y atau n: ");
+            }
+
+            // Jual semua bangunan
             for (auto* prop : group) {
                 StreetTile* s = dynamic_cast<StreetTile*>(prop);
                 if (s && s->getBuildingLevel() > 0) {
                     int saleVal = s->getBuildingSaleValue();
                     s->resetBuildings();
                     *player += saleVal;
-                    renderer->printInfo("Bangunan " + s->getName() + " terjual. Kamu menerima M" + std::to_string(saleVal));
+                    renderer->printInfo("Bangunan " + s->getName() + " terjual. Kamu menerima M" + std::to_string(saleVal) + ".");
                 }
+            }
+
+            // Konfirmasi lanjut gadai
+            renderer->printInfo("Lanjut menggadaikan " + target->getName() + "? (y/n): ");
+            while (true) {
+                std::getline(std::cin, input);
+                if (input == "y" || input == "Y") break;
+                else if (input == "n" || input == "N") return;
+                else renderer->printInfo("Masukkan y atau n: ");
             }
         }
     }
 
+    // Gadai benerannya
     int mortgageVal = target->getMortgageValue();
     target->mortgage();
     *player += mortgageVal;
@@ -331,8 +367,9 @@ void Game::mortgageProperty(const std::string& code) {
     renderer->printInfo(target->getName() + " berhasil digadaikan.");
     renderer->printInfo("Kamu menerima M" + std::to_string(mortgageVal) + " dari Bank.");
     renderer->printInfo("Uang kamu sekarang: M" + std::to_string(player->getCash()));
+    renderer->printInfo("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
 
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | GADAI | " + code + " digadaikan, terima M" + std::to_string(mortgageVal));
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +  player->getUsername() + " | GADAI | " +  target->getName() + " digadaikan, terima M" + std::to_string(mortgageVal));
 }
 
 // Tebus properti

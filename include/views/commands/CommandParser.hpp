@@ -97,9 +97,8 @@ class CommandParser {
 
         // ===== GADAI =====
         if (cmd == "GADAI") {
-            requireArgCount(tokens, 1, cmd);
-            std::vector<std::string> codes(tokens.begin() + 1, tokens.end());
-            return new GadaiCommand(std::move(codes));
+            requireArgCount(tokens, 0, cmd);
+            return new GadaiCommand();
         }
 
         // ===== TEBUS <kode> =====

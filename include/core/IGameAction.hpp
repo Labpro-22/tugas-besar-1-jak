@@ -33,7 +33,7 @@ public:
     virtual void setDice(int x, int y) = 0;
 
     // Property
-    virtual void mortgageProperty(const std::string &code) = 0;
+    virtual void mortgageProperty() = 0;
     virtual void redeemProperty(const std::string &tileCode) = 0;
     virtual void buildOnProperty(const std::string &tileCode) = 0;
 
