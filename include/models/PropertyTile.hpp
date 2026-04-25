@@ -20,7 +20,7 @@ class PropertyTile : public Tile {
         // constructor
         PropertyTile(int idx, std::string cd, std::string nm, int bp, int mv);
         // menghitung biaya sewa sesuai jenis properti (pure virtual)
-        virtual int calculateRent(int diceTotal = 0, bool isMonopolized = false) = 0;
+        virtual int calculateRent(int diceTotal, Board& board) = 0;
         // menggadai properti ke bank
         virtual void mortgage();
         // menebus properti dari bank
@@ -65,15 +65,15 @@ class StreetTile : public PropertyTile {
         StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, std::string cg, 
             std::vector<int> rnt, int hc, int htc);
         // hitung biaya sewa berdasarkan level bangunan, ismonopolize(), dan efek festival
-        int calculateRent(int diceTotal = 0, bool isMonopolized = false) override;
+        int calculateRent(int diceTotal, Board& board) override;
         // dipanggil ketika pemain mendarat di petak
         void onLanded(Player& player, Game& game) override;
         // menaikkan level bangunan dan memotong saldo pemain
-        void build(bool isMonopolized);
+        void build(Board& board);
         // menjual bangunan ke Bank
         void sell();
         // cek syarat pemerataan bangunan antar petak color group
-        bool canBuild(bool isMonopolized);
+        bool canBuild(Board& board);
         // buat saveload
         void setFestivalMultiplier(int mult);
         void setFestivalDuration(int dur);
@@ -101,7 +101,7 @@ class RailroadTile : public PropertyTile {
         RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, 
             std::map<int, int> rt);
         // menghitung sewa berdasarkan jumlah railroad pemilik
-        int calculateRent(int diceTotal = 0, bool isMonopolized = false) override;
+        int calculateRent(int diceTotal, Board& board) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
         PropertyType getPropertyType() const override;
@@ -117,7 +117,7 @@ class UtilityTile : public PropertyTile {
         UtilityTile(int idx, std::string cd, std::string nm, int bp, int mv, 
             std::map<int, int> mt);
         // menghitung biaya sewa berdasarkan diceTotal x faktor pengali
-        int calculateRent(int diceTotal = 0, bool isMonopolized = false) override;
+        int calculateRent(int diceTotal, Board& board) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
         PropertyType getPropertyType() const override;

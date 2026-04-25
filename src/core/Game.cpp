@@ -414,11 +414,10 @@ void Game::buildOnProperty(const std::string& tileCode) {
     for (auto* prop : group) {
         StreetTile* st = dynamic_cast<StreetTile*>(prop);
         if (!st) continue;
-        bool isMonopolized = board->isMonopolized(st->getColorGroup());
         std::string level = st->getBuildingLevel() == 5 ? "Hotel" : std::to_string(st->getBuildingLevel()) + " rumah";
-        std::string canBuild = st->canBuild(isMonopolized) ? " <- dapat dibangun" : "";
+        std::string canBuild = st->canBuild(*board) ? " <- dapat dibangun" : "";
         renderer->printInfo("   - " + st->getName() + " (" + st->getCode() + ") : " + level + canBuild);
-        if (st->canBuild(isMonopolized)) buildable.push_back(st);
+        if (st->canBuild(*board)) buildable.push_back(st);
     }
 
     if (buildable.empty()) {
@@ -441,7 +440,7 @@ void Game::buildOnProperty(const std::string& tileCode) {
     }
 
     *player -= cost;
-    chosen->build(board->isMonopolized(chosen->getColorGroup()));
+    chosen->build(*board);
 
     std::string result = chosen->getBuildingLevel() == 5 ? "Hotel" : std::to_string(chosen->getBuildingLevel()) + " rumah";
     renderer->printInfo("Kamu membangun di " + chosen->getName() + ". Biaya: M" + std::to_string(cost));
@@ -1196,7 +1195,7 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
         isMonopolized = board->isMonopolized(street->getColorGroup());
     }
 
-    int rent = tile.calculateRent(dice->getTotal(), isMonopolized);
+    int rent = tile.calculateRent(dice->getTotal(), *board);
     Player* owner = tile.getOwner();
 
     renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + "), milik " + owner->getUsername() + "!");

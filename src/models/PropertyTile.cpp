@@ -101,14 +101,14 @@ StreetTile::StreetTile(int idx, std::string cd, std::string nm, int bp, int mv, 
     : PropertyTile(idx, cd, nm, bp, mv), colorGroup(cg), rents(rnt), buildingLevel(0), 
     houseCost(hc), hotelCost(htc) {}
 
-int StreetTile::calculateRent(int diceTotal, bool isMonopolized) {
+int StreetTile::calculateRent(int diceTotal, Board& board) {
     if (!isOwned()) return 0;
     if (rents.empty()) return 0;
     if (buildingLevel < 0 || buildingLevel > 5) {
         throw NimonspoliException("Rent Calculation: building level " + this->name + " melewati batas.");
     }
     int baseRent = rents[buildingLevel];
-    if (buildingLevel == 0 && isMonopolized) {
+    if (buildingLevel == 0 && board.isMonopolized(colorGroup)) {
         baseRent *= 2;
     }
     if (festivalDuration > 0) {
@@ -179,7 +179,7 @@ void StreetTile::onLanded(Player& player, Game& game) {
 
             return;
         }
-        int rentAmount = calculateRent(0, game.getBoard().isMonopolized(colorGroup));
+        int rentAmount = calculateRent(0, game.getBoard());
         int payableAmount = player.calculatePayableRent(rentAmount);
         game.getCLIRenderer()->printReceipt(
             "", {}, {
@@ -230,30 +230,36 @@ void StreetTile::onLanded(Player& player, Game& game) {
     }
 }
 
-bool StreetTile::canBuild(bool isMonopolized) {
+bool StreetTile::canBuild(Board& board) {
     if (!isOwned()) return false;
-    if (!isMonopolized) return false;
+    if (isMortgaged()) return false;
+    if (!board.isMonopolized(colorGroup)) return false;
     if (buildingLevel >= 5) return false;
-
-    std::vector<StreetTile*> propGroup;
-    for (PropertyTile* property : owner->getOwnedProperties()) {
-        StreetTile* st = dynamic_cast<StreetTile*>(property);
-        if (st && st->getColorGroup() == colorGroup && !st->isMortgaged()) {
-            propGroup.push_back(st);
-        }
-    }
+    std::vector<PropertyTile*> propGroup = board.getPropertiesByColor(colorGroup);
     if (propGroup.empty()) return false;
-    int minLevel = propGroup[0]->getBuildingLevel();
-    std::for_each(propGroup.begin(), propGroup.end(), [&minLevel](StreetTile* st) {
+    int minLevel = 5;
+    for (
+        std::vector<PropertyTile*>::iterator it = propGroup.begin();
+        it != propGroup.end();
+        ++it
+    ) {
+        PropertyTile* prpty = *it;
+        StreetTile* st = dynamic_cast<StreetTile*>(prpty);
+
+        if (st == nullptr) return false;
+        if (!st->isOwned()) return false;
+        if (st->isMortgaged()) return false;
+        if (st->getOwner() != owner) return false;
+
         if (st->getBuildingLevel() < minLevel) {
             minLevel = st->getBuildingLevel();
         }
-    });
+    }
     return buildingLevel == minLevel;
 }
 
-void StreetTile::build(bool isMonopolized) {
-    if (!canBuild(isMonopolized)) {
+void StreetTile::build(Board& board) {
+    if (!canBuild(board)) {
         throw NimonspoliException("Build Property: properti " + this->name + " belum memenuhi syarat bangun.");
     }
     buildingLevel++;
@@ -312,7 +318,7 @@ void StreetTile::resetBuildings() {
 RailroadTile::RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, std::map<int, int> rt)
     : PropertyTile(idx, cd, nm, bp, mv), rentTable(rt) {}
 
-int RailroadTile::calculateRent(int diceTotal, bool isMonopolized) {
+int RailroadTile::calculateRent(int diceTotal, Board& board) {
     if (!isOwned()) return 0;
 
     int count = owner->getRailroadCount();
@@ -365,7 +371,7 @@ void RailroadTile::onLanded(Player& player, Game& game) {
 
             return;
         }
-        int rentAmount = calculateRent();
+        int rentAmount = calculateRent(0, game.getBoard());
         int payableAmount = player.calculatePayableRent(rentAmount);
         game.getCLIRenderer()->printReceipt(
             "", {}, {
@@ -424,7 +430,7 @@ const std::map<int, int>& RailroadTile::getRentTable() const {
 UtilityTile::UtilityTile(int idx, std::string cd, std::string nm, int bp, int mv, std::map<int, int> mt)
     : PropertyTile(idx, cd, nm, bp, mv), multiplierTable(mt) {}
 
-int UtilityTile::calculateRent(int diceTotal, bool isMonopolized) {
+int UtilityTile::calculateRent(int diceTotal, Board& board) {
     if (status != PropertyStatus::OWNED || owner == nullptr || isMortgaged()) return 0;
 
     int count = owner->getUtilityCount();
@@ -477,7 +483,7 @@ void UtilityTile::onLanded(Player& player, Game& game) {
 
             return;
         }
-        int rentAmount = calculateRent(game.getDiceTotal());
+        int rentAmount = calculateRent(game.getDiceTotal(), game.getBoard());
         int payableAmount = player.calculatePayableRent(rentAmount);
         game.getCLIRenderer()->printReceipt(
             "", {}, {

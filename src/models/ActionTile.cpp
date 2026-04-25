@@ -62,12 +62,7 @@ void FestivalTile::onLanded(Player& player, Game& game) {
     PropertyTile* selected = propertyOwned.at(index);
     bool isFestivalActive = selected->isFestivalActive();
     bool isFestivalMax = selected->isFestivalMax();
-    bool isMonopolized = false;
-    StreetTile* st = dynamic_cast<StreetTile*>(selected);
-    if (st) {
-        isMonopolized = game.getBoard().isMonopolized(st->getColorGroup());
-    }
-    int sewaBefore = selected->calculateRent(0, isMonopolized);
+    int sewaBefore = selected->calculateRent(game.getDiceTotal(), game.getBoard());
     selected->applyFestival();
     if (!isFestivalActive) {
         game.getCLIRenderer()->printInfo(
@@ -85,7 +80,7 @@ void FestivalTile::onLanded(Player& player, Game& game) {
     if (!isFestivalMax) {
         game.getCLIRenderer()->printInfo(
             "Sewa sebelumnya: " + game.getCLIRenderer()->formatMoney(sewaBefore) + "\n" +
-            "Sewa sekarang: " + game.getCLIRenderer()->formatMoney(selected->calculateRent(0, isMonopolized))
+            "Sewa sekarang: " + game.getCLIRenderer()->formatMoney(selected->calculateRent(game.getDiceTotal(), game.getBoard()))
         );
     }
     game.getCLIRenderer()->printInfo(
