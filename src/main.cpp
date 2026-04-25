@@ -6,10 +6,6 @@
 #include <vector>
 
 int main() {
-    std::cout << "=======================================\n";
-    std::cout << "          NIMONSPOLI                  \n";
-    std::cout << "=======================================\n\n";
-
     Game game;
     CLIRenderer renderer;
 

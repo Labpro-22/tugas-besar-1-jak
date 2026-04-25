@@ -9,7 +9,7 @@ public:
     bool execute(IGameAction& game) override {
         // Panggil fungsi akhiri giliran yang ada di kelas Game
         game.endTurn();
-        return true; // True karena buat ganti giliran pemain
+        return false; // True karena buat ganti giliran pemain
     }
     
     std::string getName() const override { 
