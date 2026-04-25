@@ -1085,7 +1085,6 @@ void Game::handleStreetLanding(Player& player, StreetTile& tile) {
         std::cout << "Apakah kamu ingin membeli properti ini seharga M" << tile.getPrice() << "? (y/n): ";
 
         std::string input;
-        std::cout << "Apakah kamu ingin membeli properti ini seharga M" << tile.getPrice() << "? (y/n): ";
         while (true) {
             std::getline(std::cin, input);
             if (input == "y" || input == "Y" || input == "n" || input == "N") {

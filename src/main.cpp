@@ -13,6 +13,9 @@ int main() {
     Game game;
     CLIRenderer renderer;
 
+    game.initialize();
+    game.setRenderer(&renderer);
+
     // ===== Menu Awal =====
     renderer.printMainMenu();
     std::string pilihan;
@@ -62,8 +65,7 @@ int main() {
             playerNames.push_back(name);
         }
 
-        game.initialize();
-        // TODO: game.startNewGame(playerNames) setelah diimplementasi di Game
+        game.startNewGame(playerNames);
 
     } else if (pilihan == "2") {
         // ===== Load Game =====
@@ -72,12 +74,13 @@ int main() {
         std::getline(std::cin, filename);
 
         try {
+            game.initialize();
+            game.setRenderer(&renderer);
             game.loadGame(filename);
         } catch (const std::exception& e) {
             renderer.printError(e.what());
             return 1;
         }
-
     } else {
         renderer.printError("Pilihan tidak valid.");
         return 1;
