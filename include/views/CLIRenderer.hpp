@@ -92,20 +92,7 @@ class CLIRenderer {
     void printError(const std::string& message) const;
     void printInfo(const std::string& message) const;
     void printSuccess(const std::string& message) const;
-    class ReceiptLine {
-        public:
-        std::string name;
-        std::string value;
-    };
-    void printReceipt(
-        const std::string& titleReceipt,
-        const std::vector<ReceiptLine>& items,
-        const std::vector<ReceiptLine>& additiion
-    ) const;
-    static std::string formatMoney(int amount);
     void printWinner(const Player& winner, int turn) const;
-    int printIntegerChoice(const std::string& title, std::vector<std::string> choices, const std::string& choiceMessage) const;
-    std::string printYesOrNoChoice(const std::string& choiceMessage) const;
 
     // ===== Helper Warna =====
     static std::string getColorCode(const std::string& colorGroup);

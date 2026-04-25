@@ -19,8 +19,6 @@ class GoTile : public SpecialTile {
         GoTile(int idx, std::string cd, std::string nm, int slr);
         // dipanggil saat mendarat atau lewat, player mendapatkan gaji
         void onLanded(Player& player, Game& game) override;
-        // dipanggil saat petak dilewati
-        void onPassed(Player& player, Game& game);
 };
 
 // Petak spesial berupa petak penjara
@@ -33,6 +31,8 @@ class JailTile : public SpecialTile {
         JailTile(int idx, std::string cd, std::string nm, int fn);
         // dipanggil saat mendarat, menentukan apakah player tahanan atau angin lalu
         void onLanded(Player& player, Game& game) override;
+        // memproses giliran pemain yang sedang ditahan
+        void processJailTurn(Player& player, Game& game);
 };
 
 // Petak spesial untuk pergi ke penjara
@@ -40,7 +40,7 @@ class GoToJailTile : public SpecialTile {
     public:
         // ctor
         GoToJailTile(int idx, std::string cd, std::string nm);
-        // dipanggil saat mendarat, memindahkan player ke petak penjara
+        // dipanggil saat mendarat, memindahkan player ke petak penjara dan mengubah status pemain tsb
         void onLanded(Player& player, Game& game) override;
 };
 

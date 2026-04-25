@@ -127,18 +127,6 @@ void Game::initializeFromSave(const std::string& saveFile) {
     logger->addLog("Permainan dimuat dari: " + saveFile);
 }
 
-CLIRenderer* Game::getCLIRenderer() const {
-    return renderer;
-}
-
-void Game::tickFestivalFor(Player& player) {
-    for (auto* property : player.getOwnedProperties()) {
-        if (property && property->isFestivalActive()) {
-            property->tickFestival();
-        }
-    }
-}
-
 // Mulai game baru
 void Game::startNewGame(const std::vector<std::string>& playerNames) {
     // Baca config misc untuk saldo awal dan max turn
@@ -171,12 +159,6 @@ void Game::startNewGame(const std::vector<std::string>& playerNames) {
     turnsPlayed = 1;
 
     logger->addLog("New game dimulai dengan " + std::to_string(players.size()) + " pemain.");
-    Player* first = getCurrentPlayer();
-    if (first) {
-        drawSkillCard(*first);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +
-                    first->getUsername() + " | GILIRAN | Giliran dimulai.");
-    }
 }
 
 // Buat looping utama (state game aktif)
@@ -209,7 +191,8 @@ void Game::rollDice() {
         if (player->getConsecutiveDoublesDice() >= 3) {
             // Double 3x berturut — langsung ke penjara
             player->setConsecutiveDoublesDice(0);
-            sendPlayerToJail(*player, "Double");;
+            player->goToJail();
+            logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | PENJARA | Double 3x, masuk penjara!");
             return;
         }
     } else {
@@ -230,10 +213,6 @@ void Game::setDice(int x, int y) {
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Diatur manual: " + std::to_string(x) + "+" + std::to_string(y) + "=" + std::to_string(result));
 
     movePlayer(*player, result);
-}
-
-int Game::getDiceTotal() {
-    return dice->getTotal();
 }
 
 // ===== PROPERTY =====
@@ -374,7 +353,7 @@ void Game::buildOnProperty(const std::string& tileCode) {
         if (alreadyAdded) continue;
 
         // Cek monopoli
-        if (board->isMonopolized(st->getColorGroup())) {
+        if (st->isMonopolized()) {
             eligibleGroups.push_back(color);
         }
     }
@@ -414,11 +393,10 @@ void Game::buildOnProperty(const std::string& tileCode) {
     for (auto* prop : group) {
         StreetTile* st = dynamic_cast<StreetTile*>(prop);
         if (!st) continue;
-        bool isMonopolized = board->isMonopolized(st->getColorGroup());
         std::string level = st->getBuildingLevel() == 5 ? "Hotel" : std::to_string(st->getBuildingLevel()) + " rumah";
-        std::string canBuild = st->canBuild(isMonopolized) ? " <- dapat dibangun" : "";
+        std::string canBuild = st->canBuild() ? " <- dapat dibangun" : "";
         renderer->printInfo("   - " + st->getName() + " (" + st->getCode() + ") : " + level + canBuild);
-        if (st->canBuild(isMonopolized)) buildable.push_back(st);
+        if (st->canBuild()) buildable.push_back(st);
     }
 
     if (buildable.empty()) {
@@ -441,7 +419,7 @@ void Game::buildOnProperty(const std::string& tileCode) {
     }
 
     *player -= cost;
-    chosen->build(board->isMonopolized(chosen->getColorGroup()));
+    chosen->build();
 
     std::string result = chosen->getBuildingLevel() == 5 ? "Hotel" : std::to_string(chosen->getBuildingLevel()) + " rumah";
     renderer->printInfo("Kamu membangun di " + chosen->getName() + ". Biaya: M" + std::to_string(cost));
@@ -663,20 +641,17 @@ void Game::movePlayer(Player& player, int steps) {
     int startPos = player.getPosition();
     int boardSize = board->getTileCount();
     int newPos = (startPos + steps) % boardSize;
-    bool passedGo = (startPos + steps) >= boardSize;
-    bool landedOnGo = (newPos == board->getStartTileIndex());
 
-    if (passedGo && !landedOnGo) {
-        Tile* startTile = board->getTile(board->getStartTileIndex());
-        GoTile* goTile = dynamic_cast<GoTile*>(startTile);
-        if (goTile != nullptr) {
-            goTile->onPassed(player, *this);
-        }
+    if ((startPos + steps) >= boardSize) {
+        player += goSalary;
+        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GO | Melewati GO, dapat M" + std::to_string(goSalary));
     }
 
     player.setPosition(newPos);
     Tile* tile = board->getTile(newPos);
     std::string tileName = tile ? tile->getCode() : "???";
+
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GERAK | Mendarat di " + tileName);
 
     processTileLanding(player, newPos);
 }
@@ -690,11 +665,8 @@ void Game::teleportPlayer(Player& player, int targetTileIndex) {
 
     // Cek apakah melewati GO
     if (targetTileIndex < player.getPosition()) {
-        Tile* startTile = board->getTile(board->getStartTileIndex());
-        GoTile* goTile = dynamic_cast<GoTile*>(startTile);
-        if (goTile != nullptr) {
-            goTile->onPassed(player, *this);
-        }
+        player += goSalary;
+        renderer->printInfo("Melewati GO! Dapat M" + std::to_string(goSalary));
     }
 
     player.setPosition(targetTileIndex);
@@ -702,13 +674,6 @@ void Game::teleportPlayer(Player& player, int targetTileIndex) {
     renderer->printInfo("Bidak dipindahkan ke " + (tile ? tile->getName() : "???"));
 
     processTileLanding(player, targetTileIndex);
-}
-
-void Game::sendPlayerToJail(Player& player, const std::string& cause) {
-    int jailTileIndex = board->getJailTileIndex();
-    player.goToJail(jailTileIndex);
-    addLog(player.getUsername(), "PENJARA", cause + ", masuk penjara.");
-    board->getTile(jailTileIndex)->onLanded(player, *this);
 }
 
 // ===== SAVE =====
@@ -800,7 +765,6 @@ void Game::printDeed(const std::string& tileCode) {
             } else {
                 renderer->printDeedNotFound(tileCode);
             }
-            return;
         }
     }
     renderer->printDeedNotFound(tileCode);
@@ -870,6 +834,18 @@ void Game::endTurn() {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
+    // Reset flag skill per turn
+    player->resetTurnFlags();
+    player->setShieldActive(false);
+
+    // Tick festival untuk semua properti milik player
+    for (auto* prop : player->getOwnedProperties()) {
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        if (st && st->getFestivalDuration() > 0) {
+            st->tickFestival();
+        }
+    }
+
     // Kalau double, giliran tambahan
     if (dice->isDouble() && player->getStatus() != "JAILED"
         && player->getConsecutiveDoublesDice() > 0) {
@@ -877,9 +853,7 @@ void Game::endTurn() {
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DOUBLE | Giliran tambahan.");
         return;
     }
-    // Reset flag skill per turn
-    player->resetTurnFlags();
-    player->setShieldActive(false);
+
     nextTurn();
 }
 
@@ -914,7 +888,6 @@ void Game::nextTurn() {
     // Bagi kartu skill di awal giliran
     Player* next = getCurrentPlayer();
     if (next) {
-        tickFestivalFor(*next);
         drawSkillCard(*next);
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + next->getUsername() + " | GILIRAN | Giliran dimulai.");
     }
@@ -1025,17 +998,22 @@ TransactionLogger *Game::getLogger()
     return logger.get();
 }
 
-void Game::addLog(std::string playerName, std::string action, std::string detail) {
-    logger->addLog(
-        "[Turn " + std::to_string(turnsPlayed) + "] " + playerName + " | " + action +  " | " + detail
-    );
-}
-
 // ===== SEWA =====
 // Ketika berdiri di tiap jenis tile
 void Game::processTileLanding(Player& player, int tileIndex) {
     Tile* tile = board->getTile(tileIndex);
     if (!tile) return;
+
+    StreetTile* street = dynamic_cast<StreetTile*>(tile);
+    if (street) { handleStreetLanding(player, *street); return; }
+
+    RailroadTile* railroad = dynamic_cast<RailroadTile*>(tile);
+    if (railroad) { handleRailroadLanding(player, *railroad); return; }
+
+    UtilityTile* utility = dynamic_cast<UtilityTile*>(tile);
+    if (utility) { handleUtilityLanding(player, *utility); return; }
+
+    // Sisanya udah (Tax, Festival, Card, Special) dari onLanded() masing-masing
     tile->onLanded(player, *this);
 }
 
@@ -1190,13 +1168,8 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
         renderer->printInfo("[SHIELD ACTIVE] Kamu terlindungi dari sewa!");
         return;
     }
-    bool isMonopolized = false;
 
-    if (auto* street = dynamic_cast<StreetTile*>(&tile)) {
-        isMonopolized = board->isMonopolized(street->getColorGroup());
-    }
-
-    int rent = tile.calculateRent(dice->getTotal(), isMonopolized);
+    int rent = tile.calculateRent(dice->getTotal());
     Player* owner = tile.getOwner();
 
     renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + "), milik " + owner->getUsername() + "!");
@@ -1227,34 +1200,6 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
                 }
             });
     }
-}
-
-void Game::drawChanceCard(Player& player) {
-    ActionCard* card = chanceDeck->draw();
-    renderer->printInfo("Mengambil kartu...");
-    if (
-        dynamic_cast<GoToNearestStationCard*>(card) != nullptr ||
-        dynamic_cast<GoToJailCard*>(card) != nullptr ||
-        dynamic_cast<MoveBackCard*>(card) != nullptr
-    ) {
-        addLog(player.getUsername(), "CHANCE CARD (" + card->getName() + ")", card->getDescription());
-    }
-    card->execute(player, *this);
-    chanceDeck->discard(card);
-}
-
-void Game::drawGeneralFundsCard(Player& player) {
-    ActionCard* card = generalFundsDeck->draw();
-    renderer->printInfo("Mengambil kartu...");
-    if (
-        dynamic_cast<BirthdayCard*>(card) != nullptr ||
-        dynamic_cast<NyalegCard*>(card) != nullptr ||
-        dynamic_cast<DoctorFeeCard*>(card) != nullptr
-    ) {
-        addLog(player.getUsername(), "CHANCE CARD (" + card->getName() + ")", card->getDescription());
-    }
-    card->execute(player, *this);
-    generalFundsDeck->discard(card);
 }
 
 // ===== HELPER =====

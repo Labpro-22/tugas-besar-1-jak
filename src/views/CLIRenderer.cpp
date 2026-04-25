@@ -11,7 +11,6 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
-#include <limits>
 
 // ===== ANSI Color Constants =====
 const std::string CLIRenderer::RESET = "\033[0m";
@@ -285,35 +284,6 @@ void CLIRenderer::renderBoard(const Board& board, const std::vector<Player*>& pl
     std::cout << "\n";
 }
 
-int CLIRenderer::printIntegerChoice(const std::string& title, std::vector<std::string> choices, const std::string& choiceMessage) const {
-    std::cout << std::endl;
-    std::cout << title << std::endl;
-    int opsi = -1;
-    while (true) {
-        int no = 1;
-        for (std::string choice : choices) {
-            std::cout << no << ". " << choice << std::endl;
-            no++;
-        }
-        std::cout << choiceMessage;
-        std::cin >> opsi;
-        if (std::cin.fail()) {
-            std::cin.clear(); 
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            printError("Input harus berupa angka.");
-            continue;
-        }
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        if (opsi >= 1 && opsi <= choices.size()) {
-            break;
-        } else {
-            printError("Opsi tidak valid.");
-            std::cout << std::endl;
-        }
-    }
-    return opsi;
-}
-
 // ===== printDeed =====
 // StreetTile
 void CLIRenderer::printDeed(const StreetTile& tile) const {
@@ -542,74 +512,6 @@ void CLIRenderer::printInfo(const std::string& message) const {
 // ===== printSuccess =====
 void CLIRenderer::printSuccess(const std::string& message) const {
     std::cout << "[OK] " << message << "\n";
-}
-
-std::string CLIRenderer::formatMoney(int amount) {
-    bool minus = amount < 0;
-    if (minus) {
-        amount = -amount;
-    }
-    std::string amountStr = std::to_string(amount);
-    std::string result;
-    int digitCount = 0;
-    for (int i = static_cast<int>(amountStr.size()) - 1; i >= 0; i--) {
-        result.push_back(amountStr[i]);
-        digitCount++;
-        if (digitCount == 3 && i != 0) {
-            result.push_back('.');
-            digitCount = 0;
-        }
-    }
-    std::reverse(result.begin(), result.end());
-    if (minus) {
-        return "-M" + result;
-    }
-    return "M" + result;
-}
-
-void CLIRenderer::printReceipt(
-    const std::string& titleReceipt,
-    const std::vector<ReceiptLine>& items,
-    const std::vector<ReceiptLine>& additiion
-) const {
-    std::size_t widthMax = 0;
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::string label = "- " + it->name;
-        widthMax = std::max(widthMax, label.length());
-    }
-    for (auto it = additiion.begin(); it != additiion.end(); it++) {
-        widthMax = std::max(widthMax, it->name.length());
-    }
-    std::cout << std::endl;
-    if (!titleReceipt.empty()) {
-        std::cout << titleReceipt << std::endl;
-    }
-    for (auto it = items.begin(); it != items.end(); it++) {
-        std::string label = "- " + it->name;
-        std::cout << std::left << std::setw(widthMax)
-                  << label << " : " << it->value << std::endl;
-    }
-    for (auto it = additiion.begin(); it != additiion.end(); it++) {
-        std::cout << std::left << std::setw(widthMax)
-                  << it->name << " : " << it->value << std::endl;
-    }
-    std::cout << std::endl;
-}
-
-std::string CLIRenderer::printYesOrNoChoice(const std::string& choiceMessage) const {
-    std::string input;
-    while (true) {
-        std::cout << choiceMessage;
-        std::cin >> input;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        if (input == "y" || input == "Y" || input == "n" || input == "N") {
-            break;
-        } else {
-            printError("Input tidak valid");
-            std::cout << std::endl;
-        }
-    }
-    return input;
 }
 
 // ===== printWinner =====

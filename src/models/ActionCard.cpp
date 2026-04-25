@@ -48,7 +48,7 @@ GoToJailCard::GoToJailCard()
     : ActionCard("GoToJail", "Masuk Penjara.", CardType::CHANCE) {}
 
 void GoToJailCard::execute(Player& player, Game& game) {
-    game.sendPlayerToJail(player, "Mendapatkan chance card pergi ke penjara");
+    player.goToJail();
 }
 
 BirthdayCard::BirthdayCard()

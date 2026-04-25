@@ -34,8 +34,6 @@ public:
 
     // Wealth management
     int getTotalWealth() const;
-    int getTotalPropertyPrice() const;
-    int getTotalBuildingPrice() const;
     int getMaxLiquidation() const;
 
     // Card management
@@ -47,10 +45,9 @@ public:
     void addProperty(PropertyTile *prop);
     void buyProperty(PropertyTile *property, Game &game);
     void payRent(int amount, Player &landlord);
-    int calculatePayableRent(int amount);
 
     // Game actions
-    void goToJail(int jailTileIndex);
+    void goToJail();
     void serveJailTurn();
     void releaseFromJail();
     void resetTurnFlags();
