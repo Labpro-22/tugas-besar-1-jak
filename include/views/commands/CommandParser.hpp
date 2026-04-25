@@ -171,11 +171,8 @@ class CommandParser {
 
         // ===== CETAK_AKTA <kode> =====
         if (cmd == "CETAK_AKTA") {
-            std::string code = "";
-            if (tokens.size() > 1) {
-                code = tokens[1];
-            }
-            return new CetakAktaCommand(code);
+            requireArgCount(tokens, 0, cmd);
+            return new CetakAktaCommand();
         }
 
         // ===== CETAK_PROPERTI =====

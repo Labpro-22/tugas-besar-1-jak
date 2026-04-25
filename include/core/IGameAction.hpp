@@ -57,7 +57,7 @@ public:
 
     // Display
     virtual void printBoard() = 0;
-    virtual void printDeed(const std::string &tileCode) = 0;
+    virtual void printDeed() = 0;
     virtual void printPropertyInventory() = 0;
     virtual void printLog(int limit) = 0;
     virtual void printHelp() = 0;

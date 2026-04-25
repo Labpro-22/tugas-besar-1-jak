@@ -5,15 +5,10 @@
 
 // CETAK_AKTA [<kode_petak>]
 class CetakAktaCommand : public Command {
-    private:
-    std::string tileCode;
-
     public:
-    explicit CetakAktaCommand(std::string tileCode = "") : tileCode(std::move(tileCode)) {}
-
     bool execute(IGameAction& game) override {
         // Panggil fungsi cetak akta yang ada di kelas Game
-        game.printDeed(tileCode);
+        game.printDeed();
         return false;
     }
 

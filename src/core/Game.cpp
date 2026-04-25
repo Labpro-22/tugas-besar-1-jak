@@ -826,15 +826,11 @@ void Game::printBoard() {
 }
 
 // Cetak akta
-void Game::printDeed(const std::string& tileCode) {
-    if (tileCode.empty()) {
-        renderer->printInfo("Masukkan kode petak: ");
-        std::string input;
-        std::getline(std::cin, input);
-        printDeed(input);
-        return;
-    }
-
+void Game::printDeed() {
+    renderer->printInfo("Masukkan kode petak: ");
+    std::string tileCode;
+    std::getline(std::cin, tileCode);
+    
     for (int i = 0; i < board->getTileCount(); i++) {
         Tile* tile = board->getTile(i);
         if (tile && tile->getCode() == tileCode) {
