@@ -53,14 +53,6 @@ class CommandParser {
         }
     }
 
-    // Pastikan minimal N argumen terpenuhi
-    static void requireMinArgCount(const std::vector<std::string>& tokens, int minCount, const std::string& cmd) {
-        int got = static_cast<int>(tokens.size()) - 1;
-        if (got < minCount) {
-            throw InvalidInputException(cmd + ": butuh minimal " + std::to_string(minCount) + " argumen, tapi dapat " + std::to_string(got) + ".");
-        }
-    }
-
     // Parse token ke int, lempar InvalidInputException kalo bukan angka
     static int parseIntArg(const std::string& token, const std::string& cmd) {
         try {
@@ -92,7 +84,7 @@ class CommandParser {
             return new LemparDaduCommand();
         }
 
-        // ===== ATUR_DADU X Y =====
+        // ===== ATUR_DADU <x> <y> =====
         if (cmd == "ATUR_DADU") {
             requireArgCount(tokens, 2, cmd);
             int x = parseIntArg(tokens[1], cmd);
@@ -103,9 +95,9 @@ class CommandParser {
             return new AturDaduCommand(x, y);
         }
 
-        // ===== GADAI <kode> [<kode> ...] =====
+        // ===== GADAI =====
         if (cmd == "GADAI") {
-            requireMinArgCount(tokens, 1, cmd);
+            requireArgCount(tokens, 1, cmd);
             std::vector<std::string> codes(tokens.begin() + 1, tokens.end());
             return new GadaiCommand(std::move(codes));
         }
@@ -178,7 +170,7 @@ class CommandParser {
             return new CetakPapanCommand();
         }
 
-        // ===== CETAK_AKTA [<kode>] =====
+        // ===== CETAK_AKTA <kode> =====
         if (cmd == "CETAK_AKTA") {
             std::string code = "";
             if (tokens.size() > 1) {
@@ -193,7 +185,7 @@ class CommandParser {
             return new CetakPropertiCommand();
         }
 
-        // ===== CETAK_LOG [<limit>] =====
+        // ===== CETAK_LOG <limit> =====
         if (cmd == "CETAK_LOG") {
             int limit = -1;
             if (tokens.size() > 1) {

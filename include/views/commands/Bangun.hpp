@@ -14,7 +14,7 @@ class BangunCommand : public Command {
     bool execute(IGameAction& game) override {
         // Panggil fungsi bangun yang ada di kelas Game
         game.buildOnProperty(tileCode);
-        return false; // Ga ngubah giliran
+        return false;
     }
     
     std::string getName() const override { 

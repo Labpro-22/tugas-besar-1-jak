@@ -791,7 +791,7 @@ void Game::printBoard() {
 // Cetak akta
 void Game::printDeed(const std::string& tileCode) {
     if (tileCode.empty()) {
-        std::cout << "Masukkan kode petak: ";
+        renderer->printInfo("Masukkan kode petak: ");
         std::string input;
         std::getline(std::cin, input);
         printDeed(input);
