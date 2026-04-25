@@ -88,6 +88,11 @@ void Game::initializeDecks() {
     skillCardDeck->addCardToDeck(new LassoCard());
     skillCardDeck->addCardToDeck(new DemolitionCard());
     skillCardDeck->addCardToDeck(new DemolitionCard());
+
+    // Shuffle kartunya
+    chanceDeck->shuffle();
+    generalFundsDeck->shuffle();
+    skillCardDeck->shuffle();
 }
 
 // Inisialiasi config

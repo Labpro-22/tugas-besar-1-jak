@@ -87,6 +87,26 @@ public:
         }
         return names;
     }
+
+    // Shuffle biar random dapet kartunya (convert dulu dari queue ke vector)
+    void shuffle() {
+        if (cards.empty()) return;
+
+        // Pindahkan semua kartu dari queue ke vector sementara
+        std::vector<T*> tempCards;
+        while (!cards.empty()) {
+            tempCards.push_back(cards.front());
+            cards.pop();
+        }
+
+        // Kocok vector-nya
+        std::shuffle(tempCards.begin(), tempCards.end(), std::mt19937(std::random_device{}()));
+
+        // Masukkan kembali kartu yang sudah diacak ke dalam queue
+        for (T* card : tempCards) {
+            cards.push(card);
+        }
+    }
 };
 
 #endif
