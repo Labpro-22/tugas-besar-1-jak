@@ -68,6 +68,7 @@ public:
 
     // Player
     virtual int countActivePlayers() const = 0;
+    virtual std::string getCurrentPlayerName() const = 0;
 
     // Game Selesai
     virtual void endTurn() = 0;

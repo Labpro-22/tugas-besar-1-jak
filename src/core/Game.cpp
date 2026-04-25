@@ -211,7 +211,6 @@ void Game::rollDice() {
     renderer->printInfo("Hasil: " + std::to_string(d1) + " + " + std::to_string(d2) + " = " + std::to_string(result));
     renderer->printInfo("Memajukan bidak " + player->getUsername() + " sebanyak " + std::to_string(result) + " petak...");
 
-
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Lempar: " + std::to_string(d1) + "+" + std::to_string(d2) + "=" + std::to_string(result));
 
     // Kalau d1 dan d2 sama
@@ -653,6 +652,11 @@ Player *Game::getCurrentPlayer() const
         return nullptr;
     }
     return players[turnOrder[currentPlayerIndex]].get();
+}
+
+std::string Game::getCurrentPlayerName() const {
+    Player* p = getCurrentPlayer();
+    return p ? p->getUsername() : "???";
 }
 
 // Ngitung jumlah pemain aktif

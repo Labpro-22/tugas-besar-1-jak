@@ -121,6 +121,7 @@ public:
     
     // Player
     Player *getCurrentPlayer() const override;
+    std::string getCurrentPlayerName() const override;
     std::vector<Player*> getActivePlayers() const;
     int countActivePlayers() const override;
     
