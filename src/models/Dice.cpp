@@ -1,4 +1,5 @@
 #include "models/Dice.hpp"
+#include "utils/NimonspoliException.hpp"
 #include <cstdlib>
 #include <ctime>
 
@@ -14,6 +15,9 @@ int Dice::roll() {
 }
 
 void Dice::setDice(int x, int y) {
+    if (x < 1 || x > 6 || y < 1 || y > 6) {
+        throw InvalidInputException("ATUR_DADU: nilai dadu harus antara 1-6.");
+    }
     dice1 = x;
     dice2 = y;
 }

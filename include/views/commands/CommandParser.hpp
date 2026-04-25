@@ -89,9 +89,6 @@ class CommandParser {
             requireArgCount(tokens, 2, cmd);
             int x = parseIntArg(tokens[1], cmd);
             int y = parseIntArg(tokens[2], cmd);
-            if (x < 1 || x > 6 || y < 1 || y > 6) {
-                throw InvalidInputException("ATUR_DADU: nilai dadu harus antara 1-6.");
-            }
             return new AturDaduCommand(x, y);
         }
 
