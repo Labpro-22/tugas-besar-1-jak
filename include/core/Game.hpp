@@ -136,6 +136,7 @@ public:
     void printPlayerStatus() override;
     void printLog(int limit) override;
     void printHelp() override;
+    void setRenderer(CLIRenderer* r);
 
     // Flow Giliran
     void endTurn() override;

@@ -802,12 +802,16 @@ void Game::printDeed(const std::string& tileCode) {
 
             if (st) {
                 renderer->printDeed(*st);
+                return;
             } else if (rr) {
                 renderer->printDeed(*rr);
+                return;
             } else if (ut) {
                 renderer->printDeed(*ut);
+                return;
             } else {
                 renderer->printDeedNotFound(tileCode);
+                return;
             }
         }
     }
@@ -839,8 +843,9 @@ void Game::printHelp() {
     std::cout << "=================================================================\n\n";
 
     std::cout << "[AKSI GILIRAN]\n";
-    std::cout << "  LEMPAR_DADU    : Melempar dadu untuk bergerak ke petak baru.\n";
-    std::cout << "  AKHIRI_GILIRAN : Mengakhiri giliranmu dan lanjut ke pemain berikutnya.\n\n";
+    std::cout << "  LEMPAR_DADU         : Melempar dadu untuk bergerak ke petak baru.\n";
+    std::cout << "  ATUR_DADU <x> <y>   : [Cheat] Mengatur angka dadu secara manual untuk testing.\n";
+    std::cout << "  AKHIRI_GILIRAN      : Mengakhiri giliranmu dan lanjut ke pemain berikutnya.\n\n";
 
     std::cout << "[PROPERTI & BANGUNAN]\n";
     std::cout << "  BANGUN <petak>     : Membangun rumah/hotel di properti milikmu.\n";
@@ -863,13 +868,16 @@ void Game::printHelp() {
     std::cout << "  CETAK_LOG      : Melihat riwayat aksi yang sudah terjadi di dalam game.\n";
     std::cout << "  BANTUAN        : Menampilkan menu daftar perintah ini.\n\n";
 
-    std::cout << "[SISTEM & CHEAT]\n";
+    std::cout << "[SISTEM]\n";
     std::cout << "  SIMPAN <file>   : Menyimpan progres permainan (contoh: SIMPAN game1.txt).\n";
     std::cout << "  MUAT <file>     : Memuat progres permainan dari file penyimpanan.\n";
-    std::cout << "  ATUR_DADU <x> <y>: [Cheat] Mengatur angka dadu secara manual untuk testing.\n";
     std::cout << "  QUIT            : Keluar dari aplikasi Nimonspoli sepenuhnya.\n\n";
     
     std::cout << "=================================================================\n";
+}
+
+void Game::setRenderer(CLIRenderer* r) {
+    renderer = r;
 }
 
 // ===== FLOW GILIRAN =====
@@ -891,8 +899,7 @@ void Game::endTurn() {
     }
 
     // Kalau double, giliran tambahan
-    if (dice->isDouble() && player->getStatus() != "JAILED"
-        && player->getConsecutiveDoublesDice() > 0) {
+    if (dice->isDouble() && player->getStatus() != "JAILED" && player->getConsecutiveDoublesDice() > 0) {
         renderer->printInfo("Kamu mendapat double! Giliran tambahan.");
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DOUBLE | Giliran tambahan.");
         return;
