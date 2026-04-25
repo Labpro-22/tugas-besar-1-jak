@@ -687,13 +687,14 @@ void Game::movePlayer(Player& player, int steps) {
 
     if ((startPos + steps) >= boardSize) {
         player += goSalary;
+        renderer->printInfo("Melewati GO! Dapat M" + std::to_string(goSalary) + ". Uang sekarang: M" + std::to_string(player.getCash()));
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GO | Melewati GO, dapat M" + std::to_string(goSalary));
     }
 
     player.setPosition(newPos);
     Tile* tile = board->getTile(newPos);
-    std::string tileName = tile ? tile->getCode() : "???";
-
+    std::string tileName = tile ? tile->getName() : "???";
+    std::string tileCode = tile ? tile->getCode() : "???";
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GERAK | Mendarat di " + tileName);
 
     processTileLanding(player, newPos);
