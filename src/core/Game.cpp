@@ -517,6 +517,11 @@ void Game::placeBid(int amount) {
         return;
     }
 
+    if (amount <= 0) {
+        renderer->printError("Jumlah tawaran harus lebih dari 0.");
+        return;
+    }
+
     Player* player = getCurrentPlayer();
     if (!player) return;
 

@@ -114,9 +114,6 @@ class CommandParser {
         if (cmd == "TAWAR") {
             requireArgCount(tokens, 1, cmd);
             int amount = parseIntArg(tokens[1], cmd);
-            if (amount <= 0) {
-                throw InvalidInputException("TAWAR: jumlah tawaran harus lebih dari 0.");
-            }
             return new TawarCommand(amount);
         }
 
@@ -130,9 +127,6 @@ class CommandParser {
         if (cmd == "GUNAKAN_KEMAMPUAN") {
             requireArgCount(tokens, 1, cmd);
             int idx = parseIntArg(tokens[1], cmd);
-            if (idx < 0) {
-                throw InvalidInputException("GUNAKAN_KEMAMPUAN: indeks kartu tidak valid.");
-            }
             return new GunakanKemampuanCommand(idx);
         }
 
@@ -183,9 +177,6 @@ class CommandParser {
             int limit = -1;
             if (tokens.size() > 1) {
                 limit = parseIntArg(tokens[1], cmd);
-                if (limit <= 0) {
-                    throw InvalidInputException("CETAK_LOG: limit harus bilangan positif.");
-                }
             }
             return new CetakLogCommand(limit);
         }
