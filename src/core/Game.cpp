@@ -127,7 +127,7 @@ void Game::initializeFromSave(const std::string& saveFile) {
     // Load state dari file
     SaveLoadManager slm;
     std::vector<Player*> rawPlayers;
-    slm.loadGame(saveFile, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *logger);
+    slm.loadGame(saveFile, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
 
     players.clear();
     for (Player* p : rawPlayers) {
@@ -801,7 +801,7 @@ void Game::loadGame(const std::string& filename) {
     try {
         initialize();
         std::vector<Player*> rawPlayers;
-        slm.loadGame(filename, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *logger);
+        slm.loadGame(filename, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
 
         // Pindahkan raw pointer ke unique_ptr
         players.clear();

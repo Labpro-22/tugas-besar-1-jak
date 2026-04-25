@@ -410,6 +410,10 @@ const std::vector<SkillCard *> &Player::getOwnedSkillCards() const
     return ownedSkillCards;
 }
 
+const std::vector<SkillCard*>& Player::getSkillCards() const {
+    return ownedSkillCards;
+}
+
 std::vector<std::string> Player::getSkillCardNames() const {
     std::vector<std::string> names;
     for (SkillCard* card : ownedSkillCards) {

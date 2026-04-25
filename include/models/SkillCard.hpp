@@ -16,6 +16,7 @@ private:
     int steps; // Jumlah langkah maju
 public:
     MoveCard(int s);
+    int getValue() const { return steps; }
     void use(Player& player, Game& game) override;
 };
 
@@ -25,6 +26,8 @@ private:
     int duration; // Sisa durasi (1 giliran)
 public:
     DiscountCard(int p, int dur);
+    int getValue() const { return percent; }
+    int getDuration() const { return duration; }
     void use(Player& player, Game& game) override;
 };
 
@@ -33,6 +36,7 @@ private:
     int duration; // Sisa durasi (1 giliran)
 public:
     ShieldCard(int dur);
+    int getDuration() const { return duration; }
     void use(Player& player, Game& game) override;
 };
 

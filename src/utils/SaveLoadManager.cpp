@@ -64,17 +64,27 @@ bool SaveLoadManager::saveGame(const std::string& filename, int turn, int maxTur
 // ===== savePlayerState =====
 void SaveLoadManager::savePlayerState(std::ofstream& out, const Player* player) const {
     // <USERNAME> <UANG> <POSISI_PETAK> <STATUS>
-    out << player->getUsername() << " " << player->getCash() << " " << player->getPosition() << " " << player->getStatus() << "\n";
+    out << player->getUsername() << " " << player->getCash() << " "  << player->getPosition() << " " << player->getStatus() << "\n";
 
     // <JUMLAH_KARTU_TANGAN>
-    auto cardNames = player->getSkillCardNames();
-    out << cardNames.size() << "\n";
+    auto cards = player->getSkillCards();
+    out << cards.size() << "\n";
 
     // Tiap kartu: <JENIS_KARTU> <NILAI_KARTU> <SISA_DURASI>
     // Untuk kartu tanpa nilai atau durasi, kolom dikosongkan
     // Format: "MoveCard 5" / "ShieldCard" / "DiscountCard 30 1"
-    for (const auto& name : cardNames) {
-        out << name << "\n";
+    for (SkillCard* card : cards) {
+        std::string name = card->getName();
+        out << name;
+        if (name == "MoveCard") {
+            out << " " << dynamic_cast<MoveCard*>(card)->getValue();
+        } else if (name == "DiscountCard") {
+            out << " " << dynamic_cast<DiscountCard*>(card)->getValue()
+                << " " << dynamic_cast<DiscountCard*>(card)->getDuration();
+        } else if (name == "ShieldCard") {
+            out << " " << dynamic_cast<ShieldCard*>(card)->getDuration();
+        }
+        out << "\n";
     }
 }
 
@@ -139,7 +149,8 @@ void SaveLoadManager::saveLogState(std::ofstream& out, const TransactionLogger& 
 }
 
 // ===== loadGame =====
-bool SaveLoadManager::loadGame(const std::string& filename, int& turn, int& maxTurn, std::vector<Player*>& players, std::vector<int>& turnOrder, int& currentPlayerIndex, Board& board, TransactionLogger& logger) const {
+bool SaveLoadManager::loadGame(const std::string& filename, int& turn, int& maxTurn, std::vector<Player*>& players, std::vector<int>& turnOrder, 
+        int& currentPlayerIndex, Board& board, CardDeck<SkillCard>& skillDeck, TransactionLogger& logger) const {
     if (!fileExists(filename)) {
         throw FileNotFoundException("File tidak ditemukan: " + filename);
     }
@@ -207,8 +218,14 @@ bool SaveLoadManager::loadGame(const std::string& filename, int& turn, int& maxT
         loadPropertyState(in, board, players);
 
         // Load state deck
-        loadDeckState(in);
-
+        std::vector<std::string> deckTypes = loadDeckState(in);
+        
+        // rebuild deck
+        skillDeck.clear();
+        for (const auto& type : deckTypes) {
+            SkillCard* card = createSkillCard(type, 0, 0);
+            if (card) skillDeck.addCardToDeck(card);
+        }
         // Load state log
         loadLogState(in, logger);
 

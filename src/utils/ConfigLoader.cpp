@@ -12,7 +12,7 @@ std::vector<Tile*> ConfigLoader::loadBoard(const std::string& folderPath) {
     // Inisialisasi array 40 petak kosong
     std::vector<Tile*> board(40, nullptr);
 
-    // Load tabel sewa railroad dan utility (butuh buat bikin tile)
+    // Load konfig, simpen di variabel sementara 
     std::map<int, int> railroadTable = loadRailroad(folderPath);
     std::map<int, int> utilityTable = loadUtility(folderPath);
     std::map<std::string, int> specialConfig = loadSpecial(folderPath);
@@ -28,7 +28,7 @@ std::vector<Tile*> ConfigLoader::loadBoard(const std::string& folderPath) {
         jailFine = specialConfig["JAIL_FINE"];
     }
 
-    int pphFlat = 200;
+    int pphFlat = 150;
     if (taxConfig.count("PPH_FLAT")) {
         pphFlat = taxConfig["PPH_FLAT"];
     }
@@ -38,7 +38,7 @@ std::vector<Tile*> ConfigLoader::loadBoard(const std::string& folderPath) {
         pphPersen = taxConfig["PPH_PERSENTASE"];
     }
 
-    int pbmFlat = 100;
+    int pbmFlat = 200;
     if (taxConfig.count("PBM_FLAT")) {
         pbmFlat = taxConfig["PBM_FLAT"];
     }
@@ -57,7 +57,6 @@ std::vector<Tile*> ConfigLoader::loadBoard(const std::string& folderPath) {
             std::stringstream ss(line);
             int id;
             std::string kode, buffer, jenis, warna;
-            
             
             // Baca data berurutan sesuai format txt
             ss >> id >> kode;
@@ -104,7 +103,7 @@ std::vector<Tile*> ConfigLoader::loadBoard(const std::string& folderPath) {
                 int nilaiGadai;
                 ss >> warna >> nilaiGadai;
 
-                // Harga beli railroad = 0 sesuai spesifikasi (kepemilikan otomatis)
+                // Harga beli railroad = 0 (kepemilikan otomatis)
                 board[arrIdx] = new RailroadTile(id, kode, nama, 0, nilaiGadai, railroadTable);
             } else if (jenis == "UTILITY") {
                 int nilaiGadai;
@@ -226,7 +225,7 @@ std::map<std::string, int> ConfigLoader::loadSpecial(const std::string& folderPa
     return config;
 }
 
-// Ngeload tabel sewa
+// Ngeload tabel
 std::map<int, int> ConfigLoader::loadRailroad(const std::string& folderPath) {
     std::map<int, int> table;
     std::ifstream file(folderPath + "railroad.txt");

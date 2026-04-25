@@ -74,6 +74,16 @@ public:
         }
     }
 
+    // Bersihin deck
+    void clear() {
+        while (!cards.empty()) {
+            delete cards.front();
+            cards.pop();
+        }
+        for (T* card : discardPile) delete card;
+        discardPile.clear();
+    }
+
     // Biar bisa dapetin nama kartu
     std::vector<std::string> getCardNames() const {
         std::vector<std::string> names;
