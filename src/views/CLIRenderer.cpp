@@ -175,40 +175,12 @@ void CLIRenderer::renderTopRow(const Board& board, const std::vector<Player*>& p
     std::cout << makeSeparatorRow(SIDE_SIZE) << "\n";
 }
 
-// ===== renderBottomRow =====
-// Petak indeks 20-30 (kanan ke kiri)
-void CLIRenderer::renderBottomRow(const Board& board, const std::vector<Player*>& players) const {
-    std::cout << makeSeparatorRow(SIDE_SIZE) << "\n";
-
-    std::cout << "|";
-    for (int i = 20; i <= 30; i++) {
-        Tile* tile = board.getTile(i);
-        if (!tile) { 
-            std::cout << padTo("", CELL_WIDTH) << "|"; continue; 
-        }
-        std::string color = getColorCode(tile->getDisplayColor());
-        std::string tag   = getColorTag(tile->getDisplayColor());
-        std::string label = color + tag + " " + tile->getCode() + RESET;
-        std::cout << padTo(label, CELL_WIDTH) << "|";
-    }
-    std::cout << "\n";
-
-    std::cout << "|";
-    for (int i = 20; i <= 30; i++) {
-        auto here = getPlayersAtTile(i, players);
-        std::cout << padTo(formatPlayerSymbols(here, players), CELL_WIDTH) << "|";
-    }
-    std::cout << "\n";
-
-    std::cout << makeSeparatorRow(SIDE_SIZE) << "\n";
-}
-
 // ===== renderMiddleRows =====
 // Sisi kiri (19 turun ke 11) + panel tengah + sisi kanan (31 naik ke 39)
 void CLIRenderer::renderMiddleRows(const Board& board, const std::vector<Player*>& players, int currentTurn, int maxTurn, int currentPlayerIndex) const {
     // Indeks sisi kiri dan kanan
-    int leftIndices[]  = {19, 18, 17, 16, 15, 14, 13, 12, 11};
-    int rightIndices[] = {31, 32, 33, 34, 35, 36, 37, 38, 39};
+    int leftIndices[]  = {39, 38, 37, 36, 35, 34, 33, 32, 31};
+    int rightIndices[] = {11, 12, 13, 14, 15, 16, 17, 18, 19};
 
     // Lebar panel tengah = 9 sel × (CELL_WIDTH + 1) - 1
     int centerWidth = 9 * (CELL_WIDTH + 1) - 1;
@@ -269,10 +241,36 @@ void CLIRenderer::renderMiddleRows(const Board& board, const std::vector<Player*
         std::cout << padTo(formatPlayerSymbols(rightPlayers, players), CELL_WIDTH) << "|\n";
 
         // Separator per baris sisi (kiri dan kanan saja)
-        std::cout << "+" << std::string(CELL_WIDTH, '-') << "+"
-                  << std::string(centerWidth, ' ')
-                  << "+" << std::string(CELL_WIDTH, '-') << "+\n";
+        std::cout << "+" << std::string(CELL_WIDTH, '-') << "+" << std::string(centerWidth, ' ') << "+" << std::string(CELL_WIDTH, '-') << "+\n";
     }
+}
+
+// ===== renderBottomRow =====
+// Petak indeks 20-30 (kanan ke kiri)
+void CLIRenderer::renderBottomRow(const Board& board, const std::vector<Player*>& players) const {
+    std::cout << makeSeparatorRow(SIDE_SIZE) << "\n";
+
+    std::cout << "|";
+    for (int i = 30; i >= 20; i--) {
+        Tile* tile = board.getTile(i);
+        if (!tile) { 
+            std::cout << padTo("", CELL_WIDTH) << "|"; continue; 
+        }
+        std::string color = getColorCode(tile->getDisplayColor());
+        std::string tag   = getColorTag(tile->getDisplayColor());
+        std::string label = color + tag + " " + tile->getCode() + RESET;
+        std::cout << padTo(label, CELL_WIDTH) << "|";
+    }
+    std::cout << "\n";
+
+    std::cout << "|";
+    for (int i = 30; i >= 20; i--) {
+        auto here = getPlayersAtTile(i, players);
+        std::cout << padTo(formatPlayerSymbols(here, players), CELL_WIDTH) << "|";
+    }
+    std::cout << "\n";
+
+    std::cout << makeSeparatorRow(SIDE_SIZE) << "\n";
 }
 
 // ===== renderBoard =====
