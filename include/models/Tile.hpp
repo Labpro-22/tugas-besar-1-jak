@@ -32,6 +32,8 @@ class Tile {
     public:
         // constructor
         Tile(int idx, std::string cd, std::string nm);
+        // destructor
+        virtual ~Tile() = default;
         // dipanggil saat player mendarat
         virtual void onLanded(Player& player, Game& game) = 0;
         // mendapatkan kode warna untuk tampilan board
@@ -42,5 +44,4 @@ class Tile {
         int getIndex() const;
         // getter atribut nama
         std::string getName() const;
-        virtual ~Tile() = default;
 };

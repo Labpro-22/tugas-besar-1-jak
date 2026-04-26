@@ -91,7 +91,6 @@ public:
 
     // Inisialisasi awal
     void initialize();
-    void initializeFromSave(const std::string& saveFile);
     void startNewGame(const std::vector<std::string>& playerNames);
     bool isGameActive() const override;
     void setGameActive(bool active) override;
@@ -101,9 +100,10 @@ public:
     void setDice(int x, int y) override;
 
     // Property
-    void mortgageProperty(const std::string &code) override;
+    void mortgageProperty(const std::string& tileCode) override;
     void redeemProperty(const std::string &tileCode) override;
     void buildOnProperty(const std::string &tileCode) override;
+    void sellAllBuildingsInGroup(const std::string& colorGroup) override;
     
     // Auction
     void placeBid(int amount) override;
@@ -114,6 +114,12 @@ public:
     
     // SkillCard
     void useSkillCard(int cardIndex) override;
+    void applyMoveCard(int steps) override;
+    void applyTeleportCard() override;
+    void applyDiscountCard(int percent) override;
+    void applyShieldCard() override;
+    void applyLassoCard() override;
+    void applyDemolitionCard() override;
     
     // Jail
     void payJailFine() override;
@@ -121,6 +127,7 @@ public:
     
     // Player
     Player *getCurrentPlayer() const override;
+    std::string getCurrentPlayerName() const override;
     std::vector<Player*> getActivePlayers() const;
     int countActivePlayers() const override;
     
@@ -130,11 +137,12 @@ public:
 
     // Display
     void printBoard() override;
-    void printDeed(const std::string &tileCode) override;
+    void printDeed(const std::string& tileCode) override;
     void printPropertyInventory() override;
     void printPlayerStatus() override;
     void printLog(int limit) override;
     void printHelp() override;
+    void setRenderer(CLIRenderer* r);
 
     // Flow Giliran
     void endTurn() override;

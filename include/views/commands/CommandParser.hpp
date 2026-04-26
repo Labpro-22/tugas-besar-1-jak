@@ -6,7 +6,6 @@
 #include "Bangun.hpp"
 #include "Bantuan.hpp"
 #include "BayarDenda.hpp"
-#include "Beli.hpp"
 #include "CetakAkta.hpp"
 #include "CetakLog.hpp"
 #include "CetakPapan.hpp"
@@ -15,7 +14,6 @@
 #include "Gadai.hpp"
 #include "GunakanKartuBebas.hpp"
 #include "GunakanKemampuan.hpp"
-#include "JualBangunan.hpp"
 #include "LemparDadu.hpp"
 #include "Lepas.hpp"
 #include "Muat.hpp"
@@ -55,14 +53,6 @@ class CommandParser {
         }
     }
 
-    // Pastikan minimal N argumen terpenuhi
-    static void requireMinArgCount(const std::vector<std::string>& tokens, int minCount, const std::string& cmd) {
-        int got = static_cast<int>(tokens.size()) - 1;
-        if (got < minCount) {
-            throw InvalidInputException(cmd + ": butuh minimal " + std::to_string(minCount) + " argumen, tapi dapat " + std::to_string(got) + ".");
-        }
-    }
-
     // Parse token ke int, lempar InvalidInputException kalo bukan angka
     static int parseIntArg(const std::string& token, const std::string& cmd) {
         try {
@@ -94,22 +84,18 @@ class CommandParser {
             return new LemparDaduCommand();
         }
 
-        // ===== ATUR_DADU X Y =====
+        // ===== ATUR_DADU <x> <y> =====
         if (cmd == "ATUR_DADU") {
             requireArgCount(tokens, 2, cmd);
             int x = parseIntArg(tokens[1], cmd);
             int y = parseIntArg(tokens[2], cmd);
-            if (x < 1 || x > 6 || y < 1 || y > 6) {
-                throw InvalidInputException("ATUR_DADU: nilai dadu harus antara 1-6.");
-            }
             return new AturDaduCommand(x, y);
         }
 
-        // ===== GADAI <kode> [<kode> ...] =====
+        // ===== GADAI =====
         if (cmd == "GADAI") {
-            requireMinArgCount(tokens, 1, cmd);
-            std::vector<std::string> codes(tokens.begin() + 1, tokens.end());
-            return new GadaiCommand(std::move(codes));
+            requireArgCount(tokens, 0, cmd);
+            return new GadaiCommand();
         }
 
         // ===== TEBUS <kode> =====
@@ -124,19 +110,10 @@ class CommandParser {
             return new BangunCommand(tokens[1]);
         }
 
-        // ===== JUAL_BANGUNAN <kode> =====
-        if (cmd == "JUAL_BANGUNAN") {
-            requireArgCount(tokens, 1, cmd);
-            return new JualBangunanCommand(tokens[1]);
-        }
-
         // ===== TAWAR <jumlah> =====
         if (cmd == "TAWAR") {
             requireArgCount(tokens, 1, cmd);
             int amount = parseIntArg(tokens[1], cmd);
-            if (amount <= 0) {
-                throw InvalidInputException("TAWAR: jumlah tawaran harus lebih dari 0.");
-            }
             return new TawarCommand(amount);
         }
 
@@ -150,9 +127,6 @@ class CommandParser {
         if (cmd == "GUNAKAN_KEMAMPUAN") {
             requireArgCount(tokens, 1, cmd);
             int idx = parseIntArg(tokens[1], cmd);
-            if (idx < 0) {
-                throw InvalidInputException("GUNAKAN_KEMAMPUAN: indeks kartu tidak valid.");
-            }
             return new GunakanKemampuanCommand(idx);
         }
 
@@ -171,13 +145,15 @@ class CommandParser {
         // ===== SIMPAN <filename> =====
         if (cmd == "SIMPAN") {
             requireArgCount(tokens, 1, cmd);
-            return new SimpanCommand(tokens[1]);
+            // Ambil filename dari rawInput langsung biar ga kena toupper
+            size_t spacePos = rawInput.find(' ');
+            std::string filename = (spacePos != std::string::npos) ? rawInput.substr(spacePos + 1) : "";
+            return new SimpanCommand(filename);
         }
 
         // ===== MUAT <filename> =====
         if (cmd == "MUAT") {
-            requireArgCount(tokens, 1, cmd);
-            return new MuatCommand(tokens[1]);
+            throw InvalidInputException("MUAT hanya bisa dilakukan sebelum permainan dimulai.");
         }
 
         // ===== CETAK_PAPAN =====
@@ -186,13 +162,10 @@ class CommandParser {
             return new CetakPapanCommand();
         }
 
-        // ===== CETAK_AKTA [<kode>] =====
+        // ===== CETAK_AKTA <kode> =====
         if (cmd == "CETAK_AKTA") {
-            std::string code = "";
-            if (tokens.size() > 1) {
-                code = tokens[1];
-            }
-            return new CetakAktaCommand(code);
+            requireArgCount(tokens, 0, cmd);
+            return new CetakAktaCommand();
         }
 
         // ===== CETAK_PROPERTI =====
@@ -201,14 +174,11 @@ class CommandParser {
             return new CetakPropertiCommand();
         }
 
-        // ===== CETAK_LOG [<limit>] =====
+        // ===== CETAK_LOG <limit> =====
         if (cmd == "CETAK_LOG") {
             int limit = -1;
             if (tokens.size() > 1) {
                 limit = parseIntArg(tokens[1], cmd);
-                if (limit <= 0) {
-                    throw InvalidInputException("CETAK_LOG: limit harus bilangan positif.");
-                }
             }
             return new CetakLogCommand(limit);
         }
@@ -236,13 +206,7 @@ class CommandParser {
             requireArgCount(tokens, 0, cmd);
             return new CetakStatusCommand();
         }
-
-        // ===== BELI =====
-        if (cmd == "BELI") {
-            requireArgCount(tokens, 0, cmd);
-            return new BeliCommand();
-        }
-
+        
         // Tidak dikenali
         throw InvalidInputException("Perintah tidak dikenal: \"" + cmd + "\".");
     }

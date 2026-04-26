@@ -14,7 +14,7 @@ class AturDaduCommand : public Command {
     bool execute(IGameAction& game) override {
         // Panggil fungsi atur dadu yang ada di kelas Game
         game.setDice(x, y);
-        return false; // Ga ngubah giliran
+        return false;
     }
     
     std::string getName() const override { 

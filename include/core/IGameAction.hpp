@@ -33,9 +33,10 @@ public:
     virtual void setDice(int x, int y) = 0;
 
     // Property
-    virtual void mortgageProperty(const std::string &code) = 0;
+    virtual void mortgageProperty(const std::string& tileCode) = 0;
     virtual void redeemProperty(const std::string &tileCode) = 0;
     virtual void buildOnProperty(const std::string &tileCode) = 0;
+    virtual void sellAllBuildingsInGroup(const std::string& colorGroup) = 0;
 
     // Auction
     virtual void placeBid(int amount) = 0;
@@ -46,6 +47,12 @@ public:
 
     // SkillCard
     virtual void useSkillCard(int cardIndex) = 0;
+    virtual void applyMoveCard(int steps) = 0;
+    virtual void applyTeleportCard() = 0;
+    virtual void applyDiscountCard(int percent) = 0;
+    virtual void applyShieldCard() = 0;
+    virtual void applyLassoCard() = 0;
+    virtual void applyDemolitionCard() = 0;
 
     // Jail
     virtual void payJailFine() = 0;
@@ -57,7 +64,7 @@ public:
 
     // Display
     virtual void printBoard() = 0;
-    virtual void printDeed(const std::string &tileCode) = 0;
+    virtual void printDeed(const std::string& tileCode) = 0;
     virtual void printPropertyInventory() = 0;
     virtual void printLog(int limit) = 0;
     virtual void printHelp() = 0;
@@ -68,6 +75,7 @@ public:
 
     // Player
     virtual int countActivePlayers() const = 0;
+    virtual std::string getCurrentPlayerName() const = 0;
 
     // Game Selesai
     virtual void endTurn() = 0;

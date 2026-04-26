@@ -13,7 +13,7 @@ class SimpanCommand : public Command {
 
     bool execute(IGameAction& game) override {
         // Panggil fungsi simpan game yang ada di kelas Game
-        game.loadGame(filename);
+        game.saveGame(filename);
         return false;
     }
     

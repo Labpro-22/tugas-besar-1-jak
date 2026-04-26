@@ -5,12 +5,12 @@
 class IGameAction;
 
 // Setiap aksi pengguna direpresentasikan sebagai objek Command
-// execute() dipanggil oleh Game lewat CommandHandler
 class Command {
 public:
     virtual ~Command() {}
 
-    // True kalau giliran habis (ganti pemain)
+    // Dipanggil sama masing-masing command
+    // True kalau game selesai
     virtual bool execute(IGameAction& game) = 0;
 
     // Bisa dipake TransactionLogger buat nyatet nama perintah

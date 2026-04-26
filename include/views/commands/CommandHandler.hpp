@@ -22,7 +22,7 @@ class CommandHandler {
     void listen() {
         std::string rawInput;
         while (game.isGameActive()) {
-            std::cout << "> ";
+            std::cout << "[" << game.getCurrentPlayerName() << "] > ";
             if (!std::getline(std::cin, rawInput)) {
                 break;
             }

@@ -60,15 +60,13 @@ class StreetTile : public PropertyTile {
         void applyFestival();
         // mengurangi durasi festival tiap giliran
         void tickFestival();
-        // cetak akta kepemilikan, menggunakan CLI renderer
-        void printDeed();
         // buat saveload
         void setFestivalMultiplier(int mult);
         void setFestivalDuration(int dur);
         void setBuildingLevel(int level);
-
+        
         // getter atribut
-
+        
         std::string getColorGroup() const;
         const std::vector<int> getRents() const;
         int getHouseCost() const;
@@ -78,7 +76,8 @@ class StreetTile : public PropertyTile {
         int getFestivalDuration() const;
         int getBuildingSaleValue() const;
         void resetBuildings();
-};
+        std::string getDisplayColor() override;
+    };
 
 // Merepresentasikan petak properti berupa stasiun
 class RailroadTile : public PropertyTile {
@@ -92,6 +91,7 @@ class RailroadTile : public PropertyTile {
         int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
+        const std::map<int, int>& getRentTable() const;
 };
 
 // Merepresentasikan petak properti berupa utilitas (PLN dan PAM)
@@ -106,4 +106,6 @@ class UtilityTile : public PropertyTile {
         int calculateRent(int diceTotal) override;
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
+        const std::map<int, int>& getMultiplierTable() const;
+        std::string getDisplayColor() override;
 };

@@ -9,7 +9,7 @@ class BayarDendaCommand : public Command {
     bool execute(IGameAction& game) override {
         // Panggil fungsi bayar denda yang ada di kelas Game
         game.payJailFine();
-        return false; // Ga ngubah giliran
+        return false;
     }
     
     std::string getName() const override { 

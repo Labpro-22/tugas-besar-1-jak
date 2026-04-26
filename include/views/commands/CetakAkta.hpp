@@ -2,18 +2,25 @@
 #include "Command.hpp"
 #include "core/IGameAction.hpp"
 #include <string>
+#include <iostream>
 
 // CETAK_AKTA [<kode_petak>]
 class CetakAktaCommand : public Command {
-    private:
-    std::string tileCode;
-
     public:
-    explicit CetakAktaCommand(std::string tileCode = "") : tileCode(std::move(tileCode)) {}
-
     bool execute(IGameAction& game) override {
-        // Panggil fungsi cetak akta yang ada di kelas Game
+        // Dari sini yang minta input
+        std::cout << "Masukkan kode petak: ";
+        std::string tileCode;
+        std::getline(std::cin, tileCode);
+
+        // Samain ke huruf kapital
+        for (char &c : tileCode) {
+            c = std::toupper(c);
+        }
+
+        // Panggil fungsi cetak akta yang ada di Game
         game.printDeed(tileCode);
+        
         return false;
     }
 

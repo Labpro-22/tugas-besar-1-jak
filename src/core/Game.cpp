@@ -27,6 +27,12 @@ Game::Game()
     : gameActive(false),
       currentPlayerIndex(0),
       turnsPlayed(0),
+      maxTurn(15),
+      goSalary(200),
+      jailFine(50), 
+      pphFlat(150), 
+      pphPersen(10),
+      pbmFlat(200),
       isAuctionActive(false),
       renderer(nullptr)
 {
@@ -82,6 +88,11 @@ void Game::initializeDecks() {
     skillCardDeck->addCardToDeck(new LassoCard());
     skillCardDeck->addCardToDeck(new DemolitionCard());
     skillCardDeck->addCardToDeck(new DemolitionCard());
+
+    // Shuffle kartunya
+    chanceDeck->shuffle();
+    generalFundsDeck->shuffle();
+    skillCardDeck->shuffle();
 }
 
 // Inisialiasi config
@@ -99,32 +110,6 @@ void Game::initializeConfig() {
     if (tax.count("PPH_PERSENTASE")) pphPersen = tax["PPH_PERSENTASE"];
     pbmFlat = 200;
     if (tax.count("PBM_FLAT")) pbmFlat = tax["PBM_FLAT"];
-}
-
-// Inisialisasi dari save
-void Game::initializeFromSave(const std::string& saveFile) {
-    board = std::make_unique<Board>();
-    board->initializeBoard("config/");
-    dice = std::make_unique<Dice>();
-    logger = std::make_unique<TransactionLogger>();
-    bankruptcyManager = std::make_unique<BankruptcyManager>();
-    auctionManager = std::make_unique<AuctionManager>(this);
-
-    initializeDecks();
-    initializeConfig();
-
-    // Load state dari file
-    SaveLoadManager slm;
-    std::vector<Player*> rawPlayers;
-    slm.loadGame(saveFile, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *logger);
-
-    players.clear();
-    for (Player* p : rawPlayers) {
-        players.push_back(std::unique_ptr<Player>(p));
-    }
-
-    gameActive = true;
-    logger->addLog("Permainan dimuat dari: " + saveFile);
 }
 
 // Mulai game baru
@@ -179,9 +164,31 @@ void Game::rollDice() {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
+    if (player->hasRolledDiceThisTurn()) {
+        renderer->printError("Kamu sudah melempar dadu! Ketik AKHIRI_GILIRAN untuk selesai.");
+        return;
+    }
+
+    // Handle jail turn
+    if (player->isJailed()) {
+        int turnsLeft = player->getJailTurns();
+
+        // Giliran ke-4 — wajib bayar denda dulu
+        if (turnsLeft == 0) {
+            renderer->printError("Kamu wajib keluar penjara! Gunakan BAYAR_DENDA atau GUNAKAN_KARTU_BEBAS.");
+            return;
+        }
+    }
+
     int result = dice->roll();
     int d1 = dice->getDice1();
     int d2 = dice->getDice2();
+
+    player->setRolledDiceThisTurn(true);
+
+    renderer->printInfo("Mengocok dadu...");
+    renderer->printInfo("Hasil: " + std::to_string(d1) + " + " + std::to_string(d2) + " = " + std::to_string(result));
+    renderer->printInfo("Memajukan bidak " + player->getUsername() + " sebanyak " + std::to_string(result) + " petak...");
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Lempar: " + std::to_string(d1) + "+" + std::to_string(d2) + "=" + std::to_string(result));
 
@@ -189,11 +196,14 @@ void Game::rollDice() {
     if (dice->isDouble()) {
         player->setConsecutiveDoublesDice(player->getConsecutiveDoublesDice() + 1);
         if (player->getConsecutiveDoublesDice() >= 3) {
-            // Double 3x berturut — langsung ke penjara
+            // Double 3x berturut: langsung ke penjara
             player->setConsecutiveDoublesDice(0);
             player->goToJail();
             logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | PENJARA | Double 3x, masuk penjara!");
             return;
+        } else {
+            player->setRolledDiceThisTurn(false);
+            renderer->printInfo("Kamu mendapat DOUBLE! Kamu berhak melempar dadu lagi.");
         }
     } else {
         player->setConsecutiveDoublesDice(0);
@@ -207,8 +217,15 @@ void Game::setDice(int x, int y) {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
+    if (player->hasRolledDiceThisTurn()) {
+        renderer->printError("Kamu sudah melempar dadu! Ketik AKHIRI_GILIRAN untuk selesai.");
+        return;
+    }
+
     dice->setDice(x, y);
     int result = dice->getTotal();
+
+    player->setRolledDiceThisTurn(true);
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Diatur manual: " + std::to_string(x) + "+" + std::to_string(y) + "=" + std::to_string(result));
 
@@ -216,80 +233,45 @@ void Game::setDice(int x, int y) {
 }
 
 // ===== PROPERTY =====
-// Gadai properti
-void Game::mortgageProperty(const std::string& code) {
+// Jual semua bangunan (syarat sebelum gadai)
+void Game::sellAllBuildingsInGroup(const std::string& colorGroup) {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
-    // Cari properti berdasarkan kode
+    auto group = board->getPropertiesByColor(colorGroup);
+    for (auto* prop : group) {
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        if (st && st->getBuildingLevel() > 0) {
+            int saleVal = st->getBuildingSaleValue();
+            st->resetBuildings();
+            *player += saleVal;
+            renderer->printInfo("Bangunan " + st->getName() + " terjual. Kamu menerima M" + std::to_string(saleVal) + ".");
+        }
+    }
+    renderer->printInfo("Uang kamu sekarang: M" + std::to_string(player->getCash()));
+}
+
+// Gadai properti
+void Game::mortgageProperty(const std::string& tileCode) {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+
     PropertyTile* target = nullptr;
     for (auto* prop : player->getOwnedProperties()) {
-        if (prop->getCode() == code) {
-            target = prop;
-            break;
-        }
+        if (prop->getCode() == tileCode) { target = prop; break; }
     }
-
-    if (!target) {
-        renderer->printError("Properti " + code + " tidak ditemukan atau bukan milikmu.");
-        return;
-    }
-
-    if (target->isMortgaged()) {
-        renderer->printError("Properti " + code + " sudah digadaikan.");
-        return;
-    }
-
-    // Cek apakah ada bangunan di color group yang sama
-    StreetTile* st = dynamic_cast<StreetTile*>(target);
-    if (st) {
-        auto group = board->getPropertiesByColor(st->getColorGroup());
-        bool hasBangunan = false;
-        for (auto* prop : group) {
-            StreetTile* s = dynamic_cast<StreetTile*>(prop);
-            if (s && s->getBuildingLevel() > 0) {
-                hasBangunan = true;
-                break;
-            }
-        }
-
-        if (hasBangunan) {
-            renderer->printInfo("Masih ada bangunan di color group [" + st->getColorGroup() + "].");
-            renderer->printInfo("Jual semua bangunan color group ini dulu? (y/n): ");
-            std::string input;
-            while (true) {
-                std::getline(std::cin, input);
-                if (input == "y" || input == "Y") {
-                    break;
-                } else if (input == "n" || input == "N") {
-                    return;
-                } else {
-                    renderer->printInfo("Masukkan y atau n: ");
-                }
-            }
-
-            // Jual semua bangunan di color group
-            for (auto* prop : group) {
-                StreetTile* s = dynamic_cast<StreetTile*>(prop);
-                if (s && s->getBuildingLevel() > 0) {
-                    int saleVal = s->getBuildingSaleValue();
-                    s->resetBuildings();
-                    *player += saleVal;
-                    renderer->printInfo("Bangunan " + s->getName() + " terjual. Kamu menerima M" + std::to_string(saleVal));
-                }
-            }
-        }
-    }
+    if (!target) return;
 
     int mortgageVal = target->getMortgageValue();
-    target->mortgage();
+    target->mortgage(); // Ubah status jadi digadai
     *player += mortgageVal;
 
     renderer->printInfo(target->getName() + " berhasil digadaikan.");
     renderer->printInfo("Kamu menerima M" + std::to_string(mortgageVal) + " dari Bank.");
     renderer->printInfo("Uang kamu sekarang: M" + std::to_string(player->getCash()));
+    renderer->printInfo("Catatan: Sewa tidak dapat dipungut dari properti yang digadaikan.");
 
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | GADAI | " + code + " digadaikan, terima M" + std::to_string(mortgageVal));
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " +  player->getUsername() + " | GADAI | " +  target->getName() + " digadaikan, terima M" + std::to_string(mortgageVal));
 }
 
 // Tebus properti
@@ -299,31 +281,13 @@ void Game::redeemProperty(const std::string& tileCode) {
 
     PropertyTile* target = nullptr;
     for (auto* prop : player->getOwnedProperties()) {
-        if (prop->getCode() == tileCode) {
-            target = prop;
-            break;
-        }
+        if (prop->getCode() == tileCode) { target = prop; break; }
     }
-
-    if (!target) {
-        renderer->printError("Properti " + tileCode + " tidak ditemukan atau bukan milikmu.");
-        return;
-    }
-
-    if (!target->isMortgaged()) {
-        renderer->printError("Properti " + tileCode + " tidak sedang digadaikan.");
-        return;
-    }
+    if (!target) return;
 
     int redeemPrice = target->getPrice();
-    if (player->getCash() < redeemPrice) {
-        renderer->printError("Uang tidak cukup untuk menebus " + target->getName() + ".");
-        renderer->printInfo("Harga tebus: M" + std::to_string(redeemPrice) + " | Uang kamu: M" + std::to_string(player->getCash()));
-        return;
-    }
-
     *player -= redeemPrice;
-    target->redeem();
+    target->redeem(); // Ubah status jadi owned
 
     renderer->printInfo(target->getName() + " berhasil ditebus!");
     renderer->printInfo("Kamu membayar M" + std::to_string(redeemPrice) + " ke Bank.");
@@ -337,96 +301,29 @@ void Game::buildOnProperty(const std::string& tileCode) {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
-    // Kumpulkan color group yang memenuhi syarat
-    std::vector<std::string> eligibleGroups;
+    PropertyTile* target = nullptr;
     for (auto* prop : player->getOwnedProperties()) {
-        StreetTile* st = dynamic_cast<StreetTile*>(prop);
-        if (!st) continue;
-        if (st->isMortgaged()) continue;
-
-        std::string color = st->getColorGroup();
-        // Cek apakah sudah masuk list
-        bool alreadyAdded = false;
-        for (const auto& g : eligibleGroups) {
-            if (g == color) { alreadyAdded = true; break; }
-        }
-        if (alreadyAdded) continue;
-
-        // Cek monopoli
-        if (st->isMonopolized()) {
-            eligibleGroups.push_back(color);
-        }
+        if (prop->getCode() == tileCode) { target = prop; break; }
     }
 
-    if (eligibleGroups.empty()) {
-        renderer->printError("Tidak ada color group yang memenuhi syarat untuk dibangun.");
-        return;
-    }
+    StreetTile* chosen = dynamic_cast<StreetTile*>(target);
+    if (!chosen) return;
 
-    // Tampilkan pilihan color group
-    renderer->printInfo("=== Color Group yang Memenuhi Syarat ===");
-    for (int i = 0; i < (int)eligibleGroups.size(); i++) {
-        renderer->printInfo(std::to_string(i + 1) + ". [" + eligibleGroups[i] + "]");
-        auto group = board->getPropertiesByColor(eligibleGroups[i]);
-        for (auto* prop : group) {
-            StreetTile* st = dynamic_cast<StreetTile*>(prop);
-            if (!st) continue;
-            std::string level = st->getBuildingLevel() == 5 ? "Hotel" : std::to_string(st->getBuildingLevel()) + " rumah";
-            renderer->printInfo("   - " + st->getName() + " (" + st->getCode() + ") : " + level);
-        }
-    }
-    renderer->printInfo("Uang kamu saat ini: M" + std::to_string(player->getCash()));
-    std::cout << "Pilih nomor color group (0 untuk batal): ";
-
-    std::string input;
-    std::getline(std::cin, input);
-    int groupChoice = -1;
-    try { groupChoice = std::stoi(input) - 1; } catch (...) { return; }
-    if (groupChoice < 0 || groupChoice >= (int)eligibleGroups.size()) return;
-
-    std::string chosenColor = eligibleGroups[groupChoice];
-    auto group = board->getPropertiesByColor(chosenColor);
-
-    // Tampilkan petak yang bisa dibangun
-    renderer->printInfo("Color group [" + chosenColor + "]:");
-    std::vector<StreetTile*> buildable;
-    for (auto* prop : group) {
-        StreetTile* st = dynamic_cast<StreetTile*>(prop);
-        if (!st) continue;
-        std::string level = st->getBuildingLevel() == 5 ? "Hotel" : std::to_string(st->getBuildingLevel()) + " rumah";
-        std::string canBuild = st->canBuild() ? " <- dapat dibangun" : "";
-        renderer->printInfo("   - " + st->getName() + " (" + st->getCode() + ") : " + level + canBuild);
-        if (st->canBuild()) buildable.push_back(st);
-    }
-
-    if (buildable.empty()) {
-        renderer->printError("Tidak ada petak yang bisa dibangun sekarang.");
-        return;
-    }
-
-    std::cout << "Pilih petak (0 untuk batal): ";
-    std::getline(std::cin, input);
-    int tileChoice = -1;
-    try { tileChoice = std::stoi(input) - 1; } catch (...) { return; }
-    if (tileChoice < 0 || tileChoice >= (int)buildable.size()) return;
-
-    StreetTile* chosen = buildable[tileChoice];
-    int cost = chosen->getBuildingLevel() == 4 ? chosen->getHotelCost() : chosen->getHouseCost();
-
-    if (player->getCash() < cost) {
-        renderer->printError("Uang tidak cukup. Butuh M" + std::to_string(cost));
-        return;
-    }
+    int cost = (chosen->getBuildingLevel() == 4) ? chosen->getHotelCost() : chosen->getHouseCost();
 
     *player -= cost;
     chosen->build();
 
     std::string result = chosen->getBuildingLevel() == 5 ? "Hotel" : std::to_string(chosen->getBuildingLevel()) + " rumah";
-    renderer->printInfo("Kamu membangun di " + chosen->getName() + ". Biaya: M" + std::to_string(cost));
-    renderer->printInfo(chosen->getName() + " : " + result);
+    
+    if (chosen->getBuildingLevel() == 5) {
+        renderer->printSuccess(chosen->getName() + " di-upgrade ke Hotel!");
+    } else {
+        renderer->printSuccess("Kamu membangun 1 rumah di " + chosen->getName() + ". Biaya: M" + std::to_string(cost));
+    }
+    
     renderer->printInfo("Uang tersisa: M" + std::to_string(player->getCash()));
-
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | BANGUN | " + chosen->getCode() + " -> " + result + ", bayar M" + std::to_string(cost));
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | BANGUN | " + chosen->getCode() + " -> " + result);
 }
 
 // ===== AUCTION =====
@@ -434,6 +331,11 @@ void Game::buildOnProperty(const std::string& tileCode) {
 void Game::placeBid(int amount) {
     if (!isAuctionActive) {
         renderer->printError("Tidak ada lelang yang sedang berlangsung.");
+        return;
+    }
+
+    if (amount <= 0) {
+        renderer->printError("Jumlah tawaran harus lebih dari 0.");
         return;
     }
 
@@ -527,24 +429,136 @@ void Game::useSkillCard(int cardIndex) {
 
     if (player->hasUsedSkillThisTurn()) {
         renderer->printError("Kamu sudah menggunakan kartu kemampuan pada giliran ini!");
-        renderer->printInfo("Penggunaan kartu dibatasi maksimal 1 kali dalam 1 giliran.");
         return;
     }
 
-    auto cardNames = player->getSkillCardNames();
-    if (cardIndex < 0 || cardIndex >= (int)cardNames.size()) {
+    auto& cards = player->getSkillCards();
+    if (cardIndex < 0 || cardIndex >= (int)cards.size()) {
         renderer->printError("Indeks kartu tidak valid.");
         return;
     }
 
-    renderer->printInfo("Menggunakan " + cardNames[cardIndex] + "...");
+    SkillCard* card = cards[cardIndex];
+    std::string name = card->getName();
 
-    try {
-        player->useSkillCard(cardIndex, *this);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_KEMAMPUAN | Pakai " + cardNames[cardIndex]);
-    } catch (const NimonspoliException& e) {
-        renderer->printError(e.what());
+    if (name == "MoveCard") {
+        applyMoveCard(dynamic_cast<MoveCard*>(card)->getValue());
+    } else if (name == "DiscountCard") {
+        applyDiscountCard(dynamic_cast<DiscountCard*>(card)->getValue());
+    } else if (name == "ShieldCard") {
+        applyShieldCard();
+    } else if (name == "TeleportCard") {
+        applyTeleportCard();
+    } else if (name == "LassoCard") {
+        applyLassoCard();
+    } else if (name == "DemolitionCard") {
+        applyDemolitionCard();
     }
+
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_KEMAMPUAN | Pakai " + name);
+    player->removeCard(cardIndex);
+    player->setUsedSkillThisTurn(true);
+}
+
+// Implementasi masing-masing jenis
+void Game::applyMoveCard(int steps) {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    movePlayer(*player, steps);
+}
+
+void Game::applyDiscountCard(int percent) {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    player->activateDiscount(percent);
+    renderer->printInfo("DiscountCard aktif! Diskon " + std::to_string(percent) + "% selama 1 giliran.");
+}
+
+void Game::applyShieldCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    player->activateShield();
+    renderer->printInfo("ShieldCard aktif! Kamu kebal tagihan selama 1 giliran.");
+}
+
+void Game::applyTeleportCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+
+    std::string kode = renderer->promptTileCode();
+
+    Board& b = getBoard();
+    for (int i = 0; i < b.getTileCount(); i++) {
+        if (b.getTile(i) && b.getTile(i)->getCode() == kode) {
+            teleportPlayer(*player, i);
+            return;
+        }
+    }
+    renderer->printError("Kode petak tidak ditemukan.");
+}
+
+void Game::applyLassoCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    int myPos = player->getPosition();
+    // Cari pemain di depan (posisi lebih besar, atau sudah wrap around)
+    Player* target = nullptr;
+    int minDist = 41;
+    for (Player* other : getActivePlayers()) {
+        if (other == player) continue;
+        int dist = (other->getPosition() - myPos + 40) % 40;
+        if (dist > 0 && dist < minDist) {
+            minDist = dist;
+            target = other;
+        }
+    }
+    if (!target) {
+        renderer->printError("Tidak ada pemain di depan.");
+        return;
+    }
+    target->setPosition(myPos);
+    renderer->printInfo(target->getUsername() + " ditarik ke posisi kamu (" + std::to_string(myPos) + ").");
+}
+
+void Game::applyDemolitionCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    // Tampilkan properti lawan yang punya bangunan
+    std::vector<StreetTile*> targets;
+    for (Player* other : getActivePlayers()) {
+        if (other == player) continue;
+        for (auto* prop : other->getOwnedProperties()) {
+            StreetTile* st = dynamic_cast<StreetTile*>(prop);
+            if (st && st->getBuildingLevel() > 0) {
+                targets.push_back(st);
+            }
+        }
+    }
+    if (targets.empty()) {
+        renderer->printError("Tidak ada properti lawan yang memiliki bangunan.");
+        return;
+    }
+    renderer->printInfo("Pilih properti yang ingin dihancurkan:");
+    for (int i = 0; i < (int)targets.size(); i++) {
+        renderer->printInfo(std::to_string(i+1) + ". " + targets[i]->getName() + " (level " + std::to_string(targets[i]->getBuildingLevel()) + ")");
+    }
+    int choice;
+    std::string input;
+    std::getline(std::cin, input);
+    try {
+        choice = std::stoi(input);
+    } catch (...) {
+        renderer->printError("Input tidak valid.");
+        return;
+    }
+    if (choice < 1 || choice > (int)targets.size()) {
+        renderer->printError("Pilihan tidak valid.");
+        return;
+    }
+    StreetTile* chosen = targets[choice - 1];
+    chosen->setBuildingLevel(chosen->getBuildingLevel() - 1);
+    renderer->printInfo("Bangunan di " + chosen->getName() + " berhasil dihancurkan!");
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DEMOLITION | Hancurkan bangunan di " + chosen->getName());
 }
 
 // ===== JAIL =====
@@ -616,6 +630,11 @@ Player *Game::getCurrentPlayer() const
     return players[turnOrder[currentPlayerIndex]].get();
 }
 
+std::string Game::getCurrentPlayerName() const {
+    Player* p = getCurrentPlayer();
+    return p ? p->getUsername() : "???";
+}
+
 // Ngitung jumlah pemain aktif
 int Game::countActivePlayers() const {
     int count = 0;
@@ -644,13 +663,14 @@ void Game::movePlayer(Player& player, int steps) {
 
     if ((startPos + steps) >= boardSize) {
         player += goSalary;
+        renderer->printInfo("Melewati GO! Dapat M" + std::to_string(goSalary) + ". Uang sekarang: M" + std::to_string(player.getCash()));
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GO | Melewati GO, dapat M" + std::to_string(goSalary));
     }
 
     player.setPosition(newPos);
     Tile* tile = board->getTile(newPos);
-    std::string tileName = tile ? tile->getCode() : "???";
-
+    std::string tileName = tile ? tile->getName() : "???";
+    std::string tileCode = tile ? tile->getCode() : "???";
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GERAK | Mendarat di " + tileName);
 
     processTileLanding(player, newPos);
@@ -678,25 +698,21 @@ void Game::teleportPlayer(Player& player, int targetTileIndex) {
 
 // ===== SAVE =====
 void Game::saveGame(const std::string& filename) {
+    // Cuman bisa di awal
+    if (getCurrentPlayer()->hasRolledDiceThisTurn()) {
+        renderer->printError("SIMPAN hanya bisa dilakukan di awal giliran sebelum melempar dadu.");
+        return;
+    }
+
     // Cek apakah file sudah ada
-    if (SaveLoadManager::fileExists(filename)) {
-        std::cout << "File \"" << filename << "\" sudah ada. Timpa file lama? (y/n): ";
-        std::string input;
-        while (true) {
-            std::getline(std::cin, input);
-            if (input == "y" || input == "Y") {
-                break;
-            } else if (input == "n" || input == "N") {
-                return;
-            } else {
-                renderer->printInfo("Masukkan y atau n: ");
-            }
-        }
+    if (SaveLoadManager::fileExists("saves/" + filename)) {
+        if (!renderer->promptYesNo("File \"saves/" + filename + "\" sudah ada. Timpa file lama?")) return;
     }
 
     SaveLoadManager slm;
     try {
-        slm.saveGame(filename, turnsPlayed, maxTurn,  getActivePlayers(), turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
+        std::string fullPath = "saves/" + filename;
+        slm.saveGame(fullPath, turnsPlayed, maxTurn,  getActivePlayers(), turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
         renderer->printInfo("Permainan berhasil disimpan ke: " + filename);
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + getCurrentPlayer()->getUsername() + " | SIMPAN | " + filename);
     } catch (const NimonspoliException& e) {
@@ -706,23 +722,18 @@ void Game::saveGame(const std::string& filename) {
 
 // ===== LOAD =====
 void Game::loadGame(const std::string& filename) {
+    std::string fullPath = "saves/" + filename;
     SaveLoadManager slm;
-    try {
-        initialize();
-        std::vector<Player*> rawPlayers;
-        slm.loadGame(filename, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *logger);
-
-        // Pindahkan raw pointer ke unique_ptr
-        players.clear();
-        for (Player* p : rawPlayers) {
-            players.push_back(std::unique_ptr<Player>(p));
-        }
-
-        renderer->printInfo("Permainan berhasil dimuat. Melanjutkan giliran " + getCurrentPlayer()->getUsername() + "...");
-        logger->addLog("Permainan dimuat dari: " + filename);
-    } catch (const NimonspoliException& e) {
-        renderer->printError(e.what());
+    std::vector<Player*> rawPlayers;
+    slm.loadGame(fullPath, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
+    
+    // Pindahkan raw pointer ke unique_ptr
+    players.clear();
+    for (Player* p : rawPlayers) {
+        players.push_back(std::unique_ptr<Player>(p));
     }
+
+    logger->addLog("Permainan dimuat dari: " + filename);
 }
 
 // ===== DISPLAY =====
@@ -741,14 +752,6 @@ void Game::printBoard() {
 
 // Cetak akta
 void Game::printDeed(const std::string& tileCode) {
-    if (tileCode.empty()) {
-        std::cout << "Masukkan kode petak: ";
-        std::string input;
-        std::getline(std::cin, input);
-        printDeed(input);
-        return;
-    }
-
     for (int i = 0; i < board->getTileCount(); i++) {
         Tile* tile = board->getTile(i);
         if (tile && tile->getCode() == tileCode) {
@@ -756,15 +759,12 @@ void Game::printDeed(const std::string& tileCode) {
             RailroadTile* rr = dynamic_cast<RailroadTile*>(tile);
             UtilityTile* ut = dynamic_cast<UtilityTile*>(tile);
 
-            if (st) {
-                renderer->printDeed(*st);
-            } else if (rr) {
-                renderer->printDeed(*rr);
-            } else if (ut) {
-                renderer->printDeed(*ut);
-            } else {
-                renderer->printDeedNotFound(tileCode);
-            }
+            if (st) { renderer->printDeed(*st); return; }
+            if (rr) { renderer->printDeed(*rr); return; }
+            if (ut) { renderer->printDeed(*ut); return; }
+
+            renderer->printDeedNotFound(tileCode);
+            return;
         }
     }
     renderer->printDeedNotFound(tileCode);
@@ -789,43 +789,14 @@ void Game::printLog(int limit) {
     logger->printLog(limit);
 }
 
-void Game::printHelp() { 
-    std::cout << "=================================================================\n";
-    std::cout << "                 DAFTAR PERINTAH NIMONSPOLI                      \n";
-    std::cout << "=================================================================\n\n";
+// Menu bantuan
+void Game::printHelp() {
+    renderer->printHelp();
+}
 
-    std::cout << "[AKSI GILIRAN]\n";
-    std::cout << "  LEMPAR_DADU    : Melempar dadu untuk bergerak ke petak baru.\n";
-    std::cout << "  AKHIRI_GILIRAN : Mengakhiri giliranmu dan lanjut ke pemain berikutnya.\n\n";
-
-    std::cout << "[PROPERTI & BANGUNAN]\n";
-    std::cout << "  BANGUN <petak>     : Membangun rumah/hotel di properti milikmu.\n";
-
-    std::cout << "[MANAJEMEN ASET & LELANG]\n";
-    std::cout << "  GADAI <petak> : Menggadaikan properti untuk mendapatkan uang.\n";
-    std::cout << "  TEBUS <petak> : Menebus properti yang sedang digadaikan.\n";
-    std::cout << "  TAWAR <harga> : Mengajukan harga saat sesi lelang properti.\n";
-    std::cout << "  LEPAS         : Mundur dari sesi lelang saat ini.\n";
-
-    std::cout << "[PENJARA & KARTU]\n";
-    std::cout << "  GUNAKAN_KARTU_BEBAS         : Menggunakan kartu khusus untuk bebas.\n";
-    std::cout << "  GUNAKAN_KEMAMPUAN <index>   : Menggunakan kartu skill (kemampuan) yang dimiliki.\n\n";
-
-    std::cout << "[INFORMASI]\n";
-    std::cout << "  CETAK_STATUS   : Melihat info saldo, posisi, dan statusmu saat ini.\n";
-    std::cout << "  CETAK_PAPAN    : Menampilkan kondisi papan Nimonspoli saat ini.\n";
-    std::cout << "  CETAK_PROPERTI : Menampilkan daftar seluruh properti yang kamu miliki.\n";
-    std::cout << "  CETAK_AKTA <p> : Melihat detail harga, biaya sewa, dan status sebuah properti.\n";
-    std::cout << "  CETAK_LOG      : Melihat riwayat aksi yang sudah terjadi di dalam game.\n";
-    std::cout << "  BANTUAN        : Menampilkan menu daftar perintah ini.\n\n";
-
-    std::cout << "[SISTEM & CHEAT]\n";
-    std::cout << "  SIMPAN <file>   : Menyimpan progres permainan (contoh: SIMPAN game1.txt).\n";
-    std::cout << "  MUAT <file>     : Memuat progres permainan dari file penyimpanan.\n";
-    std::cout << "  ATUR_DADU <x> <y>: [Cheat] Mengatur angka dadu secara manual untuk testing.\n";
-    std::cout << "  QUIT            : Keluar dari aplikasi Nimonspoli sepenuhnya.\n\n";
-    
-    std::cout << "=================================================================\n";
+// Set renderer
+void Game::setRenderer(CLIRenderer* r) {
+    renderer = r;
 }
 
 // ===== FLOW GILIRAN =====
@@ -834,9 +805,15 @@ void Game::endTurn() {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
+    if (!player->hasRolledDiceThisTurn()) {
+        renderer->printError("Kamu harus melempar dadu dulu sebelum mengakhiri giliran!");
+        return;
+    }
+
     // Reset flag skill per turn
     player->resetTurnFlags();
     player->setShieldActive(false);
+    player->setDiscountPercent(0);
 
     // Tick festival untuk semua properti milik player
     for (auto* prop : player->getOwnedProperties()) {
@@ -847,8 +824,7 @@ void Game::endTurn() {
     }
 
     // Kalau double, giliran tambahan
-    if (dice->isDouble() && player->getStatus() != "JAILED"
-        && player->getConsecutiveDoublesDice() > 0) {
+    if (dice->isDouble() && player->getStatus() != "JAILED" && player->getConsecutiveDoublesDice() > 0) {
         renderer->printInfo("Kamu mendapat double! Giliran tambahan.");
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DOUBLE | Giliran tambahan.");
         return;
@@ -959,7 +935,7 @@ void Game::declareBankruptcy() {
                 renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
             }
             renderer->printInfo("0. Selesai");
-            std::cout << "Pilih aksi: ";
+            renderer->printInfo("Pilih aksi: ");
             std::string input;
             std::getline(std::cin, input);
             try {
@@ -1004,6 +980,8 @@ void Game::processTileLanding(Player& player, int tileIndex) {
     Tile* tile = board->getTile(tileIndex);
     if (!tile) return;
 
+    renderer->printInfo("Bidak mendarat di: " + tile->getName() + " (" + tile->getCode() + ").");
+
     StreetTile* street = dynamic_cast<StreetTile*>(tile);
     if (street) { handleStreetLanding(player, *street); return; }
 
@@ -1031,16 +1009,15 @@ void Game::handleStreetLanding(Player& player, StreetTile& tile) {
         renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + ")!");
         renderer->printDeed(tile);
         renderer->printInfo("Uang kamu saat ini: M" + std::to_string(player.getCash()));
-        std::cout << "Apakah kamu ingin membeli properti ini seharga M" << tile.getPrice() << "? (y/n): ";
+        renderer->printInfo("Apakah kamu ingin membeli properti ini seharga M" + std::to_string(tile.getPrice()) + "? (y/n): ");
 
         std::string input;
-        std::cout << "Apakah kamu ingin membeli properti ini seharga M" << tile.getPrice() << "? (y/n): ";
         while (true) {
             std::getline(std::cin, input);
             if (input == "y" || input == "Y" || input == "n" || input == "N") {
                 break;
             } else {
-                std::cout << "Input tidak valid. Masukkan y atau n: ";
+                renderer->printInfo("Input tidak valid. Masukkan y atau n: ");
             }
         }
 
@@ -1189,15 +1166,7 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
                     renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
                 }
                 renderer->printInfo("0. Selesai");
-                std::cout << "Pilih aksi: ";
-                std::string input;
-                std::getline(std::cin, input);
-                try {
-                    int choice = std::stoi(input) - 1;
-                    return choice;
-                } catch (...) {
-                    return -1;
-                }
+                return renderer->promptChoice();
             });
     }
 }
@@ -1217,22 +1186,7 @@ void Game::drawSkillCard(Player& player) {
         renderer->printInfo("Kamu diwajibkan membuang 1 kartu.");
 
         auto names = player.getSkillCardNames();
-        renderer->printInfo("Daftar Kartu Kemampuan Anda:");
-        for (int i = 0; i < (int)names.size(); i++) {
-            renderer->printInfo(std::to_string(i + 1) + ". " + names[i]);
-        }
-
-        int dropIndex = -1;
-        while (dropIndex < 0 || dropIndex >= (int)names.size()) {
-            std::cout << "Pilih nomor kartu yang ingin dibuang (1-" << names.size() << "): ";
-            std::string input;
-            std::getline(std::cin, input);
-            try {
-                dropIndex = std::stoi(input) - 1;
-            } catch (...) {
-                dropIndex = -1;
-            }
-        }
+        int dropIndex = renderer->promptDropCard(names);
 
         SkillCard* discarded = player.getOwnedSkillCards()[dropIndex];
         skillCardDeck->discard(discarded);
@@ -1242,7 +1196,7 @@ void Game::drawSkillCard(Player& player) {
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DROP_KARTU | " + names[dropIndex]);
     } else {
         player.addCard(card);
-        renderer->printInfo("Kamu mendapatkan kartu: " + card->getName());
+        renderer->printInfo("Pemain " + player.getUsername() + "! Kamu mendapatkan kartu: " + card->getName());
     }
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DAPAT_KARTU | " + card->getName());

@@ -138,32 +138,6 @@ void Player::addProperty(PropertyTile *prop)
     ownedProperties.push_back(prop);
 }
 
-// Helper
-void Player::useSkillCard(int index, Game& game)
-{
-    if (hasUsedSkillThisTurnVal)
-    {
-        throw NimonspoliException("[useSkillCard] Pemain sudah menggunakan skill");
-    }
-
-    if (index < 0 || index >= static_cast<int>(ownedSkillCards.size()))
-    {
-        throw NimonspoliException("[useSkillCard] Index Kartu Skill tidak valid");
-    }
-
-    if (ownedSkillCards[index] == nullptr)
-    {
-        throw NimonspoliException("[useSkillCard] Index Kartu tidak valid");
-    }
-
-    // Use
-    ownedSkillCards[index]->use(*this, game);
-
-    // Remove
-    removeCard(index);
-    hasUsedSkillThisTurnVal = true;
-}
-
 void Player::buyProperty(PropertyTile *property, Game &game)
 {
     if (property == nullptr)
@@ -306,6 +280,15 @@ void Player::releaseFromJail()
 void Player::resetTurnFlags()
 {
     hasUsedSkillThisTurnVal = false;
+    hasRolledDice = false;
+}
+
+bool Player::hasRolledDiceThisTurn() const { 
+    return hasRolledDice; 
+}
+
+void Player::setRolledDiceThisTurn(bool status) { 
+    hasRolledDice = status; 
 }
 
 void Player::removeProperty(PropertyTile* prop) {
@@ -368,12 +351,18 @@ void Player::setShieldActive(bool active)
 {
     shieldActive = active;
 }
+void Player::activateShield() {
+    shieldActive = true;
+}
 int Player::getDiscountPercent() const
 {
     return discountPercent;
 }
 void Player::setDiscountPercent(int percent)
 {
+    discountPercent = percent;
+}
+void Player::activateDiscount(int percent) {
     discountPercent = percent;
 }
 int Player::getJailTurns() const
@@ -392,12 +381,19 @@ bool Player::hasUsedSkillThisTurn() const
 {
     return hasUsedSkillThisTurnVal;
 }
+void Player::setUsedSkillThisTurn(bool val) {
+    hasUsedSkillThisTurnVal = val;
+}
 const std::vector<PropertyTile *> &Player::getOwnedProperties() const
 {
     return ownedProperties;
 }
 const std::vector<SkillCard *> &Player::getOwnedSkillCards() const
 {
+    return ownedSkillCards;
+}
+
+const std::vector<SkillCard*>& Player::getSkillCards() const {
     return ownedSkillCards;
 }
 
