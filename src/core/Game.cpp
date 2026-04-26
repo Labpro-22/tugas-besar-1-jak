@@ -358,7 +358,7 @@ void Game::placeBid(int amount) {
 
     try {
         auctionManager->processBid(player, amount);
-        renderer->printInfo("Penawaran tertinggi: M" + std::to_string(auctionManager->getWinningBid()) + " (" + player->getUsername() + ")");
+        renderer->printInfo("Penawaran tertinggi: M" + std::to_string(auctionManager->getCurrentHighBid()) + " (" + player->getUsername() + ")");
 
         if (auctionManager->isFinished()) {
             isAuctionActive = false;
@@ -849,6 +849,7 @@ void Game::endTurn() {
 
 // Giliran berikutnya
 void Game::nextTurn() {
+    renderer->printInfo("DEBUG: nextTurn dipanggil untuk " + getCurrentPlayer()->getUsername());
     // Reset consecutive doubles
     Player* current = getCurrentPlayer();
     if (current) current->setConsecutiveDoublesDice(0);
@@ -1206,17 +1207,8 @@ void Game::drawSkillCard(Player& player) {
         renderer->printInfo("Kamu diwajibkan membuang 1 kartu.");
 
         auto names = player.getSkillCardNames();
-        renderer->printInfo("DEBUG: jumlah kartu = " + std::to_string(names.size()));
         int dropIndex = renderer->promptDropCard(names);
-        renderer->printInfo("DEBUG: dropIndex = " + std::to_string(dropIndex));
         player.removeCard(dropIndex);
-
-        player.removeCard(dropIndex);
-
-        player.removeCard(dropIndex);
-        renderer->printInfo("DEBUG: removeCard selesai");
-        renderer->printInfo(names[dropIndex] + " telah dibuang.");
-
         renderer->printInfo(names[dropIndex] + " telah dibuang.");
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DROP_KARTU | " + names[dropIndex]);
     } else {

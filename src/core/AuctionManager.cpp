@@ -115,6 +115,10 @@ bool AuctionManager::isFinished() const {
     return finished;
 }
 
+int AuctionManager::getCurrentHighBid() const {
+    return currentHighBid;
+}
+
 Player* AuctionManager::getWinner() const {
     return finished ? currentHighBidder : nullptr;
 }

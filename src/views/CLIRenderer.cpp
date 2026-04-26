@@ -363,7 +363,14 @@ void CLIRenderer::printDeed(const StreetTile& tile) const {
     std::cout << c << "+==================================+" << RESET << "\n";
     std::cout << c << "|" << RESET << BOLD << "         AKTA KEPEMILIKAN         " << RESET << c << "|\n";
     
-    std::cout << c << "| " << RESET << c << "[" << colorGroup << "] " << tile.getName() << " (" << tile.getCode() << ")" << RESET << std::string(32 - visibleLength("[" + colorGroup + "] " + tile.getName() + " (" + tile.getCode() + ")"), ' ') << c << " |\n";
+    std::string header = "[" + colorGroup + "] " + tile.getName() + " (" + tile.getCode() + ")";
+    int padding = 32 - (int)visibleLength(header);
+    if (padding < 0) {
+        // Truncate header
+        header = header.substr(0, 29) + "...";
+        padding = 0;
+    }
+    std::cout << c << "| " << RESET << c << header << RESET << std::string(padding, ' ') << c << " |\n";
 
     std::cout << c << "| " << RESET << "Kode: " << std::left << std::setw(27) << tile.getCode() << c << "|\n";
     std::cout << c << "+==================================+" << RESET << "\n";

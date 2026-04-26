@@ -29,6 +29,7 @@ public:
     void processBid(Player* bidder, int amount);
     void processPass(Player* passer);
     bool isFinished() const;
+    int getCurrentHighBid() const;
     Player* getWinner() const;
     int getWinningBid() const;
     PropertyTile* getTargetProperty() const;
