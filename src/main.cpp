@@ -86,10 +86,5 @@ int main() {
 
     std::cout << "\nKetik BANTUAN untuk melihat daftar perintah.\n\n";
     handler.listen();
-
-    std::cout << "\n=======================================\n";
-    std::cout << "   PERMAINAN SELESAI. SAMPAI JUMPA!   \n";
-    std::cout << "=======================================\n";
-
     return 0;
 }
