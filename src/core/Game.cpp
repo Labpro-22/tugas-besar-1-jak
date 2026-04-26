@@ -231,9 +231,24 @@ void Game::setDice(int x, int y) {
         return;
     }
 
+    if (player->isJailed()) {
+        dice->setDice(x, y);
+        int result = dice->getTotal();
+        player->setRolledDiceThisTurn(true);
+
+        if (dice->isDouble()) {
+            player->releaseFromJail();
+            renderer->printInfo("Kamu mendapat double! Keluar dari penjara.");
+            movePlayer(*player, result);
+        } else {
+            renderer->printInfo("Kamu tidak mendapat double. Tetap di penjara.");
+            // Tidak bergerak, hanya menghabiskan giliran
+        }
+        return;
+    }
+
     dice->setDice(x, y);
     int result = dice->getTotal();
-
     player->setRolledDiceThisTurn(true);
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Diatur manual: " + std::to_string(x) + "+" + std::to_string(y) + "=" + std::to_string(result));
