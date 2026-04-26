@@ -88,6 +88,8 @@ private:
     void handleTaxLanding(Player& player, TaxTile& tile);
     void handleFestivalLanding(Player& player);
     void handleCardLanding(Player& player, CardTile& tile);
+    void handleGoLanding(Player& player);
+    void handleGoToJailLanding(Player& player);
 
     void handleGameEnd();
 public:

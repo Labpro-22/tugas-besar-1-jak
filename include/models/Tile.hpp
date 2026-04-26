@@ -35,7 +35,7 @@ class Tile {
         // destructor
         virtual ~Tile() = default;
         // dipanggil saat player mendarat
-        virtual void onLanded(Player& player, Game& game) = 0;
+        virtual void onLanded(Player& player, Game& game) {};
         // mendapatkan kode warna untuk tampilan board
         virtual std::string getDisplayColor();
         // getter atribut code

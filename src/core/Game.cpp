@@ -1024,6 +1024,12 @@ void Game::processTileLanding(Player& player, int tileIndex) {
 
     CardTile* cardTile = dynamic_cast<CardTile*>(tile);
     if (cardTile) { handleCardLanding(player, *cardTile); return; }
+
+    GoToJailTile* goToJail = dynamic_cast<GoToJailTile*>(tile);
+    if (goToJail) { handleGoToJailLanding(player); return; }
+
+    // Sisanya
+    tile->onLanded(player, *this);
 }
 
 // processTileLanding versi public (kayak getter)
@@ -1328,6 +1334,26 @@ void Game::handleCardLanding(Player& player, CardTile& tile) {
     }
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | KARTU | " + card->getDescription());
+}
+
+// Go tile
+void Game::handleGoLanding(Player& player) {
+    player += goSalary;
+    renderer->printInfo("Kamu mendarat tepat di GO! Dapat M" + std::to_string(goSalary) + ".");
+    renderer->printInfo("Uang kamu sekarang: M" + std::to_string(player.getCash()));
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | GO | Mendarat di GO, dapat M" + std::to_string(goSalary));
+}
+
+// Go to jail tile
+void Game::handleGoToJailLanding(Player& player) {
+    if (player.isShieldActive()) {
+        renderer->printInfo("[SHIELD ACTIVE] Kamu terlindungi dari masuk penjara!");
+        return;
+    }
+    player.goToJail();
+    renderer->printInfo("Kamu mendarat di Petak Pergi ke Penjara!");
+    renderer->printInfo("Bidak dipindahkan ke Penjara. Kamu ditahan!");
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | PENJARA | Masuk penjara via PPJ");
 }
 
 // Helper buat trigger sewa
