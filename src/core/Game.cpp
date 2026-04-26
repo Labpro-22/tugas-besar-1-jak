@@ -440,6 +440,7 @@ void Game::buildOnProperty(const std::string& tileCode) {
 
     if (eligibleGroups.empty()) {
         renderer->printError("Tidak ada color group yang memenuhi syarat untuk dibangun.");
+        renderer->printError("Kamu harus memiliki seluruh petak dalam satu color group terlebih dahulu.");
         return;
     }
 
@@ -1044,6 +1045,7 @@ void Game::endTurn() {
     // Reset flag skill per turn
     player->resetTurnFlags();
     player->setShieldActive(false);
+    player->setDiscountPercent(0);
 
     // Tick festival untuk semua properti milik player
     for (auto* prop : player->getOwnedProperties()) {

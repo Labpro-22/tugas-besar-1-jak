@@ -381,7 +381,7 @@ void CLIRenderer::printDeed(const UtilityTile& tile) const {
 
 // ===== printDeeedNotFound =====
 void CLIRenderer::printDeedNotFound(const std::string& tileCode) const {
-    std::cout << "Petak \"" << tileCode << "\" tidak ditemukan atau bukan properti.\n";
+    std::cout << COLOR_KUNING << "Petak \"" << tileCode << "\" tidak ditemukan atau bukan properti." << RESET << "\n";
 }
 
 // ===== printPropertyInventory =====
@@ -448,7 +448,7 @@ void CLIRenderer::printPlayerStatus(const Player& player, const Board& board) co
     Tile* currentTile = board.getTile(player.getPosition());
     std::string tileName = currentTile ? currentTile->getCode() : "???";
 
-    std::cout << "\n--- Status Pemain ---\n";
+    std::cout << "\n" << BOLD << "--- Status Pemain ---" << RESET << "\n";
     std::cout << "Nama   : " << player.getUsername() << "\n";
     std::cout << "Saldo  : M" << player.getCash() << "\n";
     std::cout << "Posisi : " << tileName << " (indeks " << player.getPosition() << ")\n";
@@ -459,10 +459,10 @@ void CLIRenderer::printPlayerStatus(const Player& player, const Board& board) co
         std::cout << "Sisa giliran penjara: " << player.getJailTurns() << "\n";
     }
     if (player.isShieldActive()) {
-        std::cout << "Shield: AKTIF\n";
+        std::cout << COLOR_BIRU_MUDA << "Shield: AKTIF" << RESET << "\n";
     }
     if (player.getDiscountPercent() > 0) {
-        std::cout << "Diskon sewa: " << player.getDiscountPercent() << "%\n";
+        std::cout << COLOR_HIJAU << "Diskon sewa: " << player.getDiscountPercent() << "%" << RESET << "\n";
     }
 
     // Kartu skill
@@ -478,10 +478,10 @@ void CLIRenderer::printPlayerStatus(const Player& player, const Board& board) co
 
 // ===== printMainMenu =====
 void CLIRenderer::printMainMenu() const {
-    std::cout << "\n";
+    std::cout << "\n" << BOLD;
     std::cout << "================================\n";
     std::cout << "||        NIMONSPOLI         ||\n";
-    std::cout << "================================\n";
+    std::cout << "================================\n"<< RESET;
     std::cout << "1. New Game\n";
     std::cout << "2. Load Game\n";
     std::cout << "Pilihan: ";
@@ -489,7 +489,7 @@ void CLIRenderer::printMainMenu() const {
 
 // ===== printTurnHeader =====
 void CLIRenderer::printTurnHeader(const Player& player, int turn, int maxTurn) const {
-    std::cout << "\n--- Turn " << turn << "/" << maxTurn << " | Giliran: " << player.getUsername() << " | Saldo: M" << player.getCash() << " ---\n";
+        std::cout << "\n" << BOLD << "--- Turn " << turn << "/" << maxTurn  << " | Giliran: " << player.getUsername()  << " | Saldo: M" << player.getCash() << " ---" << RESET << "\n";
 }
 
 // ===== printPrompt =====
@@ -499,7 +499,7 @@ void CLIRenderer::printPrompt() const {
 
 // ===== printError =====
 void CLIRenderer::printError(const std::string& message) const {
-    std::cerr << "[Error] " << message << "\n";
+    std::cerr << COLOR_MERAH << "[Error] " << message << RESET << "\n";
 }
 
 // ===== printInfo =====
@@ -509,16 +509,16 @@ void CLIRenderer::printInfo(const std::string& message) const {
 
 // ===== printSuccess =====
 void CLIRenderer::printSuccess(const std::string& message) const {
-    std::cout << "[OK] " << message << "\n";
+    std::cout << COLOR_HIJAU << message << RESET << "\n";
 }
 
 // ===== printWinner =====
 void CLIRenderer::printWinner(const Player& winner, int turn) const {
-    std::cout << "\n";
+    std::cout << "\n" << BOLD << COLOR_HIJAU;
     std::cout << "================================\n";
     std::cout << "         PERMAINAN SELESAI!     \n";
-    std::cout << "================================\n";
-    std::cout << "PEMENANG: " << winner.getUsername() << "\n";
+    std::cout << "================================\n" << RESET;
+    std::cout << "PEMENANG: " << winner.getUsername() << RESET << "\n";
     std::cout << "Kekayaan Total: M" << winner.getTotalWealth() << "\n";
     std::cout << "Diselesaikan pada Turn: " << turn << "\n";
     std::cout << "================================\n\n";
