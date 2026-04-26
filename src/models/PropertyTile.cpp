@@ -35,6 +35,7 @@ void PropertyTile::changeOwner(Player *newOwner)
 int PropertyTile::getMortgageValue() const {
     return mortgageValue;
 }
+
 PropertyStatus PropertyTile::getStatus() const {
     return status;
 }
@@ -154,6 +155,10 @@ void StreetTile::resetBuildings() {
     buildingLevel = 0;
 }
 
+std::string StreetTile::getDisplayColor() {
+    return colorGroup; 
+}
+
 // RailroadTile
 
 RailroadTile::RailroadTile(int idx, std::string cd, std::string nm, int bp, int mv, std::map<int, int> rt) 
@@ -208,4 +213,8 @@ void UtilityTile::onLanded(Player& player, Game& game) {
             player.payRent(calculateRent(0), *owner);
         }
     }
+}
+
+std::string UtilityTile::getDisplayColor() {
+    return "ABU_ABU";
 }

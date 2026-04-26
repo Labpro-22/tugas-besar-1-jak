@@ -66,9 +66,9 @@ class StreetTile : public PropertyTile {
         void setFestivalMultiplier(int mult);
         void setFestivalDuration(int dur);
         void setBuildingLevel(int level);
-
+        
         // getter atribut
-
+        
         std::string getColorGroup() const;
         const std::vector<int> getRents() const;
         int getHouseCost() const;
@@ -78,7 +78,8 @@ class StreetTile : public PropertyTile {
         int getFestivalDuration() const;
         int getBuildingSaleValue() const;
         void resetBuildings();
-};
+        std::string getDisplayColor() override;
+    };
 
 // Merepresentasikan petak properti berupa stasiun
 class RailroadTile : public PropertyTile {
@@ -108,4 +109,5 @@ class UtilityTile : public PropertyTile {
         // dipanggil saat pemain mendarat, lengsung membberikan kepemilikan jika belum ada pemilik
         void onLanded(Player& player, Game& game) override;
         const std::map<int, int>& getMultiplierTable() const;
+        std::string getDisplayColor() override;
 };
