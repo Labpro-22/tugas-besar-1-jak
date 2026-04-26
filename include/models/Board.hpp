@@ -19,7 +19,6 @@ public:
 
     // inisialisasi
     void initializeBoard(const std::string &configFile);
-    void setDynamicBoard(bool enabled, int numTiles = 40);
 
     // Tile
     Tile *getTile(int index) const;

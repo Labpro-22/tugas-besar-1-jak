@@ -42,13 +42,13 @@ Player &Player::operator-=(int amount)
 {
     if (amount < 0)
     {
-        throw NimonspoliException("[Operator-=] Tidak boleh menggunakan jumlah negatif");
+        throw NimonspoliException("Tidak boleh menggunakan jumlah negatif");
     }
     if (cash - amount < 0)
     {
-        throw NimonspoliException("[Operator-=] Uang tidak cukup untuk melakukan transaksi");
+        throw NimonspoliException("Uang tidak cukup untuk melakukan transaksi");
     }
-    cash -= amount;
+    cash -= amount; 
     return *this;
 }
 
@@ -142,18 +142,18 @@ void Player::buyProperty(PropertyTile *property, Game &game)
 {
     if (property == nullptr)
     {
-        throw NimonspoliException("[buyProperty] Properti kosong tidak boleh dibeli");
+        throw NimonspoliException("Properti kosong tidak boleh dibeli");
     }
 
     if (property->getOwner() != nullptr)
     {
-        throw NimonspoliException("[buyProperty] Properti sudah dimiliki");
+        throw NimonspoliException("Properti sudah dimiliki");
     }
 
     int price = property->getPrice();
     if (cash < price)
     {
-        throw NimonspoliException("[buyProperty] Uang tidak cukup untuk melakukan transaksi");
+        throw NimonspoliException("Uang tidak cukup untuk melakukan transaksi");
     }
 
     // Mengurangi saldo dan pemindahan kepemilikan

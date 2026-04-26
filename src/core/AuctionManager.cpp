@@ -46,7 +46,7 @@ void AuctionManager::startAuction(PropertyTile* property, Player* triggerPlayer,
 
 void AuctionManager::processBid(Player* bidder, int amount) {
     if (finished) throw InvalidActionException("Lelang sudah selesai.");
-    if (bidder != activeParticipants[currentIndex]) throw InvalidActionException("Bukan giliran Anda.");
+    if (bidder != activeParticipants[currentIndex]) throw InvalidActionException("Bukan giliran kamu.");
 
     if (bidder->getCash() <= currentHighBid) {
         processPass(bidder);
@@ -54,11 +54,12 @@ void AuctionManager::processBid(Player* bidder, int amount) {
     }
 
     if (amount <= currentHighBid) throw InvalidActionException("Tawaran harus lebih tinggi dari " + std::to_string(currentHighBid));
-    if (amount > bidder->getCash()) throw InsufficientFundsException("Uang tidak cukup. Anda hanya memiliki " + std::to_string(bidder->getCash()));
+    if (amount > bidder->getCash()) throw InsufficientFundsException("Uang tidak cukup. Kamu hanya memiliki " + std::to_string(bidder->getCash()));
 
     currentHighBid = amount;
     currentHighBidder = bidder;
     hasAnyBid = true;
+    consecutivePasses = 0;
     logEvent("BID", bidder->getUsername() + " menawar " + std::to_string(amount));
 
     advanceToNextParticipant();
@@ -66,13 +67,26 @@ void AuctionManager::processBid(Player* bidder, int amount) {
 
 void AuctionManager::processPass(Player* passer) {
     if (finished) throw InvalidActionException("Lelang sudah selesai.");
-    if (passer != activeParticipants[currentIndex]) throw InvalidActionException("Bukan giliran Anda.");
+    if (passer != activeParticipants[currentIndex]) throw InvalidActionException("Bukan giliran kamu.");
 
     logEvent("PASS", passer->getUsername() + " melewatkan giliran.");
 
     consecutivePasses++;
 
-    if (consecutivePasses >= (int)activeParticipants.size() - 1) {
+    // Kalau belum ada bid sama sekali dan semua pass, paksa pemain terakhir bid
+    if (!hasAnyBid && consecutivePasses >= (int)activeParticipants.size()) {
+        // Paksa pemain saat ini bid minimal 0
+        currentHighBid = 0;
+        currentHighBidder = activeParticipants[currentIndex];
+        hasAnyBid = true;
+        consecutivePasses = 0;
+        logEvent("FORCED_BID", activeParticipants[currentIndex]->getUsername() + " dipaksa bid M0");
+        advanceToNextParticipant();
+        return;
+    }
+
+    // Sudah ada bid dan cukup pass berturut-turut
+    if (hasAnyBid && consecutivePasses >= (int)activeParticipants.size() - 1) {
         endAuction();
         return;
     }
@@ -99,6 +113,10 @@ void AuctionManager::endAuction() {
 
 bool AuctionManager::isFinished() const {
     return finished;
+}
+
+int AuctionManager::getCurrentHighBid() const {
+    return currentHighBid;
 }
 
 Player* AuctionManager::getWinner() const {

@@ -11,12 +11,7 @@
 
 // BANGUN
 class BangunCommand : public Command {
-    private:
-    std::string tileCode;
-    
     public:
-    explicit BangunCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
-
     bool execute(IGameAction& game) override {
         Player* player = game.getCurrentPlayer();
         if (!player) return false;
@@ -77,6 +72,7 @@ class BangunCommand : public Command {
         }
 
         std::vector<StreetTile*> buildable;
+        int buildableIdx = 1;
         for (auto* prop : group) {
             StreetTile* st = dynamic_cast<StreetTile*>(prop);
             if (!st) continue;
@@ -86,10 +82,10 @@ class BangunCommand : public Command {
             // Syarat bisa dibangun: belum hotel DAN levelnya sama dengan level terendah di grupnya (pemerataan)
             if (st->getBuildingLevel() < 5 && st->getBuildingLevel() == minLevel) {
                 std::string status = (st->getBuildingLevel() == 4) ? " <- siap upgrade ke hotel" : " <- dapat dibangun";
-                std::cout << "   - " << st->getName() << " (" << st->getCode() << ") \t: " << level << status << "\n";
+                std::cout << "   " << buildableIdx++ << ". " << st->getName() << " (" << st->getCode() << ") \t: " << level << status << "\n";
                 buildable.push_back(st);
             } else {
-                std::string status = (st->getBuildingLevel() == 5) ? " <- sudah maksimal, tidak dapat dibangun" : "";
+                std::string status = (st->getBuildingLevel() == 5) ? " <- sudah maksimal" : "";
                 std::cout << "   - " << st->getName() << " (" << st->getCode() << ") \t: " << level << status << "\n";
             }
         }

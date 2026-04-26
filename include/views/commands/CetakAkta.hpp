@@ -8,6 +8,9 @@
 class CetakAktaCommand : public Command {
     public:
     bool execute(IGameAction& game) override {
+        // Tampilin daftar propertinya
+        game.printPropertyInventory();
+        
         // Dari sini yang minta input
         std::cout << "Masukkan kode petak: ";
         std::string tileCode;
