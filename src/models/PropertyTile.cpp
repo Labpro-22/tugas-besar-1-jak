@@ -88,11 +88,30 @@ void StreetTile::sell() {
 }
 
 bool StreetTile::isMonopolized() {
-    return false; 
+    if (!owner) return false;
+    int ownedInGroup = 0;
+    for (auto* prop : owner->getOwnedProperties()) {
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        if (st && st->getColorGroup() == colorGroup) ownedInGroup++;
+    }
+    int groupSize = (colorGroup == "COKLAT" || colorGroup == "BIRU_TUA") ? 2 : 3;
+    return ownedInGroup == groupSize;
 }
 
 bool StreetTile::canBuild() {
-    return false;
+    if (!isMonopolized()) return false;
+    if (buildingLevel >= 5) return false;
+    if (isMortgaged()) return false;
+    
+    // Cek pemerataan
+    if (!owner) return false;
+    for (auto* prop : owner->getOwnedProperties()) {
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        if (st && st != this && st->getColorGroup() == colorGroup) {
+            if (st->getBuildingLevel() < buildingLevel) return false;
+        }
+    }
+    return true;
 }
 
 void StreetTile::applyFestival() {
@@ -163,11 +182,14 @@ RailroadTile::RailroadTile(int idx, std::string cd, std::string nm, int bp, int 
     : PropertyTile(idx, cd, nm, bp, mv), rentTable(rt) {}
 
 int RailroadTile::calculateRent(int diceTotal) {
-    if (status == PropertyStatus::OWNED) {
-        int railloadCount = 0; 
-        return rentTable[railloadCount];
+    if (status != PropertyStatus::OWNED || !owner) return 0;
+    
+    int count = 0;
+    // Hitung railroad milik owner yang sama
+    for (auto* prop : owner->getOwnedProperties()) {
+        if (dynamic_cast<RailroadTile*>(prop)) count++;
     }
-    return 0;
+    return rentTable.count(count) ? rentTable[count] : 0;
 }
 
 const std::map<int, int>& RailroadTile::getRentTable() const {
@@ -191,11 +213,13 @@ UtilityTile::UtilityTile(int idx, std::string cd, std::string nm, int bp, int mv
     : PropertyTile(idx, cd, nm, bp, mv), multiplierTable(mt) {}
 
 int UtilityTile::calculateRent(int diceTotal) {
-    if (status == PropertyStatus::OWNED) {
-        int utilityCount = 0; 
-        return multiplierTable[utilityCount] * diceTotal;
+    if (status != PropertyStatus::OWNED || !owner) return 0;
+    
+    int count = 0;
+    for (auto* prop : owner->getOwnedProperties()) {
+        if (dynamic_cast<UtilityTile*>(prop)) count++;
     }
-    return 0;
+    return multiplierTable.count(count) ? multiplierTable[count] * diceTotal : 0;
 }
 
 const std::map<int, int>& UtilityTile::getMultiplierTable() const {
