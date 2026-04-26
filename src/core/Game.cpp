@@ -169,15 +169,10 @@ void Game::rollDice() {
         return;
     }
 
-    // Handle jail turn
-    if (player->isJailed()) {
-        int turnsLeft = player->getJailTurns();
-
-        // Giliran ke-4 — wajib bayar denda dulu
-        if (turnsLeft == 0) {
-            renderer->printError("Kamu wajib keluar penjara! Gunakan BAYAR_DENDA atau GUNAKAN_KARTU_BEBAS.");
-            return;
-        }
+    // Cek giliran ke-4 setelah masuk penjara
+    if (player->isJailed() && player->getJailTurns() == 0) {
+        renderer->printError("Kamu wajib keluar penjara! Gunakan BAYAR_DENDA atau GUNAKAN_KARTU_BEBAS.");
+        return;
     }
 
     int result = dice->roll();
@@ -189,6 +184,20 @@ void Game::rollDice() {
     renderer->printInfo("Mengocok dadu...");
     renderer->printInfo("Hasil: " + std::to_string(d1) + " + " + std::to_string(d2) + " = " + std::to_string(result));
     renderer->printInfo("Memajukan bidak " + player->getUsername() + " sebanyak " + std::to_string(result) + " petak...");
+
+    // Handle jail turn
+    if (player->isJailed()) {
+        if (dice->isDouble()) {
+            player->releaseFromJail();
+            renderer->printInfo("Kamu mendapat double! Keluar dari penjara.");
+            movePlayer(*player, result);
+        } else {
+            renderer->printInfo("Kamu tidak mendapat double. Tetap di penjara.");
+            player->setRolledDiceThisTurn(true);
+        }
+        return;
+    }
+
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Lempar: " + std::to_string(d1) + "+" + std::to_string(d2) + "=" + std::to_string(result));
 
