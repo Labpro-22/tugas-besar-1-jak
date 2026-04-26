@@ -111,8 +111,6 @@ void StreetTile::tickFestival() {
     }
 }
 
-void StreetTile::printDeed() {}
-
 void StreetTile::setFestivalMultiplier(int mult) { 
     festivalMultiplier = mult; 
 }

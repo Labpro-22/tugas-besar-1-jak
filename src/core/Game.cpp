@@ -946,11 +946,7 @@ void Game::printBoard() {
 }
 
 // Cetak akta
-void Game::printDeed() {
-    renderer->printInfo("Masukkan kode petak: ");
-    std::string tileCode;
-    std::getline(std::cin, tileCode);
-    
+void Game::printDeed(const std::string& tileCode) {
     for (int i = 0; i < board->getTileCount(); i++) {
         Tile* tile = board->getTile(i);
         if (tile && tile->getCode() == tileCode) {
@@ -958,19 +954,12 @@ void Game::printDeed() {
             RailroadTile* rr = dynamic_cast<RailroadTile*>(tile);
             UtilityTile* ut = dynamic_cast<UtilityTile*>(tile);
 
-            if (st) {
-                renderer->printDeed(*st);
-                return;
-            } else if (rr) {
-                renderer->printDeed(*rr);
-                return;
-            } else if (ut) {
-                renderer->printDeed(*ut);
-                return;
-            } else {
-                renderer->printDeedNotFound(tileCode);
-                return;
-            }
+            if (st) { renderer->printDeed(*st); return; }
+            if (rr) { renderer->printDeed(*rr); return; }
+            if (ut) { renderer->printDeed(*ut); return; }
+
+            renderer->printDeedNotFound(tileCode);
+            return;
         }
     }
     renderer->printDeedNotFound(tileCode);
@@ -996,6 +985,7 @@ void Game::printLog(int limit) {
 }
 
 void Game::printHelp() { 
+    renderer->printHelp();
     std::cout << "=================================================================\n";
     std::cout << "                 DAFTAR PERINTAH NIMONSPOLI                      \n";
     std::cout << "=================================================================\n\n";

@@ -75,6 +75,7 @@ class CLIRenderer {
     void printDeed(const RailroadTile& tile) const;
     void printDeed(const UtilityTile& tile) const;
     void printDeedNotFound(const std::string& tileCode) const;
+    
     // ===== CETAK_PROPERTI =====
     // Menampilkan semua properti milik pemain, dikelompokkan per warna
     void printPropertyInventory(const Player& player) const;
@@ -87,6 +88,7 @@ class CLIRenderer {
     void printMainMenu() const;
     void printTurnHeader(const Player& player, int turn, int maxTurn) const;
     void printPrompt() const;
+    void printHelp() const;
 
     // ===== Pesan Umum =====
     void printError(const std::string& message) const;

@@ -137,7 +137,7 @@ public:
 
     // Display
     void printBoard() override;
-    void printDeed() override;
+    void printDeed(const std::string& tileCode) override;
     void printPropertyInventory() override;
     void printPlayerStatus() override;
     void printLog(int limit) override;

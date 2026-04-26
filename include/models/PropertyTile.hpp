@@ -60,8 +60,6 @@ class StreetTile : public PropertyTile {
         void applyFestival();
         // mengurangi durasi festival tiap giliran
         void tickFestival();
-        // cetak akta kepemilikan, menggunakan CLI renderer
-        void printDeed();
         // buat saveload
         void setFestivalMultiplier(int mult);
         void setFestivalDuration(int dur);

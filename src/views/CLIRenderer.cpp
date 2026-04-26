@@ -579,6 +579,45 @@ void CLIRenderer::printPrompt() const {
     std::cout << COLOR_MERAH_MUDA << BOLD << "🌸 > " << RESET;
 }
 
+// ===== printHelp =====
+void CLIRenderer::printHelp() const { 
+    std::cout << "\n" << COLOR_BIRU_MUDA << BOLD << "=================================================================\n";
+    std::cout << "                   📜 DAFTAR PERINTAH NIMONSPOLI                 \n";
+    std::cout << "=================================================================\n\n" << RESET;
+
+    std::cout << COLOR_KUNING << BOLD << "[ 🎲 AKSI GILIRAN ]\n" << RESET;
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "LEMPAR_DADU" << RESET << ": Melempar dadu untuk bergerak ke petak baru.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "ATUR_DADU <x> <y>" << RESET << ": [Cheat] Mengatur angka dadu secara manual.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "AKHIRI_GILIRAN" << RESET << ": Mengakhiri giliranmu & lanjut ke pemain berikutnya.\n\n";
+
+    std::cout << COLOR_KUNING << BOLD << "[ 🏘️ PROPERTI & BANGUNAN ]\n" << RESET;
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "BANGUN <petak>" << RESET << ": Membangun rumah/hotel di properti milikmu.\n\n";
+
+    std::cout << COLOR_KUNING << BOLD << "[ ⚖️ MANAJEMEN ASET & LELANG ]\n" << RESET;
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "GADAI <petak>" << RESET << ": Menggadaikan properti untuk mendapatkan uang.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "TEBUS <petak>" << RESET << ": Menebus properti yang sedang digadaikan.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "TAWAR <harga>" << RESET << ": Mengajukan harga saat sesi lelang properti.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "LEPAS" << RESET << ": Mundur dari sesi lelang saat ini.\n\n";
+
+    std::cout << COLOR_KUNING << BOLD << "[ 🃏 PENJARA & KARTU ]\n" << RESET;
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "GUNAKAN_KARTU_BEBAS" << RESET << ": Menggunakan kartu khusus untuk bebas.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "GUNAKAN_KEMAMPUAN <i>" << RESET << ": Menggunakan kartu skill (kemampuan) yang dimiliki.\n\n";
+
+    std::cout << COLOR_KUNING << BOLD << "[ 📊 INFORMASI ]\n" << RESET;
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "CETAK_STATUS" << RESET << ": Melihat info saldo, posisi, dan statusmu saat ini.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "CETAK_PAPAN" << RESET << ": Menampilkan kondisi papan Nimonspoli saat ini.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "CETAK_PROPERTI" << RESET << ": Menampilkan daftar seluruh properti yang kamu miliki.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "CETAK_AKTA <petak>" << RESET << ": Melihat detail harga, sewa, & status properti.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "CETAK_LOG" << RESET << ": Melihat riwayat aksi yang sudah terjadi di dalam game.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "BANTUAN" << RESET << ": Menampilkan menu daftar perintah ini.\n\n";
+
+    std::cout << COLOR_KUNING << BOLD << "[ 💾 SISTEM ]\n" << RESET;
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "SIMPAN <file>" << RESET << ": Menyimpan progres permainan.\n";
+    std::cout << "  " << COLOR_BIRU_MUDA << std::left << std::setw(25) << "QUIT" << RESET << ": Keluar dari aplikasi Nimonspoli sepenuhnya.\n\n";
+    
+    std::cout << COLOR_BIRU_MUDA << BOLD << "=================================================================\n" << RESET;
+}
+
 // ===== printError =====
 void CLIRenderer::printError(const std::string& message) const {
     std::cerr << COLOR_MERAH << BOLD << "🚨 [ERROR] " << RESET << COLOR_MERAH << message << RESET << "\n";
