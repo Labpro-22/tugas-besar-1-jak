@@ -875,9 +875,15 @@ void Game::nextTurn() {
         attempts++;
     }
 
-    // Bagi kartu skill di awal giliran
+    // Serve jail turn buat pemain berikutnya
     Player* next = getCurrentPlayer();
+    if (next && next->isJailed()) {
+        next->serveJailTurn();
+    }
+
+    // Bagi kartu skill di awal giliran
     if (next) {
+        std::cout << "\n";
         drawSkillCard(*next);
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + next->getUsername() + " | GILIRAN | Giliran dimulai.");
     }
