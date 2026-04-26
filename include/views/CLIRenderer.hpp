@@ -67,7 +67,7 @@ class CLIRenderer {
 
     // ===== CETAK_PAPAN =====
     void renderBoard(const Board& board, const std::vector<Player*>& players, int currentTurn, int maxTurn, int currentPlayerIndex) const;
-
+    
     // ===== CETAK_AKTA =====
     // Menampilkan akta kepemilikan sebuah properti street
     // Jika tile bukan properti atau tidak ditemukan, tampilkan pesan error
@@ -79,24 +79,31 @@ class CLIRenderer {
     // ===== CETAK_PROPERTI =====
     // Menampilkan semua properti milik pemain, dikelompokkan per warna
     void printPropertyInventory(const Player& player) const;
-
+    
     // ===== CETAK_STATUS =====
     // Menampilkan status pemain saat ini (saldo, posisi, status)
     void printPlayerStatus(const Player& player, const Board& board) const;
-
+    
     // ===== Menu dan Header =====
     void printMainMenu() const;
     void printTurnHeader(const Player& player, int turn, int maxTurn) const;
     void printPrompt() const;
     void printHelp() const;
-
+    
     // ===== Pesan Umum =====
     void printError(const std::string& message) const;
     void printInfo(const std::string& message) const;
     void printSuccess(const std::string& message) const;
     void printWinner(const Player& winner, int turn) const;
-
+    
     // ===== Helper Warna =====
     static std::string getColorCode(const std::string& colorGroup);
     static std::string getColorTag(const std::string& colorGroup);
+
+    // Prompt
+    int promptDropCard(const std::vector<std::string>& cardNames) const;
+    int promptChoice() const;
+    std::string promptTileCode() const;
+    int promptPropertyChoice(const std::vector<PropertyTile*>& props) const;
+    bool promptYesNo(const std::string& question) const;
 };

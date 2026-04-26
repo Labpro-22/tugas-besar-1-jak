@@ -112,32 +112,6 @@ void Game::initializeConfig() {
     if (tax.count("PBM_FLAT")) pbmFlat = tax["PBM_FLAT"];
 }
 
-// Inisialisasi dari save
-void Game::initializeFromSave(const std::string& saveFile) {
-    board = std::make_unique<Board>();
-    board->initializeBoard("config/");
-    dice = std::make_unique<Dice>();
-    logger = std::make_unique<TransactionLogger>();
-    bankruptcyManager = std::make_unique<BankruptcyManager>();
-    auctionManager = std::make_unique<AuctionManager>(this);
-
-    initializeDecks();
-    initializeConfig();
-
-    // Load state dari file
-    SaveLoadManager slm;
-    std::vector<Player*> rawPlayers;
-    slm.loadGame(saveFile, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
-
-    players.clear();
-    for (Player* p : rawPlayers) {
-        players.push_back(std::unique_ptr<Player>(p));
-    }
-
-    gameActive = true;
-    logger->addLog("Permainan dimuat dari: " + saveFile);
-}
-
 // Mulai game baru
 void Game::startNewGame(const std::vector<std::string>& playerNames) {
     // Baca config misc untuk saldo awal dan max turn
@@ -510,9 +484,9 @@ void Game::applyShieldCard() {
 void Game::applyTeleportCard() {
     Player* player = getCurrentPlayer();
     if (!player) return;
-    renderer->printInfo("Masukkan kode petak tujuan: ");
-    std::string kode;
-    std::getline(std::cin, kode);
+
+    std::string kode = renderer->promptTileCode();
+
     Board& b = getBoard();
     for (int i = 0; i < b.getTileCount(); i++) {
         if (b.getTile(i) && b.getTile(i)->getCode() == kode) {
@@ -732,18 +706,7 @@ void Game::saveGame(const std::string& filename) {
 
     // Cek apakah file sudah ada
     if (SaveLoadManager::fileExists("saves/" + filename)) {
-        std::cout << "File \"" << "saves/" + filename << "\" sudah ada. Timpa file lama? (y/n): ";
-        std::string input;
-        while (true) {
-            std::getline(std::cin, input);
-            if (input == "y" || input == "Y") {
-                break;
-            } else if (input == "n" || input == "N") {
-                return;
-            } else {
-                renderer->printInfo("Masukkan y atau n: ");
-            }
-        }
+        if (!renderer->promptYesNo("File \"saves/" + filename + "\" sudah ada. Timpa file lama?")) return;
     }
 
     SaveLoadManager slm;
@@ -966,7 +929,7 @@ void Game::declareBankruptcy() {
                 renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
             }
             renderer->printInfo("0. Selesai");
-            std::cout << "Pilih aksi: ";
+            renderer->printInfo("Pilih aksi: ");
             std::string input;
             std::getline(std::cin, input);
             try {
@@ -1040,7 +1003,7 @@ void Game::handleStreetLanding(Player& player, StreetTile& tile) {
         renderer->printInfo("Kamu mendarat di " + tile.getName() + " (" + tile.getCode() + ")!");
         renderer->printDeed(tile);
         renderer->printInfo("Uang kamu saat ini: M" + std::to_string(player.getCash()));
-        std::cout << "Apakah kamu ingin membeli properti ini seharga M" << tile.getPrice() << "? (y/n): ";
+        renderer->printInfo("Apakah kamu ingin membeli properti ini seharga M" + std::to_string(tile.getPrice()) + "? (y/n): ");
 
         std::string input;
         while (true) {
@@ -1048,7 +1011,7 @@ void Game::handleStreetLanding(Player& player, StreetTile& tile) {
             if (input == "y" || input == "Y" || input == "n" || input == "N") {
                 break;
             } else {
-                std::cout << "Input tidak valid. Masukkan y atau n: ";
+                renderer->printInfo("Input tidak valid. Masukkan y atau n: ");
             }
         }
 
@@ -1197,15 +1160,7 @@ void Game::applyRent(Player& player, PropertyTile& tile) {
                     renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
                 }
                 renderer->printInfo("0. Selesai");
-                std::cout << "Pilih aksi: ";
-                std::string input;
-                std::getline(std::cin, input);
-                try {
-                    int choice = std::stoi(input) - 1;
-                    return choice;
-                } catch (...) {
-                    return -1;
-                }
+                return renderer->promptChoice();
             });
     }
 }
@@ -1225,22 +1180,7 @@ void Game::drawSkillCard(Player& player) {
         renderer->printInfo("Kamu diwajibkan membuang 1 kartu.");
 
         auto names = player.getSkillCardNames();
-        renderer->printInfo("Daftar Kartu Kemampuan Anda:");
-        for (int i = 0; i < (int)names.size(); i++) {
-            renderer->printInfo(std::to_string(i + 1) + ". " + names[i]);
-        }
-
-        int dropIndex = -1;
-        while (dropIndex < 0 || dropIndex >= (int)names.size()) {
-            std::cout << "Pilih nomor kartu yang ingin dibuang (1-" << names.size() << "): ";
-            std::string input;
-            std::getline(std::cin, input);
-            try {
-                dropIndex = std::stoi(input) - 1;
-            } catch (...) {
-                dropIndex = -1;
-            }
-        }
+        int dropIndex = renderer->promptDropCard(names);
 
         SkillCard* discarded = player.getOwnedSkillCards()[dropIndex];
         skillCardDeck->discard(discarded);

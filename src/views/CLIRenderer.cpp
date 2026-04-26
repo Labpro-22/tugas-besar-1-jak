@@ -644,3 +644,62 @@ void CLIRenderer::printWinner(const Player& winner, int turn) const {
     std::cout << "Diselesaikan pada Turn: " << turn << "\n";
     std::cout << "================================\n\n";
 }
+
+int CLIRenderer::promptDropCard(const std::vector<std::string>& cardNames) const {
+    printInfo("Daftar Kartu Kemampuan Anda:");
+    for (int i = 0; i < (int)cardNames.size(); i++) {
+        printInfo(std::to_string(i + 1) + ". " + cardNames[i]);
+    }
+    
+    int dropIndex = -1;
+    while (dropIndex < 0 || dropIndex >= (int)cardNames.size()) {
+        printInfo("Pilih nomor kartu yang ingin dibuang (1-" + std::to_string(cardNames.size()) + "): ");
+        std::string input;
+        std::getline(std::cin, input);
+        try {
+            dropIndex = std::stoi(input) - 1;
+        } catch (...) {
+            dropIndex = -1;
+        }
+    }
+    return dropIndex;
+}
+
+int CLIRenderer::promptChoice() const {
+    printInfo("Pilih aksi: ");
+    std::string input;
+    std::getline(std::cin, input);
+    try { return std::stoi(input) - 1; }
+    catch (...) { return -1; }
+}
+
+std::string CLIRenderer::promptTileCode() const {
+    printInfo("Masukkan kode petak tujuan: ");
+    std::string kode;
+    std::getline(std::cin, kode);
+    return kode;
+}
+
+int CLIRenderer::promptPropertyChoice(const std::vector<PropertyTile*>& props) const {
+    printInfo("=== Properti yang Dapat Digadaikan ===");
+    for (size_t i = 0; i < props.size(); ++i) {
+        printInfo(std::to_string(i + 1) + ". " + props[i]->getName() + 
+            " (" + props[i]->getCode() + ") Nilai Gadai: M" + 
+            std::to_string(props[i]->getMortgageValue()));
+    }
+    printInfo("Pilih nomor properti (0 untuk batal): ");
+    std::string input;
+    std::getline(std::cin, input);
+    try { return std::stoi(input); } catch (...) { return 0; }
+}
+
+bool CLIRenderer::promptYesNo(const std::string& question) const {
+    printInfo(question + " (y/n): ");
+    std::string input;
+    while (true) {
+        std::getline(std::cin, input);
+        if (input == "y" || input == "Y") return true;
+        if (input == "n" || input == "N") return false;
+        printInfo("Masukkan y atau n: ");
+    }
+}

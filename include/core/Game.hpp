@@ -91,7 +91,6 @@ public:
 
     // Inisialisasi awal
     void initialize();
-    void initializeFromSave(const std::string& saveFile);
     void startNewGame(const std::vector<std::string>& playerNames);
     bool isGameActive() const override;
     void setGameActive(bool active) override;
