@@ -82,6 +82,9 @@ private:
     void handleStreetLanding(Player& player, StreetTile& tile);
     void handleRailroadLanding(Player& player, RailroadTile& tile);
     void handleUtilityLanding(Player& player, UtilityTile& tile);
+    void handleTaxLanding(Player& player, TaxTile& tile);
+    void handleFestivalLanding(Player& player);
+    void handleCardLanding(Player& player, CardTile& tile);
 
     void handleGameEnd();
 public:

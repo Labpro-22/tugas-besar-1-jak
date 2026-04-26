@@ -28,15 +28,6 @@ void FestivalTile::onLanded(Player& player, Game& game) {}
 TaxTile::TaxTile(int idx, std::string cd, std::string nm, TaxType txt, int fm, double pct) 
     : ActionTile(idx, cd, nm), taxType(txt), flatAmount(fm), percentage(pct) {}
 
-void TaxTile::onLanded(Player& player, Game& game) {
-    int pajak = flatAmount;
-    if (taxType == TaxType::PPH) {
-        
-    } else {
-        
-    }
-}
-
 TaxType TaxTile::getTaxType() const {
     return taxType;
 }

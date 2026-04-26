@@ -441,6 +441,11 @@ void Game::useSkillCard(int cardIndex) {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
+    if (player->hasRolledDiceThisTurn()) {
+        renderer->printError("Kartu kemampuan hanya bisa digunakan SEBELUM melempar dadu.");
+        return;
+    }
+
     if (player->hasUsedSkillThisTurn()) {
         renderer->printError("Kamu sudah menggunakan kartu kemampuan pada giliran ini!");
         return;
@@ -849,7 +854,6 @@ void Game::endTurn() {
 
 // Giliran berikutnya
 void Game::nextTurn() {
-    renderer->printInfo("DEBUG: nextTurn dipanggil untuk " + getCurrentPlayer()->getUsername());
     // Reset consecutive doubles
     Player* current = getCurrentPlayer();
     if (current) current->setConsecutiveDoublesDice(0);
@@ -1012,8 +1016,14 @@ void Game::processTileLanding(Player& player, int tileIndex) {
     UtilityTile* utility = dynamic_cast<UtilityTile*>(tile);
     if (utility) { handleUtilityLanding(player, *utility); return; }
 
-    // Sisanya udah (Tax, Festival, Card, Special) dari onLanded() masing-masing
-    tile->onLanded(player, *this);
+    TaxTile* tax = dynamic_cast<TaxTile*>(tile);
+    if (tax) { handleTaxLanding(player, *tax); return; }
+
+    FestivalTile* festival = dynamic_cast<FestivalTile*>(tile);
+    if (festival) { handleFestivalLanding(player); return; }
+
+    CardTile* cardTile = dynamic_cast<CardTile*>(tile);
+    if (cardTile) { handleCardLanding(player, *cardTile); return; }
 }
 
 // processTileLanding versi public (kayak getter)
@@ -1160,6 +1170,164 @@ void Game::handleUtilityLanding(Player& player, UtilityTile& tile) {
     }
 }
 
+// Tax
+void Game::handleTaxLanding(Player& player, TaxTile& tile) {
+    if (player.isShieldActive()) {
+        renderer->printInfo("[SHIELD ACTIVE] Kamu terlindungi dari pajak!");
+        return;
+    }
+
+    if (tile.getTaxType() == TaxType::PBM) {
+        renderer->printInfo("Kamu mendarat di Pajak Barang Mewah (PBM)!");
+        renderer->printInfo("Pajak sebesar M" + std::to_string(pbmFlat) + " langsung dipotong.");
+        try {
+            player -= pbmFlat;
+            renderer->printInfo("Uang kamu: M" + std::to_string(player.getCash()));
+            logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | PAJAK | Bayar PBM M" + std::to_string(pbmFlat));
+        } catch (const NimonspoliException&) {
+            bankruptcyManager->handle(player, nullptr, pbmFlat, *this,
+                [this](const std::vector<LiquidationOption>& options) -> int {
+                    renderer->printInfo("\n=== Panel Likuidasi ===");
+                    for (int i = 0; i < (int)options.size(); i++) {
+                        renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
+                    }
+                    renderer->printInfo("0. Selesai");
+                    renderer->printInfo("Pilih aksi: ");
+                    std::string input;
+                    std::getline(std::cin, input);
+                    try { return std::stoi(input) - 1; } catch (...) { return -1; }
+                });
+        }
+    } else { // PPH
+        renderer->printInfo("Kamu mendarat di Pajak Penghasilan (PPH)!");
+        renderer->printInfo("Pilih opsi pembayaran pajak:");
+        renderer->printInfo("1. Bayar flat M" + std::to_string(pphFlat));
+        renderer->printInfo("2. Bayar " + std::to_string(pphPersen) + "% dari total kekayaan");
+        renderer->printInfo("(Pilih sebelum menghitung kekayaan!)");
+
+        int choice = 0;
+        while (choice != 1 && choice != 2) {
+            std::cout << "Pilihan (1/2): ";
+            std::string input;
+            std::getline(std::cin, input);
+            try { choice = std::stoi(input); } catch (...) {}
+        }
+
+        int amount = 0;
+        if (choice == 1) {
+            amount = pphFlat;
+        } else {
+            int wealth = player.getTotalWealth();
+            amount = wealth * pphPersen / 100;
+            renderer->printInfo("Total kekayaan kamu: M" + std::to_string(wealth));
+            renderer->printInfo("Pajak " + std::to_string(pphPersen) + "%: M" + std::to_string(amount));
+        }
+
+        try {
+            player -= amount;
+            renderer->printInfo("Uang kamu: M" + std::to_string(player.getCash()));
+            logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | PAJAK | Bayar PPH M" + std::to_string(amount));
+        } catch (const NimonspoliException&) {
+            bankruptcyManager->handle(player, nullptr, amount, *this,
+                [this](const std::vector<LiquidationOption>& options) -> int {
+                    renderer->printInfo("\n=== Panel Likuidasi ===");
+                    for (int i = 0; i < (int)options.size(); i++) {
+                        renderer->printInfo(std::to_string(i + 1) + ". " + options[i].getDescription());
+                    }
+                    renderer->printInfo("0. Selesai");
+                    renderer->printInfo("Pilih aksi: ");
+                    std::string input;
+                    std::getline(std::cin, input);
+                    try { return std::stoi(input) - 1; } catch (...) { return -1; }
+                });
+        }
+    }
+}
+
+// Festival
+void Game::handleFestivalLanding(Player& player) {
+    renderer->printInfo("Kamu mendarat di petak Festival!");
+    
+    auto props = player.getOwnedProperties();
+    if (props.empty()) {
+        renderer->printInfo("Kamu tidak memiliki properti. Efek festival tidak berlaku.");
+        return;
+    }
+
+    renderer->printInfo("Daftar properti milikmu:");
+    for (auto* prop : props) {
+        renderer->printInfo("- " + prop->getCode() + " (" + prop->getName() + ")");
+    }
+
+    renderer->printInfo("Masukkan kode properti: ");
+    std::string kode;
+    std::getline(std::cin, kode);
+    for (char& c : kode) c = std::toupper(c);
+
+    StreetTile* chosen = nullptr;
+    for (auto* prop : props) {
+        if (prop->getCode() == kode) {
+            chosen = dynamic_cast<StreetTile*>(prop);
+            break;
+        }
+    }
+
+    if (!chosen) {
+        renderer->printError("Kode properti tidak valid atau bukan Street tile.");
+        return;
+    }
+
+    int sewaBefore = chosen->calculateRent(0);
+    chosen->applyFestival();
+    int sewaAfter = chosen->calculateRent(0);
+
+    if (sewaBefore == sewaAfter) {
+        renderer->printInfo("Efek sudah maksimum (harga sewa sudah digandakan tiga kali).");
+        renderer->printInfo("Durasi di-reset menjadi: 3 giliran.");
+    } else if (sewaBefore * 2 == sewaAfter) {
+        renderer->printInfo("Efek festival aktif!");
+        renderer->printInfo("Sewa awal: M" + std::to_string(sewaBefore));
+        renderer->printInfo("Sewa sekarang: M" + std::to_string(sewaAfter));
+        renderer->printInfo("Durasi: 3 giliran.");
+    } else {
+        renderer->printInfo("Efek diperkuat!");
+        renderer->printInfo("Sewa sebelumnya: M" + std::to_string(sewaBefore));
+        renderer->printInfo("Sewa sekarang: M" + std::to_string(sewaAfter));
+        renderer->printInfo("Durasi di-reset menjadi: 3 giliran.");
+    }
+
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | FESTIVAL | " + chosen->getCode() + " sewa M" + std::to_string(sewaBefore) + " -> M" + std::to_string(sewaAfter));
+}
+
+// Card
+void Game::handleCardLanding(Player& player, CardTile& tile) {
+    renderer->printInfo("Kamu mendarat di Petak " + tile.getName() + "!");
+    renderer->printInfo("Mengambil kartu...");
+
+    ActionCard* card = nullptr;
+    if (tile.getDeckType() == DeckType::CHANCE) {
+        card = chanceDeck->draw();
+    } else {
+        card = generalFundsDeck->draw();
+    }
+
+    if (!card) {
+        renderer->printInfo("Deck kosong.");
+        return;
+    }
+
+    renderer->printInfo("Kartu: \"" + card->getDescription() + "\"");
+    card->execute(player, *this);
+
+    if (tile.getDeckType() == DeckType::CHANCE) {
+        chanceDeck->discard(card);
+    } else {
+        generalFundsDeck->discard(card);
+    }
+
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | KARTU | " + card->getDescription());
+}
+
 // Helper buat trigger sewa
 void Game::applyRent(Player& player, PropertyTile& tile) {
     if (player.isShieldActive()) {
@@ -1208,8 +1376,9 @@ void Game::drawSkillCard(Player& player) {
 
         auto names = player.getSkillCardNames();
         int dropIndex = renderer->promptDropCard(names);
+        std::string droppedName = names[dropIndex];
         player.removeCard(dropIndex);
-        renderer->printInfo(names[dropIndex] + " telah dibuang.");
+        renderer->printInfo(droppedName  + " telah dibuang.");
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DROP_KARTU | " + names[dropIndex]);
     } else {
         player.addCard(card);
