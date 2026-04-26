@@ -259,109 +259,37 @@ void Game::setDice(int x, int y) {
 }
 
 // ===== PROPERTY =====
-// Gadai properti
-void Game::mortgageProperty() {
+// Jual semua bangunan (syarat sebelum gadai)
+void Game::sellAllBuildingsInGroup(const std::string& colorGroup) {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
-    // Kumpulkan properti yang bisa digadaikan
-    std::vector<PropertyTile*> mortgageable;
+    auto group = board->getPropertiesByColor(colorGroup);
+    for (auto* prop : group) {
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        if (st && st->getBuildingLevel() > 0) {
+            int saleVal = st->getBuildingSaleValue();
+            st->resetBuildings();
+            *player += saleVal;
+            renderer->printInfo("Bangunan " + st->getName() + " terjual. Kamu menerima M" + std::to_string(saleVal) + ".");
+        }
+    }
+    renderer->printInfo("Uang kamu sekarang: M" + std::to_string(player->getCash()));
+}
+
+// Gadai properti
+void Game::mortgageProperty(const std::string& tileCode) {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+
+    PropertyTile* target = nullptr;
     for (auto* prop : player->getOwnedProperties()) {
-        if (!prop->isMortgaged()) {
-            mortgageable.push_back(prop);
-        }
+        if (prop->getCode() == tileCode) { target = prop; break; }
     }
+    if (!target) return;
 
-    if (mortgageable.empty()) {
-        renderer->printInfo("Tidak ada properti yang dapat digadaikan saat ini.");
-        return;
-    }
-
-    // Tampilkan daftar
-    renderer->printInfo("===== Properti yang Dapat Digadaikan =====");
-    for (int i = 0; i < (int)mortgageable.size(); i++) {
-        auto* prop = mortgageable[i];
-        renderer->printInfo(std::to_string(i + 1) + ". " + prop->getName() + " (" + prop->getCode() + ") Nilai Gadai: M" + std::to_string(prop->getMortgageValue()));
-    }
-
-    // Prompt pilih nomor
-    renderer->printInfo("Pilih nomor properti (0 untuk batal): ");
-    int choice;
-    while (true) {
-        std::string input;
-        std::getline(std::cin, input);
-        try {
-            choice = std::stoi(input);
-            if (choice >= 0 && choice <= (int)mortgageable.size()) break;
-        } catch (...) {}
-        renderer->printInfo("Masukkan angka yang valid: ");
-    }
-
-    if (choice == 0) return;
-
-    PropertyTile* target = mortgageable[choice - 1];
-
-    // Cek bangunan di color group
-    StreetTile* st = dynamic_cast<StreetTile*>(target);
-    if (st) {
-        auto group = board->getPropertiesByColor(st->getColorGroup());
-        bool hasBangunan = false;
-        for (auto* prop : group) {
-            StreetTile* s = dynamic_cast<StreetTile*>(prop);
-            if (s && s->getBuildingLevel() > 0) {
-                hasBangunan = true;
-                break;
-            }
-        }
-
-        if (hasBangunan) {
-            renderer->printInfo(target->getName() + " tidak dapat digadaikan!");
-            renderer->printInfo("Masih terdapat bangunan di color group [" + st->getColorGroup() + "].");
-            renderer->printInfo("Bangunan harus dijual terlebih dahulu.\n\n");
-
-            // Tampilkan daftar bangunan di color group
-            renderer->printInfo("Daftar bangunan di color group [" + st->getColorGroup() + "]:");
-            for (auto* prop : group) {
-                StreetTile* s = dynamic_cast<StreetTile*>(prop);
-                if (s && s->getBuildingLevel() > 0) {
-                    renderer->printInfo("- " + s->getName() + " - " +  std::to_string(s->getBuildingLevel()) + " rumah -> Nilai jual bangunan: M" +  std::to_string(s->getBuildingSaleValue()));
-                }
-            }
-
-            renderer->printInfo("Jual semua bangunan color group [" + st->getColorGroup() + "]? (y/n): ");
-            std::string input;
-            while (true) {
-                std::getline(std::cin, input);
-                if (input == "y" || input == "Y") break;
-                else if (input == "n" || input == "N") return;
-                else renderer->printInfo("Masukkan y atau n: ");
-            }
-
-            // Jual semua bangunan
-            for (auto* prop : group) {
-                StreetTile* s = dynamic_cast<StreetTile*>(prop);
-                if (s && s->getBuildingLevel() > 0) {
-                    int saleVal = s->getBuildingSaleValue();
-                    s->resetBuildings();
-                    *player += saleVal;
-                    renderer->printInfo("Bangunan " + s->getName() + " terjual. Kamu menerima M" + std::to_string(saleVal) + ".");
-                }
-            }
-
-            // Konfirmasi lanjut gadai
-            renderer->printInfo("Lanjut menggadaikan " + target->getName() + "? (y/n): ");
-            while (true) {
-                std::getline(std::cin, input);
-                if (input == "y" || input == "Y") break;
-                else if (input == "n" || input == "N") return;
-                else renderer->printInfo("Masukkan y atau n: ");
-            }
-        }
-    }
-
-    // Gadai benerannya
     int mortgageVal = target->getMortgageValue();
-    target->mortgage();
+    target->mortgage(); // Ubah status jadi digadai
     *player += mortgageVal;
 
     renderer->printInfo(target->getName() + " berhasil digadaikan.");
@@ -379,31 +307,13 @@ void Game::redeemProperty(const std::string& tileCode) {
 
     PropertyTile* target = nullptr;
     for (auto* prop : player->getOwnedProperties()) {
-        if (prop->getCode() == tileCode) {
-            target = prop;
-            break;
-        }
+        if (prop->getCode() == tileCode) { target = prop; break; }
     }
-
-    if (!target) {
-        renderer->printError("Properti " + tileCode + " tidak ditemukan atau bukan milikmu.");
-        return;
-    }
-
-    if (!target->isMortgaged()) {
-        renderer->printError("Properti " + tileCode + " tidak sedang digadaikan.");
-        return;
-    }
+    if (!target) return;
 
     int redeemPrice = target->getPrice();
-    if (player->getCash() < redeemPrice) {
-        renderer->printError("Uang tidak cukup untuk menebus " + target->getName() + ".");
-        renderer->printInfo("Harga tebus: M" + std::to_string(redeemPrice) + " | Uang kamu: M" + std::to_string(player->getCash()));
-        return;
-    }
-
     *player -= redeemPrice;
-    target->redeem();
+    target->redeem(); // Ubah status jadi owned
 
     renderer->printInfo(target->getName() + " berhasil ditebus!");
     renderer->printInfo("Kamu membayar M" + std::to_string(redeemPrice) + " ke Bank.");
@@ -982,45 +892,6 @@ void Game::printPlayerStatus() {
 // Cetak log
 void Game::printLog(int limit) {
     logger->printLog(limit);
-}
-
-void Game::printHelp() { 
-    renderer->printHelp();
-    std::cout << "=================================================================\n";
-    std::cout << "                 DAFTAR PERINTAH NIMONSPOLI                      \n";
-    std::cout << "=================================================================\n\n";
-
-    std::cout << "[AKSI GILIRAN]\n";
-    std::cout << "  LEMPAR_DADU         : Melempar dadu untuk bergerak ke petak baru.\n";
-    std::cout << "  ATUR_DADU <x> <y>   : [Cheat] Mengatur angka dadu secara manual untuk testing.\n";
-    std::cout << "  AKHIRI_GILIRAN      : Mengakhiri giliranmu dan lanjut ke pemain berikutnya.\n\n";
-
-    std::cout << "[PROPERTI & BANGUNAN]\n";
-    std::cout << "  BANGUN <petak>     : Membangun rumah/hotel di properti milikmu.\n";
-
-    std::cout << "[MANAJEMEN ASET & LELANG]\n";
-    std::cout << "  GADAI <petak> : Menggadaikan properti untuk mendapatkan uang.\n";
-    std::cout << "  TEBUS <petak> : Menebus properti yang sedang digadaikan.\n";
-    std::cout << "  TAWAR <harga> : Mengajukan harga saat sesi lelang properti.\n";
-    std::cout << "  LEPAS         : Mundur dari sesi lelang saat ini.\n";
-
-    std::cout << "[PENJARA & KARTU]\n";
-    std::cout << "  GUNAKAN_KARTU_BEBAS         : Menggunakan kartu khusus untuk bebas.\n";
-    std::cout << "  GUNAKAN_KEMAMPUAN <index>   : Menggunakan kartu skill (kemampuan) yang dimiliki.\n\n";
-
-    std::cout << "[INFORMASI]\n";
-    std::cout << "  CETAK_STATUS   : Melihat info saldo, posisi, dan statusmu saat ini.\n";
-    std::cout << "  CETAK_PAPAN    : Menampilkan kondisi papan Nimonspoli saat ini.\n";
-    std::cout << "  CETAK_PROPERTI : Menampilkan daftar seluruh properti yang kamu miliki.\n";
-    std::cout << "  CETAK_AKTA <p> : Melihat detail harga, biaya sewa, dan status sebuah properti.\n";
-    std::cout << "  CETAK_LOG      : Melihat riwayat aksi yang sudah terjadi di dalam game.\n";
-    std::cout << "  BANTUAN        : Menampilkan menu daftar perintah ini.\n\n";
-
-    std::cout << "[SISTEM]\n";
-    std::cout << "  SIMPAN <file>   : Menyimpan progres permainan (contoh: SIMPAN game1.txt).\n";
-    std::cout << "  QUIT            : Keluar dari aplikasi Nimonspoli sepenuhnya.\n\n";
-    
-    std::cout << "=================================================================\n";
 }
 
 void Game::setRenderer(CLIRenderer* r) {

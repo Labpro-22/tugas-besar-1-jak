@@ -101,9 +101,10 @@ public:
     void setDice(int x, int y) override;
 
     // Property
-    void mortgageProperty() override;
+    void mortgageProperty(const std::string& tileCode) override;
     void redeemProperty(const std::string &tileCode) override;
     void buildOnProperty(const std::string &tileCode) override;
+    void sellAllBuildingsInGroup(const std::string& colorGroup) override;
     
     // Auction
     void placeBid(int amount) override;
@@ -141,7 +142,6 @@ public:
     void printPropertyInventory() override;
     void printPlayerStatus() override;
     void printLog(int limit) override;
-    void printHelp() override;
     void setRenderer(CLIRenderer* r);
 
     // Flow Giliran

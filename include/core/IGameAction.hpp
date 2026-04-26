@@ -33,9 +33,10 @@ public:
     virtual void setDice(int x, int y) = 0;
 
     // Property
-    virtual void mortgageProperty() = 0;
+    virtual void mortgageProperty(const std::string& tileCode) = 0;
     virtual void redeemProperty(const std::string &tileCode) = 0;
     virtual void buildOnProperty(const std::string &tileCode) = 0;
+    virtual void sellAllBuildingsInGroup(const std::string& colorGroup) = 0;
 
     // Auction
     virtual void placeBid(int amount) = 0;
