@@ -741,7 +741,7 @@ void Game::saveGame(const std::string& filename) {
     try {
         std::string fullPath = "saves/" + filename;
         slm.saveGame(fullPath, turnsPlayed, maxTurn,  getActivePlayers(), turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
-        renderer->printInfo("Permainan berhasil disimpan ke: " + filename);
+        renderer->printInfo("Permainan berhasil disimpan ke: " + fullPath);
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + getCurrentPlayer()->getUsername() + " | SIMPAN | " + filename);
     } catch (const NimonspoliException& e) {
         renderer->printError(e.what());
