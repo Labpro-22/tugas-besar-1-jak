@@ -24,25 +24,6 @@ void Board::initializeBoard(const std::string &configFile)
     validateBoard();
 }
 
-void Board::setDynamicBoard(bool enabled, int numTiles)
-{
-    dynamicBoardEnabled = enabled;
-    if (enabled && numTiles >= 20 && numTiles <= 60)
-    {
-        // Resize board if needed
-        while (tiles.size() < static_cast<size_t>(numTiles))
-        {
-            // Add placeholder tiles (you may need to create appropriate tile types)
-            // This is a simplified implementation
-            // addTile(nullptr); // Placeholder
-        }
-        while (tiles.size() > static_cast<size_t>(numTiles))
-        {
-            tiles.pop_back();
-        }
-    }
-}
-
 Tile *Board::getTile(int index) const
 {
     if (index < 0 || index >= static_cast<int>(tiles.size()))
