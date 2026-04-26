@@ -141,6 +141,7 @@ public:
     void printPropertyInventory() override;
     void printPlayerStatus() override;
     void printLog(int limit) override;
+    void printHelp() override;
     void setRenderer(CLIRenderer* r);
 
     // Flow Giliran

@@ -789,6 +789,12 @@ void Game::printLog(int limit) {
     logger->printLog(limit);
 }
 
+// Menu bantuan
+void Game::printHelp() {
+    renderer->printHelp();
+}
+
+// Set renderer
 void Game::setRenderer(CLIRenderer* r) {
     renderer = r;
 }
