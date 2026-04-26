@@ -889,8 +889,8 @@ void Game::saveGame(const std::string& filename) {
     }
 
     // Cek apakah file sudah ada
-    if (SaveLoadManager::fileExists(filename)) {
-        std::cout << "File \"" << filename << "\" sudah ada. Timpa file lama? (y/n): ";
+    if (SaveLoadManager::fileExists("saves/" + filename)) {
+        std::cout << "File \"" << "saves/" + filename << "\" sudah ada. Timpa file lama? (y/n): ";
         std::string input;
         while (true) {
             std::getline(std::cin, input);
@@ -906,7 +906,7 @@ void Game::saveGame(const std::string& filename) {
 
     SaveLoadManager slm;
     try {
-        std::string fullPath = "config/" + filename;
+        std::string fullPath = "saves/" + filename;
         slm.saveGame(fullPath, turnsPlayed, maxTurn,  getActivePlayers(), turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
         renderer->printInfo("Permainan berhasil disimpan ke: " + filename);
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + getCurrentPlayer()->getUsername() + " | SIMPAN | " + filename);
@@ -917,23 +917,18 @@ void Game::saveGame(const std::string& filename) {
 
 // ===== LOAD =====
 void Game::loadGame(const std::string& filename) {
+    std::string fullPath = "saves/" + filename;
     SaveLoadManager slm;
-    try {
-        initialize();
-        std::vector<Player*> rawPlayers;
-        slm.loadGame(filename, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
-
-        // Pindahkan raw pointer ke unique_ptr
-        players.clear();
-        for (Player* p : rawPlayers) {
-            players.push_back(std::unique_ptr<Player>(p));
-        }
-
-        renderer->printInfo("Permainan berhasil dimuat. Melanjutkan giliran " + getCurrentPlayer()->getUsername() + "...");
-        logger->addLog("Permainan dimuat dari: " + filename);
-    } catch (const NimonspoliException& e) {
-        renderer->printError(e.what());
+    std::vector<Player*> rawPlayers;
+    slm.loadGame(fullPath, turnsPlayed, maxTurn, rawPlayers, turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
+    
+    // Pindahkan raw pointer ke unique_ptr
+    players.clear();
+    for (Player* p : rawPlayers) {
+        players.push_back(std::unique_ptr<Player>(p));
     }
+
+    logger->addLog("Permainan dimuat dari: " + filename);
 }
 
 // ===== DISPLAY =====
@@ -1033,7 +1028,6 @@ void Game::printHelp() {
 
     std::cout << "[SISTEM]\n";
     std::cout << "  SIMPAN <file>   : Menyimpan progres permainan (contoh: SIMPAN game1.txt).\n";
-    std::cout << "  MUAT <file>     : Memuat progres permainan dari file penyimpanan.\n";
     std::cout << "  QUIT            : Keluar dari aplikasi Nimonspoli sepenuhnya.\n\n";
     
     std::cout << "=================================================================\n";

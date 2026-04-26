@@ -145,13 +145,15 @@ class CommandParser {
         // ===== SIMPAN <filename> =====
         if (cmd == "SIMPAN") {
             requireArgCount(tokens, 1, cmd);
-            return new SimpanCommand(tokens[1]);
+            // Ambil filename dari rawInput langsung biar ga kena toupper
+            size_t spacePos = rawInput.find(' ');
+            std::string filename = (spacePos != std::string::npos) ? rawInput.substr(spacePos + 1) : "";
+            return new SimpanCommand(filename);
         }
 
         // ===== MUAT <filename> =====
         if (cmd == "MUAT") {
-            requireArgCount(tokens, 1, cmd);
-            return new MuatCommand(tokens[1]);
+            throw InvalidInputException("MUAT hanya bisa dilakukan sebelum permainan dimulai.");
         }
 
         // ===== CETAK_PAPAN =====

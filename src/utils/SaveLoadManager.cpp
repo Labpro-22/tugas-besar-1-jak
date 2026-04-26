@@ -13,6 +13,7 @@
 #include <iostream>
 #include <algorithm>
 #include <sys/stat.h>
+#include <filesystem>
 
 // ===== fileExists =====
 bool SaveLoadManager::fileExists(const std::string& filename) {
@@ -22,6 +23,8 @@ bool SaveLoadManager::fileExists(const std::string& filename) {
 
 // ===== saveGame =====
 bool SaveLoadManager::saveGame(const std::string& filename, int turn, int maxTurn, const std::vector<Player*>& players, const std::vector<int>& turnOrder, int currentPlayerIndex, const Board& board, const CardDeck<SkillCard>& skillDeck, const TransactionLogger& logger) const {
+    // Bikin folder khusus saves
+    system("mkdir -p saves");
     std::ofstream out(filename);
     if (!out.is_open()) {
         throw FileNotFoundException("Gagal membuat file: " + filename);
