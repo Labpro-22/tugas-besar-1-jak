@@ -229,6 +229,20 @@ void Game::setDice(int x, int y) {
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DADU | Diatur manual: " + std::to_string(x) + "+" + std::to_string(y) + "=" + std::to_string(result));
 
+    if (dice->isDouble()) {
+        player->setConsecutiveDoublesDice(player->getConsecutiveDoublesDice() + 1);
+        if (player->getConsecutiveDoublesDice() >= 3) {
+            player->setConsecutiveDoublesDice(0);
+            player->goToJail();
+            renderer->printInfo("Double 3x! Masuk penjara!");
+            return;
+        }
+        player->setRolledDiceThisTurn(false);
+        renderer->printInfo("Kamu mendapat DOUBLE! Kamu berhak melempar dadu lagi.");
+    } else {
+        player->setConsecutiveDoublesDice(0);
+    }
+
     movePlayer(*player, result);
 }
 

@@ -2,11 +2,9 @@
 #include "CommandParser.hpp"
 #include "core/IGameAction.hpp"
 #include "utils/NimonspoliException.hpp"
+#include "views/CLIRenderer.hpp"
 #include <string>
 #include <iostream>
-
-// Forward declaration
-class CLIRenderer;
 
 // Gunanya CommandHandler sebagai listener, jadi cuman sebagai jembatan antara input user dengan Game (lewat CommandParser)
 // Input --> CommandHandler --> CommandParser --> Game
@@ -50,10 +48,10 @@ class CommandHandler {
                 // Hapus memory
                 delete command;
             }
-        } catch (const NimonspoliException& e) { // Error handling
-            std::cerr << "[Error] " << e.what() << "\n";
+        } catch (const NimonspoliException& e) {
+            renderer.printError(e.what());
         } catch (const std::exception& e) {
-            std::cerr << "[Error Sistem] " << e.what() << "\n";
+            renderer.printError(e.what());
         }
         return isTurnEnded;
     }
