@@ -327,97 +327,29 @@ void Game::buildOnProperty(const std::string& tileCode) {
     Player* player = getCurrentPlayer();
     if (!player) return;
 
-    // Kumpulkan color group yang memenuhi syarat
-    std::vector<std::string> eligibleGroups;
+    PropertyTile* target = nullptr;
     for (auto* prop : player->getOwnedProperties()) {
-        StreetTile* st = dynamic_cast<StreetTile*>(prop);
-        if (!st) continue;
-        if (st->isMortgaged()) continue;
-
-        std::string color = st->getColorGroup();
-        // Cek apakah sudah masuk list
-        bool alreadyAdded = false;
-        for (const auto& g : eligibleGroups) {
-            if (g == color) { alreadyAdded = true; break; }
-        }
-        if (alreadyAdded) continue;
-
-        // Cek monopoli
-        if (st->isMonopolized()) {
-            eligibleGroups.push_back(color);
-        }
+        if (prop->getCode() == tileCode) { target = prop; break; }
     }
 
-    if (eligibleGroups.empty()) {
-        renderer->printError("Tidak ada color group yang memenuhi syarat untuk dibangun.");
-        renderer->printError("Kamu harus memiliki seluruh petak dalam satu color group terlebih dahulu.");
-        return;
-    }
+    StreetTile* chosen = dynamic_cast<StreetTile*>(target);
+    if (!chosen) return;
 
-    // Tampilkan pilihan color group
-    renderer->printInfo("=== Color Group yang Memenuhi Syarat ===");
-    for (int i = 0; i < (int)eligibleGroups.size(); i++) {
-        renderer->printInfo(std::to_string(i + 1) + ". [" + eligibleGroups[i] + "]");
-        auto group = board->getPropertiesByColor(eligibleGroups[i]);
-        for (auto* prop : group) {
-            StreetTile* st = dynamic_cast<StreetTile*>(prop);
-            if (!st) continue;
-            std::string level = st->getBuildingLevel() == 5 ? "Hotel" : std::to_string(st->getBuildingLevel()) + " rumah";
-            renderer->printInfo("   - " + st->getName() + " (" + st->getCode() + ") : " + level);
-        }
-    }
-    renderer->printInfo("Uang kamu saat ini: M" + std::to_string(player->getCash()));
-    std::cout << "Pilih nomor color group (0 untuk batal): ";
-
-    std::string input;
-    std::getline(std::cin, input);
-    int groupChoice = -1;
-    try { groupChoice = std::stoi(input) - 1; } catch (...) { return; }
-    if (groupChoice < 0 || groupChoice >= (int)eligibleGroups.size()) return;
-
-    std::string chosenColor = eligibleGroups[groupChoice];
-    auto group = board->getPropertiesByColor(chosenColor);
-
-    // Tampilkan petak yang bisa dibangun
-    renderer->printInfo("Color group [" + chosenColor + "]:");
-    std::vector<StreetTile*> buildable;
-    for (auto* prop : group) {
-        StreetTile* st = dynamic_cast<StreetTile*>(prop);
-        if (!st) continue;
-        std::string level = st->getBuildingLevel() == 5 ? "Hotel" : std::to_string(st->getBuildingLevel()) + " rumah";
-        std::string canBuild = st->canBuild() ? " <- dapat dibangun" : "";
-        renderer->printInfo("   - " + st->getName() + " (" + st->getCode() + ") : " + level + canBuild);
-        if (st->canBuild()) buildable.push_back(st);
-    }
-
-    if (buildable.empty()) {
-        renderer->printError("Tidak ada petak yang bisa dibangun sekarang.");
-        return;
-    }
-
-    std::cout << "Pilih petak (0 untuk batal): ";
-    std::getline(std::cin, input);
-    int tileChoice = -1;
-    try { tileChoice = std::stoi(input) - 1; } catch (...) { return; }
-    if (tileChoice < 0 || tileChoice >= (int)buildable.size()) return;
-
-    StreetTile* chosen = buildable[tileChoice];
-    int cost = chosen->getBuildingLevel() == 4 ? chosen->getHotelCost() : chosen->getHouseCost();
-
-    if (player->getCash() < cost) {
-        renderer->printError("Uang tidak cukup. Butuh M" + std::to_string(cost));
-        return;
-    }
+    int cost = (chosen->getBuildingLevel() == 4) ? chosen->getHotelCost() : chosen->getHouseCost();
 
     *player -= cost;
     chosen->build();
 
     std::string result = chosen->getBuildingLevel() == 5 ? "Hotel" : std::to_string(chosen->getBuildingLevel()) + " rumah";
-    renderer->printInfo("Kamu membangun di " + chosen->getName() + ". Biaya: M" + std::to_string(cost));
-    renderer->printInfo(chosen->getName() + " : " + result);
+    
+    if (chosen->getBuildingLevel() == 5) {
+        renderer->printSuccess(chosen->getName() + " di-upgrade ke Hotel!");
+    } else {
+        renderer->printSuccess("Kamu membangun 1 rumah di " + chosen->getName() + ". Biaya: M" + std::to_string(cost));
+    }
+    
     renderer->printInfo("Uang tersisa: M" + std::to_string(player->getCash()));
-
-    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | BANGUN | " + chosen->getCode() + " -> " + result + ", bayar M" + std::to_string(cost));
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | BANGUN | " + chosen->getCode() + " -> " + result);
 }
 
 // ===== AUCTION =====
