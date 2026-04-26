@@ -442,7 +442,7 @@ void Game::useSkillCard(int cardIndex) {
     if (!player) return;
 
     if (player->hasRolledDiceThisTurn()) {
-        renderer->printError("Kartu kemampuan hanya bisa digunakan SEBELUM melempar dadu.");
+        renderer->printError("Kartu kemampuan hanya bisa digunakan sebelum melempar dadu.");
         return;
     }
 
@@ -1256,7 +1256,8 @@ void Game::handleFestivalLanding(Player& player) {
 
     renderer->printInfo("Daftar properti milikmu:");
     for (auto* prop : props) {
-        renderer->printInfo("- " + prop->getCode() + " (" + prop->getName() + ")");
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        if (st) renderer->printInfo("- " + prop->getCode() + " (" + prop->getName() + ")");
     }
 
     renderer->printInfo("Masukkan kode properti: ");
@@ -1266,8 +1267,9 @@ void Game::handleFestivalLanding(Player& player) {
 
     StreetTile* chosen = nullptr;
     for (auto* prop : props) {
-        if (prop->getCode() == kode) {
-            chosen = dynamic_cast<StreetTile*>(prop);
+        StreetTile* st = dynamic_cast<StreetTile*>(prop);
+        if (st && prop->getCode() == kode) {
+            chosen = st;
             break;
         }
     }
