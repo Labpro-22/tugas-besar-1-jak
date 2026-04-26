@@ -882,6 +882,12 @@ void Game::teleportPlayer(Player& player, int targetTileIndex) {
 
 // ===== SAVE =====
 void Game::saveGame(const std::string& filename) {
+    // Cuman bisa di awal
+    if (getCurrentPlayer()->hasRolledDiceThisTurn()) {
+        renderer->printError("SIMPAN hanya bisa dilakukan di awal giliran sebelum melempar dadu.");
+        return;
+    }
+
     // Cek apakah file sudah ada
     if (SaveLoadManager::fileExists(filename)) {
         std::cout << "File \"" << filename << "\" sudah ada. Timpa file lama? (y/n): ";
@@ -900,7 +906,8 @@ void Game::saveGame(const std::string& filename) {
 
     SaveLoadManager slm;
     try {
-        slm.saveGame(filename, turnsPlayed, maxTurn,  getActivePlayers(), turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
+        std::string fullPath = "config/" + filename;
+        slm.saveGame(fullPath, turnsPlayed, maxTurn,  getActivePlayers(), turnOrder, currentPlayerIndex, *board, *skillCardDeck, *logger);
         renderer->printInfo("Permainan berhasil disimpan ke: " + filename);
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + getCurrentPlayer()->getUsername() + " | SIMPAN | " + filename);
     } catch (const NimonspoliException& e) {
@@ -1041,6 +1048,11 @@ void Game::setRenderer(CLIRenderer* r) {
 void Game::endTurn() {
     Player* player = getCurrentPlayer();
     if (!player) return;
+
+    if (!player->hasRolledDiceThisTurn()) {
+        renderer->printError("Kamu harus melempar dadu dulu sebelum mengakhiri giliran!");
+        return;
+    }
 
     // Reset flag skill per turn
     player->resetTurnFlags();
@@ -1211,6 +1223,8 @@ TransactionLogger *Game::getLogger()
 void Game::processTileLanding(Player& player, int tileIndex) {
     Tile* tile = board->getTile(tileIndex);
     if (!tile) return;
+
+    renderer->printInfo("Bidak mendarat di: " + tile->getName() + " (" + tile->getCode() + ").");
 
     StreetTile* street = dynamic_cast<StreetTile*>(tile);
     if (street) { handleStreetLanding(player, *street); return; }

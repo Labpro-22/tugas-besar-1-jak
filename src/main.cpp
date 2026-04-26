@@ -9,15 +9,14 @@ int main() {
     Game game;
     CLIRenderer renderer;
 
-    game.initialize();
-    game.setRenderer(&renderer);
-
     // ===== Menu Awal =====
     renderer.printMainMenu();
     std::string pilihan;
     std::getline(std::cin, pilihan);
 
     if (pilihan == "1") {
+        game.initialize();
+        game.setRenderer(&renderer);
         // ===== New Game =====
         int jumlahPemain = 0;
         while (jumlahPemain < 2 || jumlahPemain > 4) {
@@ -64,15 +63,15 @@ int main() {
         game.startNewGame(playerNames);
 
     } else if (pilihan == "2") {
+        game.initialize();
+        game.setRenderer(&renderer);
         // ===== Load Game =====
         std::cout << "Nama file save: ";
         std::string filename;
         std::getline(std::cin, filename);
 
         try {
-            game.initialize();
-            game.setRenderer(&renderer);
-            game.loadGame(filename);
+            game.loadGame("config/" + filename);
         } catch (const std::exception& e) {
             renderer.printError(e.what());
             return 1;
