@@ -7,12 +7,7 @@
 
 // TEBUS <kode_petak>
 class TebusCommand : public Command {
-    private:
-    std::string tileCode;
-    
     public:
-    explicit TebusCommand(std::string tileCode) : tileCode(std::move(tileCode)) {}
-
     bool execute(IGameAction& game) override {
         Player* player = game.getCurrentPlayer();
         if (!player) return false;

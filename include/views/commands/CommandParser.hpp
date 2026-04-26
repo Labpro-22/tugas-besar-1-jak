@@ -100,8 +100,8 @@ class CommandParser {
 
         // ===== TEBUS <kode> =====
         if (cmd == "TEBUS") {
-            requireArgCount(tokens, 1, cmd);
-            return new TebusCommand(tokens[1]);
+            requireArgCount(tokens, 0, cmd);
+            return new TebusCommand();
         }
 
         // ===== BANGUN <kode> =====

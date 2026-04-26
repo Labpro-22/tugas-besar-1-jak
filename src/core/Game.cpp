@@ -1208,8 +1208,6 @@ void Game::drawSkillCard(Player& player) {
         auto names = player.getSkillCardNames();
         int dropIndex = renderer->promptDropCard(names);
 
-        SkillCard* discarded = player.getOwnedSkillCards()[dropIndex];
-        skillCardDeck->discard(discarded);
         player.removeCard(dropIndex);
 
         renderer->printInfo(names[dropIndex] + " telah dibuang.");

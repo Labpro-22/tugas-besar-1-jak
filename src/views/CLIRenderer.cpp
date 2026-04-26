@@ -397,11 +397,12 @@ void CLIRenderer::printDeed(const StreetTile& tile) const {
 
 // RailroadTile
 void CLIRenderer::printDeed(const RailroadTile& tile) const {
+    std::string c = BOLD;
     std::cout << "\n";
-    std::cout << "+==================================+\n";
-    std::cout << "|         AKTA KEPEMILIKAN         |\n";
-    std::cout << "|   [STASIUN] " << std::left << std::setw(21) << (tile.getName() + " (" + tile.getCode() + ")") << "|\n";
-    std::cout << "+==================================+\n";
+    std::cout << c << "+==================================+" << RESET << "\n";
+    std::cout << c << "|         AKTA KEPEMILIKAN         |" << RESET << "\n";
+    std::cout << c << "|   [STASIUN] " << std::left << std::setw(21) << (tile.getName() + " (" + tile.getCode() + ")") << "|" << RESET << "\n";
+    std::cout << c << "+==================================+" << RESET << "\n";
     std::cout << "| Nilai Gadai : M" << std::left << std::setw(18) << tile.getMortgageValue() << "|\n";
     std::cout << "+----------------------------------+\n";
 
@@ -419,17 +420,19 @@ void CLIRenderer::printDeed(const RailroadTile& tile) const {
     else if (ps == PropertyStatus::MORTGAGED) statusStr = "MORTGAGED";
     if (tile.getOwner()) statusStr += " (" + tile.getOwner()->getUsername() + ")";
 
-    std::cout << "| Status : " << std::left << std::setw(24) << statusStr << "|\n";
+    std::string statusColor = (ps == PropertyStatus::OWNED) ? COLOR_HIJAU :  (ps == PropertyStatus::MORTGAGED) ? COLOR_KUNING : "";
+    std::cout << "| Status : " << statusColor << std::left << std::setw(24) << statusStr << RESET << "|\n";
     std::cout << "+==================================+\n\n";
 }
 
 // UtilityTile
 void CLIRenderer::printDeed(const UtilityTile& tile) const {
+    std::string c = BOLD;
     std::cout << "\n";
-    std::cout << "+==================================+\n";
-    std::cout << "|         AKTA KEPEMILIKAN         |\n";
-    std::cout << "|   [UTILITAS] " << std::left << std::setw(20) << (tile.getName() + " (" + tile.getCode() + ")") << "|\n";
-    std::cout << "+==================================+\n";
+    std::cout << c << "+==================================+" << RESET << "\n";
+    std::cout << c << "|         AKTA KEPEMILIKAN         |" << RESET << "\n";
+    std::cout << c << "|   [UTILITAS] " << std::left << std::setw(20) << (tile.getName() + " (" + tile.getCode() + ")") << "|" << RESET << "\n";
+    std::cout << c << "+==================================+" << RESET << "\n";
     std::cout << "| Nilai Gadai : M" << std::left << std::setw(18) << tile.getMortgageValue() << "|\n";
     std::cout << "+----------------------------------+\n";
 
@@ -447,7 +450,8 @@ void CLIRenderer::printDeed(const UtilityTile& tile) const {
     else if (ps == PropertyStatus::MORTGAGED) statusStr = "MORTGAGED";
     if (tile.getOwner()) statusStr += " (" + tile.getOwner()->getUsername() + ")";
 
-    std::cout << "| Status : " << std::left << std::setw(24) << statusStr << "|\n";
+    std::string statusColor = (ps == PropertyStatus::OWNED) ? COLOR_HIJAU :  (ps == PropertyStatus::MORTGAGED) ? COLOR_KUNING : "";
+    std::cout << "| Status : " << statusColor << std::left << std::setw(24) << statusStr << RESET << "|\n";
     std::cout << "+==================================+\n\n";
 }
 
