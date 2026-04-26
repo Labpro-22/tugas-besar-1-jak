@@ -51,7 +51,7 @@ Saat program dijalankan, pilih opsi:
 ## Struktur Proyek
     tugas-besar-1-jak/
     ├── config/         # File konfigurasi permainan
-    ├── data/           # Laporan
+    ├── docs/           # Laporan
     ├── include/        # Header files
     │   ├── core/       # Game, AuctionManager, BankruptcyManager
     │   ├── models/     # Tile, Player, Card, dll
