@@ -1206,9 +1206,16 @@ void Game::drawSkillCard(Player& player) {
         renderer->printInfo("Kamu diwajibkan membuang 1 kartu.");
 
         auto names = player.getSkillCardNames();
+        renderer->printInfo("DEBUG: jumlah kartu = " + std::to_string(names.size()));
         int dropIndex = renderer->promptDropCard(names);
+        renderer->printInfo("DEBUG: dropIndex = " + std::to_string(dropIndex));
+        player.removeCard(dropIndex);
 
         player.removeCard(dropIndex);
+
+        player.removeCard(dropIndex);
+        renderer->printInfo("DEBUG: removeCard selesai");
+        renderer->printInfo(names[dropIndex] + " telah dibuang.");
 
         renderer->printInfo(names[dropIndex] + " telah dibuang.");
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DROP_KARTU | " + names[dropIndex]);

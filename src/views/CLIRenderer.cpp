@@ -650,7 +650,7 @@ void CLIRenderer::printWinner(const Player& winner, int turn) const {
 }
 
 int CLIRenderer::promptDropCard(const std::vector<std::string>& cardNames) const {
-    printInfo("Daftar Kartu Kemampuan Anda:");
+    printInfo("Daftar Kartu Kemampuan Kamu:");
     for (int i = 0; i < (int)cardNames.size(); i++) {
         printInfo(std::to_string(i + 1) + ". " + cardNames[i]);
     }
