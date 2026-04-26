@@ -40,7 +40,6 @@ public:
     // Card management
     void addCard(SkillCard *card);
     void removeCard(int index);
-    void useSkillCard(int index, Game& game);
 
     // Property management
     void addProperty(PropertyTile *prop);
@@ -64,7 +63,7 @@ public:
     void clearSkillCards();
     std::vector<PropertyTile*> releaseAllProperties();
 
-    // Getters
+    // Getters dan setters
     std::string getUsername() const;
     int getPosition() const;
     void setPosition(int pos);
@@ -75,12 +74,15 @@ public:
     void setCash(int amount);
     bool isShieldActive() const;
     void setShieldActive(bool active);
+    void activateShield();
     int getDiscountPercent() const;
     void setDiscountPercent(int percent);
+    void activateDiscount(int percent);
     int getJailTurns() const;
     int getConsecutiveDoublesDice() const;
     void setConsecutiveDoublesDice(int count);
     bool hasUsedSkillThisTurn() const;
+    void setUsedSkillThisTurn(bool val);
     const std::vector<PropertyTile *> &getOwnedProperties() const;
     const std::vector<SkillCard *> &getOwnedSkillCards() const;
     const std::vector<SkillCard*>& getSkillCards() const;

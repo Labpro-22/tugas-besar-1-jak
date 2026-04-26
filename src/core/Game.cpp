@@ -612,24 +612,136 @@ void Game::useSkillCard(int cardIndex) {
 
     if (player->hasUsedSkillThisTurn()) {
         renderer->printError("Kamu sudah menggunakan kartu kemampuan pada giliran ini!");
-        renderer->printInfo("Penggunaan kartu dibatasi maksimal 1 kali dalam 1 giliran.");
         return;
     }
 
-    auto cardNames = player->getSkillCardNames();
-    if (cardIndex < 0 || cardIndex >= (int)cardNames.size()) {
+    auto& cards = player->getSkillCards();
+    if (cardIndex < 0 || cardIndex >= (int)cards.size()) {
         renderer->printError("Indeks kartu tidak valid.");
         return;
     }
 
-    renderer->printInfo("Menggunakan " + cardNames[cardIndex] + "...");
+    SkillCard* card = cards[cardIndex];
+    std::string name = card->getName();
 
-    try {
-        player->useSkillCard(cardIndex, *this);
-        logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_KEMAMPUAN | Pakai " + cardNames[cardIndex]);
-    } catch (const NimonspoliException& e) {
-        renderer->printError(e.what());
+    if (name == "MoveCard") {
+        applyMoveCard(dynamic_cast<MoveCard*>(card)->getValue());
+    } else if (name == "DiscountCard") {
+        applyDiscountCard(dynamic_cast<DiscountCard*>(card)->getValue());
+    } else if (name == "ShieldCard") {
+        applyShieldCard();
+    } else if (name == "TeleportCard") {
+        applyTeleportCard();
+    } else if (name == "LassoCard") {
+        applyLassoCard();
+    } else if (name == "DemolitionCard") {
+        applyDemolitionCard();
     }
+
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | KARTU_KEMAMPUAN | Pakai " + name);
+    player->removeCard(cardIndex);
+    player->setUsedSkillThisTurn(true);
+}
+
+// Implementasi masing-masing jenis
+void Game::applyMoveCard(int steps) {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    movePlayer(*player, steps);
+}
+
+void Game::applyDiscountCard(int percent) {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    player->activateDiscount(percent);
+    renderer->printInfo("DiscountCard aktif! Diskon " + std::to_string(percent) + "% selama 1 giliran.");
+}
+
+void Game::applyShieldCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    player->activateShield();
+    renderer->printInfo("ShieldCard aktif! Kamu kebal tagihan selama 1 giliran.");
+}
+
+void Game::applyTeleportCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    renderer->printInfo("Masukkan kode petak tujuan: ");
+    std::string kode;
+    std::getline(std::cin, kode);
+    Board& b = getBoard();
+    for (int i = 0; i < b.getTileCount(); i++) {
+        if (b.getTile(i) && b.getTile(i)->getCode() == kode) {
+            teleportPlayer(*player, i);
+            return;
+        }
+    }
+    renderer->printError("Kode petak tidak ditemukan.");
+}
+
+void Game::applyLassoCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    int myPos = player->getPosition();
+    // Cari pemain di depan (posisi lebih besar, atau sudah wrap around)
+    Player* target = nullptr;
+    int minDist = 41;
+    for (Player* other : getActivePlayers()) {
+        if (other == player) continue;
+        int dist = (other->getPosition() - myPos + 40) % 40;
+        if (dist > 0 && dist < minDist) {
+            minDist = dist;
+            target = other;
+        }
+    }
+    if (!target) {
+        renderer->printError("Tidak ada pemain di depan.");
+        return;
+    }
+    target->setPosition(myPos);
+    renderer->printInfo(target->getUsername() + " ditarik ke posisi kamu (" + std::to_string(myPos) + ").");
+}
+
+void Game::applyDemolitionCard() {
+    Player* player = getCurrentPlayer();
+    if (!player) return;
+    // Tampilkan properti lawan yang punya bangunan
+    std::vector<StreetTile*> targets;
+    for (Player* other : getActivePlayers()) {
+        if (other == player) continue;
+        for (auto* prop : other->getOwnedProperties()) {
+            StreetTile* st = dynamic_cast<StreetTile*>(prop);
+            if (st && st->getBuildingLevel() > 0) {
+                targets.push_back(st);
+            }
+        }
+    }
+    if (targets.empty()) {
+        renderer->printError("Tidak ada properti lawan yang memiliki bangunan.");
+        return;
+    }
+    renderer->printInfo("Pilih properti yang ingin dihancurkan:");
+    for (int i = 0; i < (int)targets.size(); i++) {
+        renderer->printInfo(std::to_string(i+1) + ". " + targets[i]->getName() + " (level " + std::to_string(targets[i]->getBuildingLevel()) + ")");
+    }
+    int choice;
+    std::string input;
+    std::getline(std::cin, input);
+    try {
+        choice = std::stoi(input);
+    } catch (...) {
+        renderer->printError("Input tidak valid.");
+        return;
+    }
+    if (choice < 1 || choice > (int)targets.size()) {
+        renderer->printError("Pilihan tidak valid.");
+        return;
+    }
+    StreetTile* chosen = targets[choice - 1];
+    chosen->setBuildingLevel(chosen->getBuildingLevel() - 1);
+    renderer->printInfo("Bangunan di " + chosen->getName() + " berhasil dihancurkan!");
+    logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player->getUsername() + " | DEMOLITION | Hancurkan bangunan di " + chosen->getName());
 }
 
 // ===== JAIL =====
@@ -1335,7 +1447,7 @@ void Game::drawSkillCard(Player& player) {
         logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DROP_KARTU | " + names[dropIndex]);
     } else {
         player.addCard(card);
-        renderer->printInfo("Kamu mendapatkan kartu: " + card->getName());
+        renderer->printInfo("Pemain " + player.getUsername() + "! Kamu mendapatkan kartu: " + card->getName());
     }
 
     logger->addLog("[Turn " + std::to_string(turnsPlayed) + "] " + player.getUsername() + " | DAPAT_KARTU | " + card->getName());

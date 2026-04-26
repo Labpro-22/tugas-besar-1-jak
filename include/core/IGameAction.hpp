@@ -46,6 +46,12 @@ public:
 
     // SkillCard
     virtual void useSkillCard(int cardIndex) = 0;
+    virtual void applyMoveCard(int steps) = 0;
+    virtual void applyTeleportCard() = 0;
+    virtual void applyDiscountCard(int percent) = 0;
+    virtual void applyShieldCard() = 0;
+    virtual void applyLassoCard() = 0;
+    virtual void applyDemolitionCard() = 0;
 
     // Jail
     virtual void payJailFine() = 0;

@@ -114,6 +114,12 @@ public:
     
     // SkillCard
     void useSkillCard(int cardIndex) override;
+    void applyMoveCard(int steps) override;
+    void applyTeleportCard() override;
+    void applyDiscountCard(int percent) override;
+    void applyShieldCard() override;
+    void applyLassoCard() override;
+    void applyDemolitionCard() override;
     
     // Jail
     void payJailFine() override;
